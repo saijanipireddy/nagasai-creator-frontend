@@ -6,7 +6,7 @@ import {
 } from 'react-icons/fa';
 import TopicSidebar from '../components/Courses/TopicSidebar';
 import CodingPlayground from '../components/Courses/CodingPlayground';
-import { courseAPI } from '../services/api';
+import { courseAPI, BACKEND_URL } from '../services/api';
 
 // Helper function to convert YouTube URL to embed format
 const getYouTubeEmbedUrl = (url) => {
@@ -227,7 +227,7 @@ const CourseTopics = () => {
                 {selectedTopic.pdfUrl ? (
                   <>
                     {/* PDF Toolbar */}
-                    <div className={`flex items-center justify-between px-4 py-2 bg-dark-card border-b border-dark-secondary shrink-0 ${pdfFullscreen ? '' : 'rounded-t-lg'}`}>
+                    <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 py-2 gap-2 bg-dark-card border-b border-dark-secondary shrink-0 ${pdfFullscreen ? '' : 'rounded-t-lg'}`}>
                       <div className="flex items-center gap-3">
                         <FaFileAlt className="text-red-500 text-lg" />
                         <div>
@@ -236,34 +236,34 @@ const CourseTopics = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        {/* Open in New Tab - For full browser PDF viewer with all controls */}
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        {/* Open in New Tab */}
                         <a
-                          href={`http://localhost:5000${selectedTopic.pdfUrl}`}
+                          href={`${BACKEND_URL}${selectedTopic.pdfUrl}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-white text-sm font-medium"
-                          title="Open in New Tab (Full PDF Viewer)"
+                          className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-white text-sm font-medium"
+                          title="Open in New Tab"
                         >
                           <FaExternalLinkAlt className="text-xs" />
-                          Open in New Tab
+                          <span className="hidden xs:inline">Open</span>
                         </a>
 
                         {/* Download */}
                         <a
-                          href={`http://localhost:5000${selectedTopic.pdfUrl}`}
+                          href={`${BACKEND_URL}${selectedTopic.pdfUrl}`}
                           download={`${selectedTopic.title}.pdf`}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-white text-sm font-medium"
+                          className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-white text-sm font-medium"
                           title="Download PDF"
                         >
                           <FaDownload className="text-xs" />
-                          Download
+                          <span className="hidden xs:inline">Download</span>
                         </a>
 
-                        {/* Fullscreen Toggle */}
+                        {/* Fullscreen Toggle - Hidden on mobile */}
                         <button
                           onClick={() => setPdfFullscreen(!pdfFullscreen)}
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium ${
+                          className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium ${
                             pdfFullscreen
                               ? 'bg-red-600 hover:bg-red-700 text-white'
                               : 'bg-dark-secondary hover:bg-dark-secondary/80 text-white'
@@ -271,28 +271,51 @@ const CourseTopics = () => {
                           title={pdfFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                         >
                           {pdfFullscreen ? <FaCompress className="text-xs" /> : <FaExpand className="text-xs" />}
-                          {pdfFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                          {pdfFullscreen ? 'Exit' : 'Fullscreen'}
                         </button>
                       </div>
                     </div>
 
-                    {/* PDF Viewer - Using embed for better native browser support */}
+                    {/* PDF Viewer - Desktop: embed, Mobile: iframe with Google Docs viewer */}
                     <div className={`flex-1 ${pdfFullscreen ? '' : 'rounded-b-lg overflow-hidden'}`}>
-                      <embed
-                        src={`http://localhost:5000${selectedTopic.pdfUrl}#view=FitH&toolbar=1&navpanes=1&scrollbar=1`}
-                        type="application/pdf"
-                        className="w-full h-full"
+                      {/* Desktop PDF viewer */}
+                      <iframe
+                        src={`${BACKEND_URL}${selectedTopic.pdfUrl}`}
+                        className="w-full h-full hidden sm:block"
                         style={{
                           height: pdfFullscreen ? 'calc(100vh - 52px)' : '100%',
                           minHeight: pdfFullscreen ? 'calc(100vh - 52px)' : 'calc(100vh - 8rem)'
                         }}
+                        title={selectedTopic.title}
                       />
+
+                      {/* Mobile PDF viewer - Google Docs viewer as fallback */}
+                      <div className="sm:hidden h-full flex flex-col">
+                        <iframe
+                          src={`https://docs.google.com/viewer?url=${encodeURIComponent(`${BACKEND_URL}${selectedTopic.pdfUrl}`)}&embedded=true`}
+                          className="w-full flex-1"
+                          style={{ minHeight: 'calc(100vh - 12rem)' }}
+                          title={selectedTopic.title}
+                        />
+                        <div className="p-4 bg-dark-card border-t border-dark-secondary text-center">
+                          <p className="text-dark-muted text-sm mb-3">Having trouble viewing? Open the PDF directly:</p>
+                          <a
+                            href={`${BACKEND_URL}${selectedTopic.pdfUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-dark-accent hover:bg-dark-accent/80 rounded-lg transition-colors text-white font-medium"
+                          >
+                            <FaExternalLinkAlt />
+                            Open PDF
+                          </a>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Hint text */}
+                    {/* Hint text - Desktop only */}
                     {!pdfFullscreen && (
-                      <div className="text-center py-2 text-xs text-dark-muted bg-dark-card rounded-b-lg border-t border-dark-secondary">
-                        Use the PDF toolbar above to zoom, navigate pages, and search. Click "Open in New Tab" for full browser PDF viewer.
+                      <div className="hidden sm:block text-center py-2 text-xs text-dark-muted bg-dark-card rounded-b-lg border-t border-dark-secondary">
+                        Use the PDF toolbar to zoom, navigate pages, and search.
                       </div>
                     )}
                   </>

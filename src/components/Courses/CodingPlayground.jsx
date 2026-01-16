@@ -4,8 +4,9 @@ import Split from 'react-split';
 import {
   FaLightbulb, FaPlay, FaRedo, FaTimes, FaChevronDown, FaChevronUp,
   FaCheck, FaCopy, FaImage, FaExpand, FaLink, FaHtml5, FaCss3Alt, FaJs,
-  FaPython, FaDatabase, FaDownload, FaSun, FaMoon, FaCompress, FaCode, FaTerminal
+  FaPython, FaDatabase, FaDownload, FaSun, FaMoon, FaCompress, FaCode, FaTerminal, FaFileAlt
 } from 'react-icons/fa';
+import { BACKEND_URL } from '../../services/api';
 
 // Language configurations
 const LANGUAGE_CONFIG = {
@@ -82,8 +83,19 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
   const [imageExpanded, setImageExpanded] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showProblem, setShowProblem] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [activePanel, setActivePanel] = useState('editor'); // 'problem', 'editor', 'output' for mobile
 
   const iframeRef = useRef(null);
+
+  // Handle window resize for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Initialize code from starter code
   useEffect(() => {
@@ -366,8 +378,8 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
 
   return (
     <div className={`fixed inset-0 z-50 flex flex-col ${isDarkMode ? 'bg-dark-bg' : 'bg-gray-100'}`}>
-      {/* Header */}
-      <div className={`flex items-center justify-between px-4 py-2 border-b shrink-0 ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+      {/* Header - Desktop */}
+      <div className={`hidden md:flex items-center justify-between px-4 py-2 border-b shrink-0 ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
@@ -424,8 +436,73 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 min-h-0">
+      {/* Header - Mobile */}
+      <div className={`md:hidden flex items-center justify-between px-3 py-2 border-b shrink-0 ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onClose}
+            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`}
+          >
+            <FaTimes className="text-sm" />
+          </button>
+          <h1 className={`text-sm font-bold truncate max-w-[120px] ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{codingPractice.title}</h1>
+          <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] rounded font-medium">
+            {isWebPlayground ? 'Web' : langConfig.name}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button
+            onClick={runCode}
+            disabled={isRunning}
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors text-xs ${isRunning ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white`}
+          >
+            <FaPlay className={`text-[10px] ${isRunning ? 'animate-pulse' : ''}`} />
+            {isRunning ? '...' : 'Run'}
+          </button>
+
+          <button
+            onClick={resetCode}
+            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`}
+          >
+            <FaRedo className="text-xs" />
+          </button>
+
+          <button
+            onClick={handleCopyCode}
+            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`}
+          >
+            {copied ? <FaCheck className="text-xs text-green-500" /> : <FaCopy className="text-xs" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Tab Navigation */}
+      <div className={`md:hidden flex border-b shrink-0 ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+        {[
+          { id: 'problem', label: 'Problem', icon: FaFileAlt },
+          { id: 'editor', label: 'Editor', icon: FaCode },
+          { id: 'output', label: 'Output', icon: FaTerminal }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActivePanel(tab.id)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors relative
+              ${activePanel === tab.id
+                ? isDarkMode ? 'text-dark-accent' : 'text-blue-600'
+                : isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}
+          >
+            <tab.icon className="text-sm" />
+            {tab.label}
+            {activePanel === tab.id && (
+              <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-dark-accent' : 'bg-blue-600'}`} />
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Main Content - Desktop */}
+      <div className="hidden md:block flex-1 min-h-0">
         <Split
           className="split-horizontal h-full"
           sizes={showProblem ? [30, 70] : [0, 100]}
@@ -477,7 +554,7 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
                     style={{ height: '280px' }}
                   >
                     <img
-                      src={`http://localhost:5000${codingPractice.referenceImage}`}
+                      src={`${BACKEND_URL}${codingPractice.referenceImage}`}
                       alt="Reference UI"
                       className="rounded-lg border-2 border-dark-secondary hover:border-blue-400 transition-colors"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -692,12 +769,163 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
         </Split>
       </div>
 
+      {/* Main Content - Mobile */}
+      <div className="md:hidden flex-1 min-h-0 flex flex-col">
+        {/* Problem Panel - Mobile */}
+        {activePanel === 'problem' && (
+          <div className={`flex-1 overflow-y-auto p-3 ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+            <h2 className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-dark-accent' : 'text-blue-600'}`}>Problem Description</h2>
+            <div className={`text-xs leading-relaxed whitespace-pre-wrap ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {renderDescription(codingPractice.description)}
+            </div>
+
+            {/* Reference Image - Mobile */}
+            {codingPractice.referenceImage && (
+              <div className="mt-4">
+                <h3 className="text-sm font-semibold mb-2 text-blue-400 flex items-center gap-2">
+                  <FaImage className="text-xs" /> Reference
+                </h3>
+                <img
+                  src={`${BACKEND_URL}${codingPractice.referenceImage}`}
+                  alt="Reference UI"
+                  className="w-full rounded-lg border border-dark-secondary"
+                  onClick={() => setImageExpanded(true)}
+                />
+              </div>
+            )}
+
+            {/* Expected Output - Mobile */}
+            {codingPractice.expectedOutput && (
+              <div className="mt-4">
+                <h3 className="text-sm font-semibold mb-2 text-green-400">Expected Output</h3>
+                <pre className={`p-2 rounded-lg text-xs overflow-x-auto font-mono ${isDarkMode ? 'bg-dark-bg text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
+                  {codingPractice.expectedOutput}
+                </pre>
+              </div>
+            )}
+
+            {/* Hints - Mobile */}
+            {codingPractice.hints && codingPractice.hints.length > 0 && (
+              <div className="mt-4">
+                <button
+                  onClick={() => setShowHints(!showHints)}
+                  className="flex items-center gap-2 text-yellow-500 font-medium text-sm"
+                >
+                  <FaLightbulb /> Hints ({codingPractice.hints.length})
+                </button>
+                {showHints && (
+                  <div className="mt-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
+                    <p className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {codingPractice.hints[currentHintIndex]}
+                    </p>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => setCurrentHintIndex(prev => Math.max(0, prev - 1))}
+                        disabled={currentHintIndex === 0}
+                        className="px-2 py-1 text-xs rounded bg-dark-secondary disabled:opacity-50"
+                      >
+                        Prev
+                      </button>
+                      <button
+                        onClick={() => setCurrentHintIndex(prev => Math.min(codingPractice.hints.length - 1, prev + 1))}
+                        disabled={currentHintIndex >= codingPractice.hints.length - 1}
+                        className="px-2 py-1 text-xs rounded bg-dark-secondary disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Editor Panel - Mobile */}
+        {activePanel === 'editor' && (
+          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+            {/* Web Tabs - Mobile */}
+            {isWebPlayground && (
+              <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                {[
+                  { id: 'html', label: 'HTML', icon: FaHtml5, color: '#e34c26' },
+                  { id: 'css', label: 'CSS', icon: FaCss3Alt, color: '#264de4' },
+                  { id: 'js', label: 'JS', icon: FaJs, color: '#f7df1e' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveWebTab(tab.id)}
+                    className={`flex-1 flex items-center justify-center gap-1 py-2 transition-colors relative text-xs
+                      ${activeWebTab === tab.id
+                        ? isDarkMode ? 'bg-dark-secondary' : 'bg-gray-100'
+                        : ''}`}
+                  >
+                    <tab.icon style={{ color: tab.color }} className="text-sm" />
+                    {tab.label}
+                    {activeWebTab === tab.id && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: tab.color }} />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Monaco Editor - Mobile */}
+            <div className="flex-1 min-h-0">
+              <Editor
+                height="100%"
+                language={getEditorLanguage()}
+                value={isWebPlayground ? getCurrentCode() : code}
+                onChange={(value) => isWebPlayground ? setCurrentCode(value || '') : setCode(value || '')}
+                theme={theme}
+                options={{ ...editorOptions, fontSize: 12 }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Output Panel - Mobile */}
+        {activePanel === 'output' && (
+          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+            <div className="flex-1 min-h-0 overflow-auto">
+              {isWebPlayground ? (
+                <div className="h-full bg-white">
+                  {webPreview ? (
+                    <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals" />
+                  ) : (
+                    <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400 text-sm">
+                      Click "Run" to see preview
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className={`h-full p-3 font-mono text-xs whitespace-pre-wrap ${isDarkMode ? 'bg-dark-bg text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
+                  {output || <span className={isDarkMode ? 'text-dark-muted' : 'text-gray-400'}>Click "Run" to execute code</span>}
+                </div>
+              )}
+            </div>
+            {/* Console for mobile */}
+            {isWebPlayground && consoleOutput.length > 0 && (
+              <div className={`max-h-32 overflow-auto border-t ${isDarkMode ? 'bg-dark-bg border-dark-secondary' : 'bg-gray-100 border-gray-200'}`}>
+                <div className="p-2">
+                  {consoleOutput.map((log, i) => (
+                    <div key={i} className={`text-xs font-mono py-0.5 ${log.level === 'error' ? 'text-red-500' : log.level === 'warn' ? 'text-yellow-500' : isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {log.message}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Expanded Image Modal */}
       {imageExpanded && codingPractice.referenceImage && (
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4" onClick={() => setImageExpanded(false)}>
           <div className="relative max-w-5xl max-h-[90vh]">
             <img
-              src={`http://localhost:5000${codingPractice.referenceImage}`}
+              src={`${BACKEND_URL}${codingPractice.referenceImage}`}
               alt="Reference UI - Expanded"
               className="max-w-full max-h-[85vh] object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}

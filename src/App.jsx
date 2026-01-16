@@ -1,13 +1,23 @@
-import React from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout/Layout';
+import Dashboard from './pages/Dashboard';
+import CourseContent from './pages/CourseContent';
+import CourseTopics from './pages/CourseTopics';
+import CodePlayground from './pages/CodePlayground';
 
-const App = () => {
+function App() {
   return (
-    <div>
-      <h1> naga sai kumar janipireddy </h1>
-      <button> SUbmit </button>
-      <button> CLick Here </button>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="courses" element={<CourseContent />} />
+          <Route path="course/:courseId" element={<CourseTopics />} />
+          <Route path="playground" element={<CodePlayground />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

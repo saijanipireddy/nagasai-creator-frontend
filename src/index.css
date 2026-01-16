@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+/* Custom theme variables for Tailwind v4 */
+@theme {
+  --color-dark-bg: #0f0f0f;
+  --color-dark-card: #1a1a2e;
+  --color-dark-sidebar: #16213e;
+  --color-dark-accent: #e94560;
+  --color-dark-secondary: #0f3460;
+  --color-dark-text: #eaeaea;
+  --color-dark-muted: #a0a0a0;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e94560;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff6b6b;
+}
+
+/* Base dark theme styles */
+body {
+  background-color: var(--color-dark-bg);
+  color: var(--color-dark-text);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Utility classes for dark theme colors */
+.bg-dark-bg { background-color: var(--color-dark-bg); }
+.bg-dark-card { background-color: var(--color-dark-card); }
+.bg-dark-sidebar { background-color: var(--color-dark-sidebar); }
+.bg-dark-accent { background-color: var(--color-dark-accent); }
+.bg-dark-secondary { background-color: var(--color-dark-secondary); }
+
+.text-dark-text { color: var(--color-dark-text); }
+.text-dark-muted { color: var(--color-dark-muted); }
+.text-dark-accent { color: var(--color-dark-accent); }
+
+.border-dark-secondary { border-color: var(--color-dark-secondary); }
+.border-dark-accent { border-color: var(--color-dark-accent); }
+
+.shadow-dark-accent\/5 { box-shadow: 0 10px 15px -3px rgb(233 69 96 / 0.05); }
+.shadow-dark-accent\/10 { box-shadow: 0 10px 15px -3px rgb(233 69 96 / 0.1); }
+.shadow-dark-accent\/20 { box-shadow: 0 10px 15px -3px rgb(233 69 96 / 0.2); }
+.shadow-dark-accent\/30 { box-shadow: 0 10px 15px -3px rgb(233 69 96 / 0.3); }
+
+.hover\:bg-dark-accent:hover { background-color: var(--color-dark-accent); }
+.hover\:bg-dark-secondary:hover { background-color: var(--color-dark-secondary); }
+.hover\:bg-dark-secondary\/50:hover { background-color: rgb(15 52 96 / 0.5); }
+.hover\:bg-dark-secondary\/80:hover { background-color: rgb(15 52 96 / 0.8); }
+.hover\:bg-dark-accent\/80:hover { background-color: rgb(233 69 96 / 0.8); }
+
+.hover\:text-dark-accent:hover { color: var(--color-dark-accent); }
+.hover\:text-white:hover { color: white; }
+
+.hover\:border-dark-accent:hover { border-color: var(--color-dark-accent); }
+.hover\:border-dark-accent\/50:hover { border-color: rgb(233 69 96 / 0.5); }
+
+.focus\:outline-none:focus { outline: none; }
+.focus\:border-dark-accent:focus { border-color: var(--color-dark-accent); }
+
+.placeholder-dark-muted::placeholder { color: var(--color-dark-muted); }
+
+/* React Split styles */
+.split-horizontal {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+
+.split-vertical {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.split-horizontal > div,
+.split-vertical > div {
+  overflow: hidden;
+}
+
+.gutter {
+  background-color: #2a2a3e;
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transition: background-color 0.2s;
+}
+
+.gutter:hover {
+  background-color: var(--color-dark-accent);
+}
+
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+  width: 6px !important;
+}
+
+.gutter.gutter-vertical {
+  cursor: row-resize;
+  height: 6px !important;
+}
+
+/* Fade in animation for accordions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+}

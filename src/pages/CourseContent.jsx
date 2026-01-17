@@ -1,12 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { FaSearch, FaBook } from 'react-icons/fa';
 import CourseCard from '../components/Courses/CourseCard';
 import { courseAPI } from '../services/api';
+import { CourseContentSkeleton } from '../components/Loaders/Skeleton';
+
+// Custom debounce hook for search optimization
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 const CourseContent = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Debounce search query by 300ms to reduce filtering on every keystroke
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   useEffect(() => {
     fetchCourses();
@@ -23,17 +42,19 @@ const CourseContent = () => {
     }
   };
 
-  const filteredCourses = courses.filter((course) => {
-    return course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           course.description.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  // Memoize filtered courses to prevent unnecessary recalculations
+  const filteredCourses = useMemo(() => {
+    const query = debouncedSearchQuery.toLowerCase();
+    if (!query) return courses;
+
+    return courses.filter((course) => {
+      return course.name.toLowerCase().includes(query) ||
+             (course.description && course.description.toLowerCase().includes(query));
+    });
+  }, [courses, debouncedSearchQuery]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 border-dark-accent border-t-transparent rounded-full"></div>
-      </div>
-    );
+    return <CourseContentSkeleton />;
   }
 
   return (

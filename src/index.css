@@ -127,3 +127,88 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.2s ease-out forwards;
 }
+
+/* Shimmer animation for skeleton loaders */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    var(--color-dark-secondary) 0%,
+    var(--color-dark-card) 20%,
+    var(--color-dark-secondary) 40%,
+    var(--color-dark-secondary) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Pulse glow animation for loading indicators */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 40px rgba(233, 69, 96, 0.5);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Spinning loader with gradient */
+@keyframes spin-gradient {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loader-spin {
+  animation: spin-gradient 1s linear infinite;
+}
+
+/* Content fade in animation */
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-content-fade-in {
+  animation: contentFadeIn 0.4s ease-out forwards;
+}
+
+/* Skeleton text line animation */
+@keyframes textShimmer {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.animate-text-shimmer {
+  animation: textShimmer 1.5s ease-in-out infinite;
+}

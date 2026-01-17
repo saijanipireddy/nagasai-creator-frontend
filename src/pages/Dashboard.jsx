@@ -1,24 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FaBook, FaPlay, FaCode, FaYoutube, FaArrowRight, FaRocket, FaLaptopCode, FaGraduationCap } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { courseAPI } from '../services/api';
+import { DashboardSkeleton } from '../components/Loaders/Skeleton';
 
 const Dashboard = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [visibleCards, setVisibleCards] = useState([false, false, false]);
+  const [animationStarted, setAnimationStarted] = useState(false);
 
   useEffect(() => {
     fetchCourses();
-
-    // Staggered animation for feature cards
-    const timers = [
-      setTimeout(() => setVisibleCards(prev => [true, prev[1], prev[2]]), 200),
-      setTimeout(() => setVisibleCards(prev => [prev[0], true, prev[2]]), 400),
-      setTimeout(() => setVisibleCards(prev => [prev[0], prev[1], true]), 600),
-    ];
-
-    return () => timers.forEach(timer => clearTimeout(timer));
+    // Single state update to trigger CSS animations instead of multiple re-renders
+    const timer = setTimeout(() => setAnimationStarted(true), 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const fetchCourses = async () => {
@@ -33,11 +28,7 @@ const Dashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 border-dark-accent border-t-transparent rounded-full"></div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -86,27 +77,36 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Features */}
+      {/* Features - Using CSS animation delays for better performance */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`bg-dark-card rounded-xl border border-dark-secondary p-6 hover:border-dark-accent/50 hover:scale-105 hover:-translate-y-1 transition-all duration-500 ease-out ${visibleCards[0] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div
+          className={`bg-dark-card rounded-xl border border-dark-secondary p-6 hover:border-dark-accent/50 hover:scale-105 hover:-translate-y-1 transition-all duration-500 ease-out ${animationStarted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          style={{ transitionDelay: '0ms' }}
+        >
           <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center mb-4">
-            <FaYoutube className={`text-red-500 text-xl ${visibleCards[0] ? 'animate-bounce' : ''}`} style={{ animationDuration: '1s', animationIterationCount: '2' }} />
+            <FaYoutube className="text-red-500 text-xl" />
           </div>
           <h3 className="font-bold text-lg mb-2">Video Tutorials</h3>
           <p className="text-dark-muted text-sm">Learn with detailed video explanations for every topic</p>
         </div>
 
-        <div className={`bg-dark-card rounded-xl border border-dark-secondary p-6 hover:border-dark-accent/50 hover:scale-105 hover:-translate-y-1 transition-all duration-500 ease-out ${visibleCards[1] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div
+          className={`bg-dark-card rounded-xl border border-dark-secondary p-6 hover:border-dark-accent/50 hover:scale-105 hover:-translate-y-1 transition-all duration-500 ease-out ${animationStarted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          style={{ transitionDelay: '150ms' }}
+        >
           <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
-            <FaLaptopCode className={`text-blue-500 text-xl ${visibleCards[1] ? 'animate-bounce' : ''}`} style={{ animationDuration: '1s', animationIterationCount: '2' }} />
+            <FaLaptopCode className="text-blue-500 text-xl" />
           </div>
           <h3 className="font-bold text-lg mb-2">Practice & Code</h3>
           <p className="text-dark-muted text-sm">Hands-on practice questions and coding challenges</p>
         </div>
 
-        <div className={`bg-dark-card rounded-xl border border-dark-secondary p-6 hover:border-dark-accent/50 hover:scale-105 hover:-translate-y-1 transition-all duration-500 ease-out ${visibleCards[2] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div
+          className={`bg-dark-card rounded-xl border border-dark-secondary p-6 hover:border-dark-accent/50 hover:scale-105 hover:-translate-y-1 transition-all duration-500 ease-out ${animationStarted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          style={{ transitionDelay: '300ms' }}
+        >
           <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4">
-            <FaGraduationCap className={`text-purple-500 text-xl ${visibleCards[2] ? 'animate-bounce' : ''}`} style={{ animationDuration: '1s', animationIterationCount: '2' }} />
+            <FaGraduationCap className="text-purple-500 text-xl" />
           </div>
           <h3 className="font-bold text-lg mb-2">Structured Learning</h3>
           <p className="text-dark-muted text-sm">Follow a clear path from beginner to advanced</p>

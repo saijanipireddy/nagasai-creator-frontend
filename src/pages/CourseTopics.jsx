@@ -7,6 +7,13 @@ import {
 import TopicSidebar from '../components/Courses/TopicSidebar';
 import CodingPlayground from '../components/Courses/CodingPlayground';
 import { courseAPI, BACKEND_URL } from '../services/api';
+import {
+  CourseTopicsSkeleton,
+  VideoPlayerSkeleton,
+  PDFViewerSkeleton,
+  PracticeSkeleton,
+  CodingPlaygroundSkeleton
+} from '../components/Loaders/Skeleton';
 
 // Helper function to convert YouTube URL to embed format
 const getYouTubeEmbedUrl = (url) => {
@@ -53,6 +60,11 @@ const CourseTopics = () => {
   const [loading, setLoading] = useState(true);
   const [showCodingPlayground, setShowCodingPlayground] = useState(false);
 
+  // Content loading states for tab switching
+  const [contentLoading, setContentLoading] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [pdfLoaded, setPdfLoaded] = useState(false);
+
   // PDF Viewer states
   const [pdfFullscreen, setPdfFullscreen] = useState(false);
 
@@ -92,6 +104,13 @@ const CourseTopics = () => {
       setShowResults(false);
       setShowCodingPlayground(false);
       setPdfFullscreen(false);
+      // Reset content loading states when topic changes
+      setVideoLoaded(false);
+      setPdfLoaded(false);
+      setContentLoading(true);
+      // Simulate a brief loading state for smooth transition
+      const timer = setTimeout(() => setContentLoading(false), 300);
+      return () => clearTimeout(timer);
     }
   }, [selectedTopic]);
 
@@ -118,14 +137,7 @@ const CourseTopics = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-dark-accent border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-dark-muted">Loading course...</p>
-        </div>
-      </div>
-    );
+    return <CourseTopicsSkeleton />;
   }
 
   if (!course) {
@@ -202,14 +214,20 @@ const CourseTopics = () => {
             {/* Video Content */}
             {activeTab === 'video' && (
               <div className="h-[calc(100vh-5rem)]">
-                {selectedTopic.videoUrl ? (
-                  <iframe
-                    src={getYouTubeEmbedUrl(selectedTopic.videoUrl)}
-                    className="w-full h-full rounded-lg"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title={selectedTopic.title}
-                  />
+                {contentLoading ? (
+                  <VideoPlayerSkeleton />
+                ) : selectedTopic.videoUrl ? (
+                  <div className="relative w-full h-full">
+                    {!videoLoaded && <VideoPlayerSkeleton />}
+                    <iframe
+                      src={getYouTubeEmbedUrl(selectedTopic.videoUrl)}
+                      className={`w-full h-full rounded-lg transition-opacity duration-300 ${videoLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={selectedTopic.title}
+                      onLoad={() => setVideoLoaded(true)}
+                    />
+                  </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-dark-muted bg-dark-card rounded-lg">
                     <div className="text-center">
@@ -224,7 +242,9 @@ const CourseTopics = () => {
             {/* PPT/PDF Content */}
             {activeTab === 'ppt' && (
               <div className={`${pdfFullscreen ? 'fixed inset-0 z-50 bg-dark-bg p-0' : 'h-[calc(100vh-5rem)]'} flex flex-col`}>
-                {selectedTopic.pdfUrl ? (
+                {contentLoading ? (
+                  <PDFViewerSkeleton />
+                ) : selectedTopic.pdfUrl ? (
                   <>
                     {/* PDF Toolbar */}
                     <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 py-2 gap-2 bg-dark-card border-b border-dark-secondary shrink-0 ${pdfFullscreen ? '' : 'rounded-t-lg'}`}>
@@ -277,16 +297,22 @@ const CourseTopics = () => {
                     </div>
 
                     {/* PDF Viewer - Desktop: embed, Mobile: iframe with Google Docs viewer */}
-                    <div className={`flex-1 ${pdfFullscreen ? '' : 'rounded-b-lg overflow-hidden'}`}>
+                    <div className={`flex-1 relative ${pdfFullscreen ? '' : 'rounded-b-lg overflow-hidden'}`}>
+                      {!pdfLoaded && (
+                        <div className="absolute inset-0 z-10">
+                          <PDFViewerSkeleton />
+                        </div>
+                      )}
                       {/* Desktop PDF viewer */}
                       <iframe
                         src={`${BACKEND_URL}${selectedTopic.pdfUrl}`}
-                        className="w-full h-full hidden sm:block"
+                        className={`w-full h-full hidden sm:block transition-opacity duration-300 ${pdfLoaded ? 'opacity-100' : 'opacity-0'}`}
                         style={{
                           height: pdfFullscreen ? 'calc(100vh - 52px)' : '100%',
                           minHeight: pdfFullscreen ? 'calc(100vh - 52px)' : 'calc(100vh - 8rem)'
                         }}
                         title={selectedTopic.title}
+                        onLoad={() => setPdfLoaded(true)}
                       />
 
                       {/* Mobile PDF viewer - Google Docs viewer as fallback */}
@@ -296,6 +322,7 @@ const CourseTopics = () => {
                           className="w-full flex-1"
                           style={{ minHeight: 'calc(100vh - 12rem)' }}
                           title={selectedTopic.title}
+                          onLoad={() => setPdfLoaded(true)}
                         />
                         <div className="p-4 bg-dark-card border-t border-dark-secondary text-center">
                           <p className="text-dark-muted text-sm mb-3">Having trouble viewing? Open the PDF directly:</p>
@@ -333,7 +360,9 @@ const CourseTopics = () => {
             {/* Practice Content */}
             {activeTab === 'practice' && (
               <div className="h-[calc(100vh-5rem)] overflow-y-auto">
-                {selectedTopic.practice && selectedTopic.practice.length > 0 ? (
+                {contentLoading ? (
+                  <PracticeSkeleton />
+                ) : selectedTopic.practice && selectedTopic.practice.length > 0 ? (
                   <div className="space-y-4 p-4 bg-dark-card rounded-lg">
                     {selectedTopic.practice.map((q, idx) => (
                       <div key={idx} className="p-4 bg-dark-bg rounded-lg">
@@ -408,12 +437,16 @@ const CourseTopics = () => {
             {/* Coding Practice Content - Fallback when no content */}
             {activeTab === 'codingPractice' && !selectedTopic.codingPractice?.title && (
               <div className="h-[calc(100vh-5rem)] overflow-y-auto">
+                {contentLoading ? (
+                  <CodingPlaygroundSkeleton />
+                ) : (
                 <div className="w-full h-full flex items-center justify-center text-dark-muted bg-dark-card rounded-lg">
                   <div className="text-center">
                     <FaLaptopCode className="text-6xl mx-auto mb-4 opacity-50" />
                     <p className="text-lg">Coding practice coming soon</p>
                   </div>
                 </div>
+                )}
               </div>
             )}
           </div>

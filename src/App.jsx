@@ -1,11 +1,19 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Dashboard';
 import CourseContent from './pages/CourseContent';
 import CourseTopics from './pages/CourseTopics';
 import CodePlayground from './pages/CodePlayground';
+import { startKeepAlive, stopKeepAlive } from './services/api';
 
 function App() {
+  // Start keep-alive ping to prevent Render cold starts
+  useEffect(() => {
+    startKeepAlive();
+    return () => stopKeepAlive();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>

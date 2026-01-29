@@ -7,8 +7,10 @@ const API_URL = `${BACKEND_URL}/api`;
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+    'Accept-Encoding': 'gzip, deflate, br'
+  },
+  timeout: 30000
 });
 
 // ============================================
@@ -73,9 +75,32 @@ const cachedRequest = async (url, forceRefresh = false) => {
 // Course APIs with Caching
 // ============================================
 export const courseAPI = {
-  getAll: (forceRefresh = false) => cachedRequest('/courses', forceRefresh),
+  getAll: async (forceRefresh = false, options = {}) => {
+    const { page = 1, limit = 50 } = options;
+    const url = `/courses?page=${page}&limit=${limit}`;
+    const result = await cachedRequest(url, forceRefresh);
+
+    // Handle both old format (array) and new format ({ courses, pagination })
+    if (Array.isArray(result.data)) {
+      return { data: result.data, fromCache: result.fromCache };
+    }
+    return { data: result.data.courses || result.data, pagination: result.data.pagination, fromCache: result.fromCache };
+  },
+
   getById: (id, forceRefresh = false) => cachedRequest(`/courses/${id}`, forceRefresh),
-  getTopics: (id, forceRefresh = false) => cachedRequest(`/courses/${id}/topics`, forceRefresh),
+
+  getTopics: async (id, forceRefresh = false, options = {}) => {
+    const { page = 1, limit = 100, minimal = false } = options;
+    const url = `/courses/${id}/topics?page=${page}&limit=${limit}&minimal=${minimal}`;
+    const result = await cachedRequest(url, forceRefresh);
+
+    // Handle both old format (array) and new format ({ topics, pagination })
+    if (Array.isArray(result.data)) {
+      return { data: result.data, fromCache: result.fromCache };
+    }
+    return { data: result.data.topics || result.data, pagination: result.data.pagination, fromCache: result.fromCache };
+  },
+
   // Invalidate cache when data changes
   invalidateCache: () => {
     clearCache();
@@ -98,7 +123,8 @@ export const startKeepAlive = () => {
 
   const ping = async () => {
     try {
-      await api.get('/courses');
+      // Use health endpoint for lighter ping
+      await api.get('/health');
       console.log('Keep-alive ping successful');
     } catch (error) {
       console.log('Keep-alive ping failed:', error.message);

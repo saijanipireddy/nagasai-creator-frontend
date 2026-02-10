@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { FaBell, FaUserCircle, FaBars } from 'react-icons/fa';
+import { FaBell, FaUserCircle, FaBars, FaSignOutAlt } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = ({ onToggleSidebar }) => {
   const [notifications] = useState(3);
+  const { user, logout } = useAuth();
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-dark-sidebar border-b border-dark-secondary z-50">
@@ -43,11 +45,20 @@ const Navbar = ({ onToggleSidebar }) => {
           {/* Profile */}
           <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-dark-secondary transition-colors cursor-pointer">
             <FaUserCircle className="text-2xl text-dark-accent" />
-            <div className="hidden sm:block">
-              <p className="text-sm font-medium">Student</p>
-              <p className="text-xs text-dark-muted">Free Learning</p>
+            <div className="hidden sm:block text-left">
+              <p className="text-sm font-medium">{user?.name || 'Student'}</p>
+              <p className="text-xs text-dark-muted">Learning</p>
             </div>
           </div>
+
+          {/* Logout */}
+          <button
+            onClick={logout}
+            title="Logout"
+            className="p-2 rounded-lg hover:bg-dark-secondary transition-colors text-dark-muted hover:text-dark-accent"
+          >
+            <FaSignOutAlt className="text-lg" />
+          </button>
         </div>
       </div>
     </nav>

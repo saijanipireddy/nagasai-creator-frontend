@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { FaHome, FaBook, FaCode, FaTimes, FaChevronLeft } from 'react-icons/fa';
+import { FaHome, FaBook, FaCode, FaTimes, FaChevronLeft, FaTrophy } from 'react-icons/fa';
 
 const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
   const navItems = [
     { path: '/', icon: FaHome, label: 'Dashboard' },
     { path: '/courses', icon: FaBook, label: 'Full Stack Course' },
-    { path: '/playground', icon: FaCode, label: 'Code Playground' }
+    { path: '/playground', icon: FaCode, label: 'Code Playground' },
+    { path: '/leaderboard', icon: FaTrophy, label: 'Leaderboard' }
   ];
 
   return (

@@ -60,4 +60,15 @@ export const studentAuthAPI = {
   getProfile: () => api.get('/student-auth/profile')
 };
 
+// Score APIs
+export const scoreAPI = {
+  submitPractice: (data) => api.post('/scores/practice', data),
+  submitCoding: (data) => api.post('/scores/coding', data),
+  submitCodingChallenge: (data) => api.post('/scores/coding-submit', data),
+  markComplete: (data) => api.post('/scores/complete', data),
+  getCompletions: (courseId) => api.get('/scores/completions', { params: { courseId } }),
+  getMyProgress: () => api.get('/scores/my-progress'),
+  getLeaderboard: () => api.get('/scores/leaderboard'),
+};
+
 export default api;

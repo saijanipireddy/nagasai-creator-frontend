@@ -15,7 +15,8 @@ const TopicSidebar = ({
   courseName,
   courseColor,
   activeTab,
-  onTabChange
+  onTabChange,
+  completions = {}
 }) => {
   // Track which topic is expanded (separate from selected)
   const [expandedTopicId, setExpandedTopicId] = useState(null);
@@ -71,6 +72,15 @@ const TopicSidebar = ({
             const isSelected = selectedId === topicId;
             const isExpanded = expandedTopicId === topicId;
 
+            // Check if all available sub-items are completed
+            const topicCompletions = completions[topicId] || [];
+            const availableItems = [];
+            if (topic.videoUrl) availableItems.push('video');
+            if (topic.pdfUrl) availableItems.push('ppt');
+            if (topic.practice?.length > 0) availableItems.push('practice');
+            if (topic.codingPractice?.title) availableItems.push('codingPractice');
+            const allCompleted = availableItems.length > 0 && availableItems.every(item => topicCompletions.includes(item));
+
             return (
               <li key={topicId}>
                 {/* Topic Header */}
@@ -84,14 +94,14 @@ const TopicSidebar = ({
                   {/* Status Icon */}
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-medium transition-all
-                      ${topic.completed
+                      ${allCompleted
                         ? 'bg-green-500 text-white'
                         : isSelected
                           ? 'bg-dark-accent text-white'
                           : 'bg-dark-secondary text-dark-muted'
                       }`}
                   >
-                    {topic.completed ? (
+                    {allCompleted ? (
                       <FaCheck className="text-xs" />
                     ) : (
                       index + 1
@@ -109,12 +119,14 @@ const TopicSidebar = ({
                   )}
                 </button>
 
-                {/* Sub Items (Video, PPT, Practice, Coding) - Only show when expanded */}
+                {/* Sub Items (Video, PPT, Practice, Coding) - Timeline layout */}
                 {isExpanded && (
-                  <div className="ml-4 mt-1 space-y-1 border-l-2 border-dark-secondary pl-4 animate-fadeIn">
-                    {subItems.map((item) => {
+                  <div className="ml-7 mt-1 animate-fadeIn">
+                    {subItems.map((item, itemIndex) => {
                       const isActiveTab = activeTab === item.id && isSelected;
                       const IconComponent = item.icon;
+                      const isItemCompleted = topicCompletions.includes(item.id);
+                      const isLast = itemIndex === subItems.length - 1;
 
                       // Check if content exists for this item
                       let hasContent = true;
@@ -124,24 +136,48 @@ const TopicSidebar = ({
                       if (item.id === 'codingPractice') hasContent = !!topic.codingPractice?.title;
 
                       return (
-                        <button
-                          key={item.id}
-                          onClick={() => handleSubItemClick(topic, item.id)}
-                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-sm transition-all duration-200
-                            ${isActiveTab
-                              ? 'bg-dark-accent text-white shadow-md'
-                              : hasContent
-                                ? 'hover:bg-dark-secondary text-dark-muted hover:text-white'
-                                : 'text-dark-muted/50 cursor-default'
-                            }`}
-                          disabled={!hasContent}
-                        >
-                          <IconComponent className={`text-sm ${isActiveTab ? 'text-white' : hasContent ? 'text-dark-accent' : 'text-dark-muted/50'}`} />
-                          <span>{item.label}</span>
-                          {!hasContent && (
-                            <span className="ml-auto text-xs text-dark-muted/50">Soon</span>
-                          )}
-                        </button>
+                        <div key={item.id} className="flex">
+                          {/* Left timeline: circle + vertical line */}
+                          <div className="flex flex-col items-center mr-3 flex-shrink-0">
+                            {/* Circle */}
+                            {isItemCompleted ? (
+                              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                                <FaCheck className="text-[8px] text-white" />
+                              </div>
+                            ) : (
+                              <div className={`w-5 h-5 rounded-full border-2 ${
+                                isActiveTab ? 'border-dark-accent bg-dark-accent/20' : 'border-dark-muted/40'
+                              }`} />
+                            )}
+                            {/* Vertical line (not on last item) */}
+                            {!isLast && (
+                              <div className={`w-0.5 flex-1 min-h-[8px] ${
+                                isItemCompleted && topicCompletions.includes(subItems[itemIndex + 1]?.id)
+                                  ? 'bg-green-500/50'
+                                  : 'bg-dark-secondary'
+                              }`} />
+                            )}
+                          </div>
+
+                          {/* Sub-item button */}
+                          <button
+                            onClick={() => handleSubItemClick(topic, item.id)}
+                            className={`flex-1 flex items-center gap-2 px-3 py-2 mb-1 rounded-lg text-left text-sm transition-all duration-200
+                              ${isActiveTab
+                                ? 'bg-dark-accent text-white shadow-md'
+                                : hasContent
+                                  ? 'hover:bg-dark-secondary text-dark-muted hover:text-white'
+                                  : 'text-dark-muted/50 cursor-default'
+                              }`}
+                            disabled={!hasContent}
+                          >
+                            <IconComponent className={`text-sm ${isActiveTab ? 'text-white' : hasContent ? 'text-dark-accent' : 'text-dark-muted/50'}`} />
+                            <span className="flex-1">{item.label}</span>
+                            {!hasContent && (
+                              <span className="text-xs text-dark-muted/50">Soon</span>
+                            )}
+                          </button>
+                        </div>
                       );
                     })}
                   </div>

@@ -6,7 +6,7 @@ import {
 } from 'react-icons/fa';
 import TopicSidebar from '../components/Courses/TopicSidebar';
 import CodingPlayground from '../components/Courses/CodingPlayground';
-import { courseAPI, BACKEND_URL } from '../services/api';
+import { courseAPI, scoreAPI, BACKEND_URL } from '../services/api';
 import {
   CourseTopicsSkeleton,
   VideoPlayerSkeleton,
@@ -59,6 +59,9 @@ const CourseTopics = () => {
   const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showCodingPlayground, setShowCodingPlayground] = useState(false);
+  const [practiceScore, setPracticeScore] = useState(null);
+  const [scoreSaved, setScoreSaved] = useState(false);
+  const [completions, setCompletions] = useState({});
 
   // Content loading states for tab switching
   const [contentLoading, setContentLoading] = useState(false);
@@ -82,12 +85,14 @@ const CourseTopics = () => {
 
   const fetchCourseData = async () => {
     try {
-      const [courseRes, topicsRes] = await Promise.all([
+      const [courseRes, topicsRes, completionsRes] = await Promise.all([
         courseAPI.getById(courseId),
-        courseAPI.getTopics(courseId)
+        courseAPI.getTopics(courseId),
+        scoreAPI.getCompletions(courseId).catch(() => ({ data: { completions: {} } }))
       ]);
       setCourse(courseRes.data);
       setTopics(topicsRes.data);
+      setCompletions(completionsRes.data.completions || {});
       if (topicsRes.data.length > 0) {
         setSelectedTopic(topicsRes.data[0]);
       }
@@ -102,6 +107,8 @@ const CourseTopics = () => {
     if (selectedTopic) {
       setSelectedAnswers({});
       setShowResults(false);
+      setPracticeScore(null);
+      setScoreSaved(false);
       setShowCodingPlayground(false);
       setPdfFullscreen(false);
       // Reset content loading states when topic changes
@@ -132,8 +139,50 @@ const CourseTopics = () => {
     setSelectedAnswers(prev => ({ ...prev, [questionIndex]: optionIndex }));
   };
 
-  const checkAnswers = () => {
+  const checkAnswers = async () => {
     setShowResults(true);
+
+    const questions = selectedTopic.practice;
+    const correctCount = questions.reduce((count, q, idx) => {
+      return count + (selectedAnswers[idx] === q.answer ? 1 : 0);
+    }, 0);
+    const total = questions.length;
+    const percentage = Math.round((correctCount / total) * 100);
+
+    setPracticeScore({ score: correctCount, total, percentage });
+
+    try {
+      await scoreAPI.submitPractice({
+        topicId: selectedTopic._id,
+        score: correctCount,
+        total,
+      });
+      setScoreSaved(true);
+      // Auto-mark practice as complete
+      handleMarkComplete(selectedTopic._id, 'practice');
+    } catch (err) {
+      console.error('Failed to save practice score:', err);
+    }
+  };
+
+  const handleMarkComplete = async (topicId, itemType) => {
+    // Optimistic update
+    setCompletions(prev => {
+      const existing = prev[topicId] || [];
+      if (existing.includes(itemType)) return prev;
+      return { ...prev, [topicId]: [...existing, itemType] };
+    });
+
+    try {
+      await scoreAPI.markComplete({ topicId, itemType });
+    } catch (err) {
+      console.error('Failed to mark complete:', err);
+      // Revert on failure
+      setCompletions(prev => {
+        const existing = prev[topicId] || [];
+        return { ...prev, [topicId]: existing.filter(t => t !== itemType) };
+      });
+    }
   };
 
   if (loading) {
@@ -159,7 +208,9 @@ const CourseTopics = () => {
     return (
       <CodingPlayground
         codingPractice={selectedTopic.codingPractice}
+        topicId={selectedTopic._id}
         onClose={handleCloseCodingPlayground}
+        onComplete={() => handleMarkComplete(selectedTopic._id, 'codingPractice')}
       />
     );
   }
@@ -204,6 +255,7 @@ const CourseTopics = () => {
             courseColor={course.color}
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            completions={completions}
           />
         </div>
 
@@ -213,21 +265,38 @@ const CourseTopics = () => {
           <div className="h-full">
             {/* Video Content */}
             {activeTab === 'video' && (
-              <div className="h-[calc(100vh-5rem)]">
+              <div className="h-[calc(100vh-5rem)] flex flex-col">
                 {contentLoading ? (
                   <VideoPlayerSkeleton />
                 ) : selectedTopic.videoUrl ? (
-                  <div className="relative w-full h-full">
-                    {!videoLoaded && <VideoPlayerSkeleton />}
-                    <iframe
-                      src={getYouTubeEmbedUrl(selectedTopic.videoUrl)}
-                      className={`w-full h-full rounded-lg transition-opacity duration-300 ${videoLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      title={selectedTopic.title}
-                      onLoad={() => setVideoLoaded(true)}
-                    />
-                  </div>
+                  <>
+                    <div className="relative w-full flex-1 min-h-0">
+                      {!videoLoaded && <VideoPlayerSkeleton />}
+                      <iframe
+                        src={getYouTubeEmbedUrl(selectedTopic.videoUrl)}
+                        className={`w-full h-full rounded-lg transition-opacity duration-300 ${videoLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={selectedTopic.title}
+                        onLoad={() => setVideoLoaded(true)}
+                      />
+                    </div>
+                    {/* Mark as Complete button */}
+                    <div className="flex justify-end py-3 px-1 shrink-0">
+                      <button
+                        onClick={() => handleMarkComplete(selectedTopic._id, 'video')}
+                        disabled={completions[selectedTopic._id]?.includes('video')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          completions[selectedTopic._id]?.includes('video')
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
+                            : 'bg-dark-accent hover:bg-dark-accent/80 text-white'
+                        }`}
+                      >
+                        <FaCheck className="text-xs" />
+                        {completions[selectedTopic._id]?.includes('video') ? 'Completed' : 'Mark as Complete'}
+                      </button>
+                    </div>
+                  </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-dark-muted bg-dark-card rounded-lg">
                     <div className="text-center">
@@ -345,6 +414,24 @@ const CourseTopics = () => {
                         Use the PDF toolbar to zoom, navigate pages, and search.
                       </div>
                     )}
+
+                    {/* Mark as Complete button */}
+                    {!pdfFullscreen && (
+                      <div className="flex justify-end py-3 px-1 shrink-0">
+                        <button
+                          onClick={() => handleMarkComplete(selectedTopic._id, 'ppt')}
+                          disabled={completions[selectedTopic._id]?.includes('ppt')}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            completions[selectedTopic._id]?.includes('ppt')
+                              ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
+                              : 'bg-dark-accent hover:bg-dark-accent/80 text-white'
+                          }`}
+                        >
+                          <FaCheck className="text-xs" />
+                          {completions[selectedTopic._id]?.includes('ppt') ? 'Completed' : 'Mark as Complete'}
+                        </button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-dark-muted bg-dark-card rounded-lg">
@@ -404,10 +491,42 @@ const CourseTopics = () => {
                         </div>
                       </div>
                     ))}
+                    {/* Score Summary Banner */}
+                    {practiceScore && showResults && (
+                      <div className={`flex items-center justify-between p-4 rounded-lg border ${
+                        practiceScore.percentage >= 70
+                          ? 'bg-green-500/10 border-green-500/30'
+                          : practiceScore.percentage >= 40
+                          ? 'bg-yellow-500/10 border-yellow-500/30'
+                          : 'bg-red-500/10 border-red-500/30'
+                      }`}>
+                        <div className="flex items-center gap-3">
+                          <div className={`text-2xl font-bold ${
+                            practiceScore.percentage >= 70 ? 'text-green-500' :
+                            practiceScore.percentage >= 40 ? 'text-yellow-500' : 'text-red-500'
+                          }`}>
+                            {practiceScore.score}/{practiceScore.total}
+                          </div>
+                          <div>
+                            <p className="font-medium">Score: {practiceScore.percentage}%</p>
+                            <p className="text-dark-muted text-sm">
+                              {practiceScore.percentage >= 70 ? 'Great job!' :
+                               practiceScore.percentage >= 40 ? 'Good effort, keep practicing!' : 'Keep trying, you can do better!'}
+                            </p>
+                          </div>
+                        </div>
+                        {scoreSaved && (
+                          <span className="flex items-center gap-1 text-green-500 text-sm">
+                            <FaCheck className="text-xs" /> Score saved
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex justify-end gap-4 pt-4">
                       {showResults ? (
                         <button
-                          onClick={() => { setSelectedAnswers({}); setShowResults(false); }}
+                          onClick={() => { setSelectedAnswers({}); setShowResults(false); setPracticeScore(null); setScoreSaved(false); }}
                           className="px-6 py-2 bg-dark-secondary rounded-lg hover:bg-dark-secondary/80 transition-colors"
                         >
                           Try Again

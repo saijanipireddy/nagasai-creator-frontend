@@ -6,7 +6,7 @@ import {
   FaCheck, FaCopy, FaImage, FaExpand, FaLink, FaHtml5, FaCss3Alt, FaJs,
   FaPython, FaDatabase, FaDownload, FaSun, FaMoon, FaCompress, FaCode, FaTerminal, FaFileAlt
 } from 'react-icons/fa';
-import { BACKEND_URL } from '../../services/api';
+import { BACKEND_URL, scoreAPI } from '../../services/api';
 
 // Language configurations
 const LANGUAGE_CONFIG = {
@@ -54,7 +54,7 @@ const renderDescription = (text) => {
   });
 };
 
-const CodingPlayground = ({ codingPractice, onClose }) => {
+const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
   // Determine language and type
   const language = codingPractice?.language || 'javascript';
   const langConfig = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.javascript;
@@ -85,6 +85,11 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
   const [showProblem, setShowProblem] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activePanel, setActivePanel] = useState('editor'); // 'problem', 'editor', 'output' for mobile
+  const [submitStatus, setSubmitStatus] = useState(null); // null | 'pass' | 'fail'
+  const [submitting, setSubmitting] = useState(false);
+  const [hasRun, setHasRun] = useState(false);
+  const [testResults, setTestResults] = useState(null); // For web: array of 'PASS'/'FAIL:...'
+  const [submitDetails, setSubmitDetails] = useState(null); // Server response details
 
   const iframeRef = useRef(null);
 
@@ -154,13 +159,22 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
     setCurrentHintIndex(0);
   }, [codingPractice, isWebPlayground, language]);
 
-  // Handle console messages from iframe
+  // Handle console messages from iframe (including test results)
   useEffect(() => {
     const handleMessage = (event) => {
       if (event.data?.type === 'console') {
+        const msg = event.data.args.join(' ');
+        // Intercept TEST_RESULTS from testScript
+        if (msg.startsWith('TEST_RESULTS:')) {
+          try {
+            const results = JSON.parse(msg.slice('TEST_RESULTS:'.length));
+            setTestResults(results);
+          } catch (e) { /* ignore parse errors */ }
+          return; // Don't show test results in console
+        }
         setConsoleOutput(prev => [...prev, {
           level: event.data.level,
-          message: event.data.args.join(' ')
+          message: msg
         }]);
       }
     };
@@ -206,10 +220,20 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
     } catch (e) {
       console.error('Error:', e.message);
     }
+    // Run test script if provided (after a small delay for DOM to settle)
+    ${codingPractice?.testScript ? `
+    setTimeout(() => {
+      try {
+        ${codingPractice.testScript}
+      } catch(e) {
+        console.log('TEST_RESULTS:' + JSON.stringify(['FAIL: Test script error: ' + e.message]));
+      }
+    }, 500);
+    ` : ''}
   <\/script>
 </body>
 </html>`;
-  }, [html, css, webJs]);
+  }, [html, css, webJs, codingPractice?.testScript]);
 
   // Execute code using Piston API
   const executePistonCode = async (sourceCode, lang, version) => {
@@ -245,6 +269,7 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
 
     if (isWebPlayground) {
       setConsoleOutput([]);
+      setTestResults(null);
       setWebPreview(getWebPreview());
     } else if (langConfig.type === 'piston') {
       const result = await executePistonCode(code, langConfig.pistonLang, langConfig.pistonVersion);
@@ -254,6 +279,42 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
     }
 
     setIsRunning(false);
+    setHasRun(true);
+  };
+
+  // Submit coding challenge (server-side validated)
+  const handleSubmitCode = async () => {
+    if (!topicId) return;
+    setSubmitting(true);
+    setSubmitDetails(null);
+
+    try {
+      const payload = {
+        topicId,
+        code: isWebPlayground ? `<!-- HTML -->\n${html}\n\n<style>\n${css}\n</style>\n\n<script>\n${webJs}\n</script>` : code,
+        language,
+      };
+
+      // For web challenges, include test results from iframe
+      if (isWebPlayground && testResults) {
+        payload.testResults = testResults;
+      }
+
+      const { data } = await scoreAPI.submitCodingChallenge(payload);
+      const passed = data.passed;
+
+      setSubmitStatus(passed ? 'pass' : 'fail');
+      setSubmitDetails(data.results || []);
+
+      if (passed && onComplete) {
+        onComplete();
+      }
+    } catch (err) {
+      console.error('Failed to submit coding challenge:', err);
+      setSubmitStatus('fail');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Reset code
@@ -305,6 +366,10 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
       setCode(starterCode);
       setOutput('');
     }
+    setSubmitStatus(null);
+    setSubmitDetails(null);
+    setTestResults(null);
+    setHasRun(false);
   };
 
   // Copy code
@@ -410,6 +475,25 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
             <span className="text-sm font-medium">{isRunning ? 'Running...' : 'Run'}</span>
           </button>
 
+          {hasRun && topicId && (
+            (!isWebPlayground || (isWebPlayground && codingPractice?.testScript && testResults))
+          ) && (
+            <button
+              onClick={handleSubmitCode}
+              disabled={submitting}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-colors text-white text-sm font-medium ${
+                submitStatus === 'pass' ? 'bg-green-600' :
+                submitStatus === 'fail' ? 'bg-red-500' :
+                submitting ? 'bg-gray-500 cursor-not-allowed' :
+                'bg-blue-500 hover:bg-blue-600'
+              }`}
+            >
+              {submitStatus === 'pass' ? <><FaCheck className="text-xs" /> Passed</> :
+               submitStatus === 'fail' ? <><FaTimes className="text-xs" /> Failed</> :
+               submitting ? 'Submitting...' : 'Submit'}
+            </button>
+          )}
+
           <button
             onClick={resetCode}
             className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`}
@@ -460,6 +544,25 @@ const CodingPlayground = ({ codingPractice, onClose }) => {
             <FaPlay className={`text-[10px] ${isRunning ? 'animate-pulse' : ''}`} />
             {isRunning ? '...' : 'Run'}
           </button>
+
+          {hasRun && topicId && (
+            (!isWebPlayground || (isWebPlayground && codingPractice?.testScript && testResults))
+          ) && (
+            <button
+              onClick={handleSubmitCode}
+              disabled={submitting}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors text-xs text-white ${
+                submitStatus === 'pass' ? 'bg-green-600' :
+                submitStatus === 'fail' ? 'bg-red-500' :
+                submitting ? 'bg-gray-500' :
+                'bg-blue-500 hover:bg-blue-600'
+              }`}
+            >
+              {submitStatus === 'pass' ? 'Pass' :
+               submitStatus === 'fail' ? 'Fail' :
+               submitting ? '...' : 'Submit'}
+            </button>
+          )}
 
           <button
             onClick={resetCode}

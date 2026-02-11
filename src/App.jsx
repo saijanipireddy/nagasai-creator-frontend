@@ -6,6 +6,7 @@ import CourseContent from './pages/CourseContent';
 import CourseTopics from './pages/CourseTopics';
 import CodePlayground from './pages/CodePlayground';
 import Auth from './pages/Auth';
+import Leaderboard from './pages/Leaderboard';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
@@ -33,6 +34,7 @@ function App() {
             <Route path="courses" element={<CourseContent />} />
             <Route path="course/:courseId" element={<CourseTopics />} />
             <Route path="playground" element={<CodePlayground />} />
+            <Route path="leaderboard" element={<Leaderboard />} />
           </Route>
         </Routes>
       </AuthProvider>

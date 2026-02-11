@@ -1,17 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaBook, FaPlay, FaCode, FaYoutube, FaArrowRight, FaRocket, FaLaptopCode, FaGraduationCap } from 'react-icons/fa';
+import { FaBook, FaPlay, FaCode, FaYoutube, FaArrowRight, FaRocket, FaLaptopCode, FaGraduationCap, FaTrophy, FaChartLine, FaCheckCircle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { courseAPI } from '../services/api';
+import { courseAPI, scoreAPI } from '../services/api';
 import { DashboardSkeleton } from '../components/Loaders/Skeleton';
 
 const Dashboard = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [animationStarted, setAnimationStarted] = useState(false);
+  const [progressStats, setProgressStats] = useState(null);
 
   useEffect(() => {
     fetchCourses();
-    // Single state update to trigger CSS animations instead of multiple re-renders
+    fetchProgress();
     const timer = setTimeout(() => setAnimationStarted(true), 100);
     return () => clearTimeout(timer);
   }, []);
@@ -24,6 +25,17 @@ const Dashboard = () => {
       console.error('Failed to fetch courses:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProgress = async () => {
+    try {
+      const { data } = await scoreAPI.getMyProgress();
+      if (data?.stats?.totalPoints > 0) {
+        setProgressStats(data.stats);
+      }
+    } catch (error) {
+      // Student may not have any scores yet - that's fine
     }
   };
 
@@ -76,6 +88,48 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Progress Stats */}
+      {progressStats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-dark-card rounded-xl border border-dark-secondary p-5 hover:border-dark-accent/50 transition-colors">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                <FaTrophy className="text-yellow-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold">{progressStats.totalPoints}</p>
+            <p className="text-dark-muted text-sm">Total Points</p>
+          </div>
+          <div className="bg-dark-card rounded-xl border border-dark-secondary p-5 hover:border-blue-500/50 transition-colors">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <FaChartLine className="text-blue-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold">{progressStats.practicePoints}</p>
+            <p className="text-dark-muted text-sm">Practice Score</p>
+          </div>
+          <div className="bg-dark-card rounded-xl border border-dark-secondary p-5 hover:border-green-500/50 transition-colors">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                <FaCode className="text-green-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold">{progressStats.codingPoints}</p>
+            <p className="text-dark-muted text-sm">Coding Score</p>
+          </div>
+          <div className="bg-dark-card rounded-xl border border-dark-secondary p-5 hover:border-purple-500/50 transition-colors">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                <FaCheckCircle className="text-purple-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold">{progressStats.topicsCompleted}</p>
+            <p className="text-dark-muted text-sm">Topics Completed</p>
+          </div>
+        </div>
+      )}
 
       {/* Features - Using CSS animation delays for better performance */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

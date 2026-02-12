@@ -90,8 +90,12 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
   const [hasRun, setHasRun] = useState(false);
   const [testResults, setTestResults] = useState(null); // For web: array of 'PASS'/'FAIL:...'
   const [submitDetails, setSubmitDetails] = useState(null); // Server response details
+  const [previousSubmission, setPreviousSubmission] = useState(null); // Loaded from DB
+  const [loadingSubmission, setLoadingSubmission] = useState(true);
+  const [showResults, setShowResults] = useState(false);
 
   const iframeRef = useRef(null);
+  const testResultsRef = useRef(null);
 
   // Handle window resize for mobile detection
   useEffect(() => {
@@ -102,23 +106,50 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Initialize code from starter code
+  // Fetch existing submission on mount
   useEffect(() => {
+    if (!topicId) {
+      setLoadingSubmission(false);
+      return;
+    }
+    const fetchSubmission = async () => {
+      try {
+        const { data } = await scoreAPI.getCodingSubmission(topicId);
+        if (data.submission) {
+          setPreviousSubmission(data.submission);
+          setSubmitStatus(data.submission.passed ? 'pass' : 'fail');
+        }
+      } catch {
+        // No previous submission
+      } finally {
+        setLoadingSubmission(false);
+      }
+    };
+    fetchSubmission();
+  }, [topicId]);
+
+  // Initialize code from previous submission or starter code
+  useEffect(() => {
+    if (loadingSubmission) return;
+
+    // Use previous submission code if available, otherwise starter code
+    const savedCode = previousSubmission?.code || '';
     const starterCode = codingPractice?.starterCode || '';
+    const initialCode = savedCode || starterCode;
 
     if (isWebPlayground) {
-      if (starterCode.includes('<style>') || starterCode.includes('<script>')) {
-        let extractedHtml = starterCode;
+      if (initialCode.includes('<style>') || initialCode.includes('<script>')) {
+        let extractedHtml = initialCode;
         let extractedCss = '';
         let extractedJs = '';
 
-        const styleMatch = starterCode.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+        const styleMatch = initialCode.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
         if (styleMatch) {
           extractedCss = styleMatch[1].trim();
           extractedHtml = extractedHtml.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
         }
 
-        const scriptMatch = starterCode.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+        const scriptMatch = initialCode.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
         if (scriptMatch) {
           extractedJs = scriptMatch[1].trim();
           extractedHtml = extractedHtml.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
@@ -134,30 +165,38 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
         setWebJs(extractedJs);
       } else {
         if (language === 'html') {
-          setHtml(starterCode || DEFAULT_HTML);
+          setHtml(initialCode || DEFAULT_HTML);
           setCss('');
           setWebJs('');
         } else if (language === 'css') {
           setHtml(DEFAULT_HTML);
-          setCss(starterCode || '');
+          setCss(initialCode || '');
           setWebJs('');
         } else {
           setHtml(DEFAULT_HTML);
           setCss('');
-          setWebJs(starterCode || '');
+          setWebJs(initialCode || '');
         }
       }
       setActiveWebTab(language === 'css' ? 'css' : language === 'javascript' ? 'js' : 'html');
     } else {
-      setCode(starterCode);
+      setCode(initialCode);
     }
 
-    setOutput('');
+    // If previous submission exists, pre-fill output
+    if (previousSubmission?.output) {
+      setOutput(previousSubmission.output);
+    } else {
+      setOutput('');
+    }
+
     setWebPreview('');
     setConsoleOutput([]);
     setShowHints(false);
     setCurrentHintIndex(0);
-  }, [codingPractice, isWebPlayground, language]);
+    setShowResults(false);
+    testResultsRef.current = null;
+  }, [codingPractice, isWebPlayground, language, loadingSubmission]);
 
   // Handle console messages from iframe (including test results)
   useEffect(() => {
@@ -169,6 +208,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
           try {
             const results = JSON.parse(msg.slice('TEST_RESULTS:'.length));
             setTestResults(results);
+            testResultsRef.current = results;
           } catch (e) { /* ignore parse errors */ }
           return; // Don't show test results in console
         }
@@ -287,17 +327,44 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
     if (!topicId) return;
     setSubmitting(true);
     setSubmitDetails(null);
+    setShowResults(false);
 
     try {
+      // For web challenges with testScript: auto-run to get test results
+      if (isWebPlayground && codingPractice?.testScript) {
+        testResultsRef.current = null;
+        setConsoleOutput([]);
+        setTestResults(null);
+        setWebPreview(getWebPreview());
+        setHasRun(true);
+
+        // Wait for test results from iframe (max 3 seconds)
+        await new Promise((resolve) => {
+          let elapsed = 0;
+          const interval = setInterval(() => {
+            elapsed += 100;
+            if (testResultsRef.current || elapsed >= 3000) {
+              clearInterval(interval);
+              resolve();
+            }
+          }, 100);
+        });
+      } else if (isWebPlayground && !hasRun) {
+        // Web without testScript: just run to show preview
+        setConsoleOutput([]);
+        setWebPreview(getWebPreview());
+        setHasRun(true);
+      }
+
       const payload = {
         topicId,
         code: isWebPlayground ? `<!-- HTML -->\n${html}\n\n<style>\n${css}\n</style>\n\n<script>\n${webJs}\n</script>` : code,
         language,
       };
 
-      // For web challenges, include test results from iframe
-      if (isWebPlayground && testResults) {
-        payload.testResults = testResults;
+      // Include test results if available
+      if (isWebPlayground && (testResultsRef.current || testResults)) {
+        payload.testResults = testResultsRef.current || testResults;
       }
 
       const { data } = await scoreAPI.submitCodingChallenge(payload);
@@ -305,6 +372,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
       setSubmitStatus(passed ? 'pass' : 'fail');
       setSubmitDetails(data.results || []);
+      setShowResults(true);
 
       if (passed && onComplete) {
         onComplete();
@@ -312,8 +380,18 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
     } catch (err) {
       console.error('Failed to submit coding challenge:', err);
       setSubmitStatus('fail');
+      setShowResults(true);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Show results panel if already submitted, otherwise submit
+  const handleSubmitOrShowResults = () => {
+    if (submitStatus && submitDetails) {
+      setShowResults(true);
+    } else {
+      handleSubmitCode();
     }
   };
 
@@ -369,6 +447,8 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
     setSubmitStatus(null);
     setSubmitDetails(null);
     setTestResults(null);
+    setShowResults(false);
+    testResultsRef.current = null;
     setHasRun(false);
   };
 
@@ -428,6 +508,14 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
   const theme = isDarkMode ? 'vs-dark' : 'light';
   const hasConsole = isWebPlayground && consoleOutput.length > 0;
 
+  if (loadingSubmission) {
+    return (
+      <div className="fixed inset-0 bg-dark-bg z-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-3 border-dark-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!codingPractice?.title) {
     return (
       <div className="fixed inset-0 bg-dark-bg z-50 flex items-center justify-center">
@@ -475,21 +563,19 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
             <span className="text-sm font-medium">{isRunning ? 'Running...' : 'Run'}</span>
           </button>
 
-          {hasRun && topicId && (
-            (!isWebPlayground || (isWebPlayground && codingPractice?.testScript && testResults))
-          ) && (
+          {topicId && (
             <button
-              onClick={handleSubmitCode}
+              onClick={handleSubmitOrShowResults}
               disabled={submitting}
               className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-colors text-white text-sm font-medium ${
-                submitStatus === 'pass' ? 'bg-green-600' :
-                submitStatus === 'fail' ? 'bg-red-500' :
+                submitStatus === 'pass' ? 'bg-green-600 hover:bg-green-700' :
+                submitStatus === 'fail' ? 'bg-orange-500 hover:bg-orange-600' :
                 submitting ? 'bg-gray-500 cursor-not-allowed' :
                 'bg-blue-500 hover:bg-blue-600'
               }`}
             >
               {submitStatus === 'pass' ? <><FaCheck className="text-xs" /> Passed</> :
-               submitStatus === 'fail' ? <><FaTimes className="text-xs" /> Failed</> :
+               submitStatus === 'fail' ? <><FaTimes className="text-xs" /> Results</> :
                submitting ? 'Submitting...' : 'Submit'}
             </button>
           )}
@@ -545,21 +631,19 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
             {isRunning ? '...' : 'Run'}
           </button>
 
-          {hasRun && topicId && (
-            (!isWebPlayground || (isWebPlayground && codingPractice?.testScript && testResults))
-          ) && (
+          {topicId && (
             <button
-              onClick={handleSubmitCode}
+              onClick={handleSubmitOrShowResults}
               disabled={submitting}
               className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors text-xs text-white ${
                 submitStatus === 'pass' ? 'bg-green-600' :
-                submitStatus === 'fail' ? 'bg-red-500' :
+                submitStatus === 'fail' ? 'bg-orange-500' :
                 submitting ? 'bg-gray-500' :
                 'bg-blue-500 hover:bg-blue-600'
               }`}
             >
-              {submitStatus === 'pass' ? 'Pass' :
-               submitStatus === 'fail' ? 'Fail' :
+              {submitStatus === 'pass' ? 'Passed' :
+               submitStatus === 'fail' ? 'Results' :
                submitting ? '...' : 'Submit'}
             </button>
           )}
@@ -1022,6 +1106,206 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
           </div>
         )}
       </div>
+
+      {/* Results Panel Overlay */}
+      {showResults && submitStatus && (
+        <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className={`w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl border shadow-2xl ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+            {/* Header */}
+            <div className="px-6 pt-8 pb-4 text-center">
+              {/* Status Icon */}
+              <div className={`w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-4 ${
+                submitStatus === 'pass'
+                  ? 'bg-green-500/20 ring-4 ring-green-500/10'
+                  : 'bg-red-500/20 ring-4 ring-red-500/10'
+              }`}>
+                {submitStatus === 'pass'
+                  ? <FaCheck className="text-3xl text-green-400" />
+                  : <FaTimes className="text-3xl text-red-400" />}
+              </div>
+
+              {/* Title */}
+              <h3 className={`text-2xl font-extrabold ${submitStatus === 'pass' ? 'text-green-400' : 'text-red-400'}`}>
+                {submitStatus === 'pass' ? 'All Tests Passed!' : 'Tests Failed'}
+              </h3>
+
+              {/* Score Summary */}
+              {(() => {
+                const details = submitDetails || [];
+                let totalTests, passedTests;
+
+                if (isWebPlayground && details[0] && details[0].total !== undefined) {
+                  totalTests = details[0].total;
+                  passedTests = details[0].passed;
+                } else if (!isWebPlayground && details.length > 0) {
+                  totalTests = details.length;
+                  passedTests = details.filter(d => d.passed).length;
+                } else {
+                  totalTests = submitStatus === 'pass' ? 1 : 0;
+                  passedTests = submitStatus === 'pass' ? 1 : 0;
+                }
+
+                const scorePercent = totalTests > 0
+                  ? Math.round((passedTests / totalTests) * 100)
+                  : (submitStatus === 'pass' ? 100 : 0);
+
+                return (
+                  <>
+                    <p className={`mt-2 text-base ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>
+                      {totalTests > 0 ? `${passedTests}/${totalTests} tests passed` : 'Submission recorded'}
+                    </p>
+
+                    {totalTests > 0 && (
+                      <div className="mt-4 px-4">
+                        <div className="flex justify-between text-sm mb-1.5">
+                          <span className={isDarkMode ? 'text-dark-muted' : 'text-gray-500'}>Score</span>
+                          <span className={`font-bold ${submitStatus === 'pass' ? 'text-green-400' : 'text-red-400'}`}>
+                            {scorePercent}%
+                          </span>
+                        </div>
+                        <div className={`h-3 rounded-full overflow-hidden ${isDarkMode ? 'bg-dark-secondary/30' : 'bg-gray-200'}`}>
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 ${submitStatus === 'pass' ? 'bg-green-500' : 'bg-red-500'}`}
+                            style={{ width: `${scorePercent}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* Test Details */}
+            <div className="px-6 pb-2">
+              {/* Non-web test cases */}
+              {!isWebPlayground && submitDetails && submitDetails.length > 0 && !submitDetails[0]?.visual && (
+                <div className="space-y-3 mb-4">
+                  <h4 className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>
+                    Test Cases
+                  </h4>
+                  {submitDetails.map((tc, i) => (
+                    <div key={i} className={`rounded-xl border p-4 ${
+                      tc.passed
+                        ? isDarkMode ? 'bg-green-500/5 border-green-500/20' : 'bg-green-50 border-green-200'
+                        : isDarkMode ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        {tc.passed
+                          ? <FaCheck className="text-green-400 text-sm" />
+                          : <FaTimes className="text-red-400 text-sm" />}
+                        <span className={`font-bold text-sm ${tc.passed ? 'text-green-400' : 'text-red-400'}`}>
+                          Test Case {i + 1}
+                        </span>
+                      </div>
+                      {tc.input && (
+                        <div className="mb-1">
+                          <span className={`text-xs ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>Input: </span>
+                          <code className={`text-xs px-1.5 py-0.5 rounded font-mono ${isDarkMode ? 'bg-dark-secondary/40 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
+                            {tc.input}
+                          </code>
+                        </div>
+                      )}
+                      <div className="mb-1">
+                        <span className={`text-xs ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>Expected: </span>
+                        <code className={`text-xs px-1.5 py-0.5 rounded font-mono ${isDarkMode ? 'bg-dark-secondary/40 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
+                          {tc.expected}
+                        </code>
+                      </div>
+                      <div>
+                        <span className={`text-xs ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>Output: </span>
+                        <code className={`text-xs px-1.5 py-0.5 rounded font-mono ${
+                          tc.passed
+                            ? isDarkMode ? 'bg-green-500/10 text-green-400' : 'bg-green-100 text-green-700'
+                            : isDarkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-100 text-red-700'
+                        }`}>
+                          {tc.actual}
+                        </code>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Web test results */}
+              {isWebPlayground && testResults && testResults.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  <h4 className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>
+                    Test Results
+                  </h4>
+                  {testResults.map((result, i) => {
+                    const isPassed = result === 'PASS';
+                    return (
+                      <div key={i} className={`rounded-xl border p-4 ${
+                        isPassed
+                          ? isDarkMode ? 'bg-green-500/5 border-green-500/20' : 'bg-green-50 border-green-200'
+                          : isDarkMode ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50 border-red-200'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          {isPassed
+                            ? <FaCheck className="text-green-400 text-sm" />
+                            : <FaTimes className="text-red-400 text-sm" />}
+                          <span className={`font-bold text-sm ${isPassed ? 'text-green-400' : 'text-red-400'}`}>
+                            Test {i + 1}
+                          </span>
+                          {!isPassed && (
+                            <span className="text-xs text-red-400/70 ml-1">
+                              {result.replace('FAIL:', '').trim()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Visual completion (no tests) */}
+              {isWebPlayground && (!testResults || testResults.length === 0) && submitStatus === 'pass' && (
+                <div className={`rounded-xl border p-4 mb-4 ${isDarkMode ? 'bg-green-500/5 border-green-500/20' : 'bg-green-50 border-green-200'}`}>
+                  <div className="flex items-center gap-2">
+                    <FaCheck className="text-green-400" />
+                    <span className="text-green-400 font-medium text-sm">Code submitted successfully!</span>
+                  </div>
+                  <p className={`text-xs mt-1 ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>
+                    No automated tests configured for this challenge.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className={`px-6 py-5 border-t ${isDarkMode ? 'border-dark-secondary/20' : 'border-gray-200'}`}>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowResults(false);
+                    if (submitStatus === 'fail') {
+                      setSubmitStatus(null);
+                      setSubmitDetails(null);
+                    }
+                  }}
+                  className={`flex-1 py-3 rounded-xl font-bold text-base transition-colors ${
+                    isDarkMode
+                      ? 'bg-dark-secondary text-white hover:bg-dark-secondary/80'
+                      : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                  }`}
+                >
+                  {submitStatus === 'fail' ? 'Try Again' : 'Back to Editor'}
+                </button>
+                {submitStatus === 'pass' && (
+                  <button
+                    onClick={onClose}
+                    className="flex-1 py-3 bg-green-500 rounded-xl text-white font-bold text-base hover:bg-green-600 transition-colors"
+                  >
+                    Done
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Expanded Image Modal */}
       {imageExpanded && codingPractice.referenceImage && (

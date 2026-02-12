@@ -56,7 +56,7 @@ const TopicSidebar = ({
   };
 
   return (
-    <div className="w-72 bg-dark-sidebar border-r border-dark-secondary h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
+    <div className="w-72 bg-dark-sidebar border-r border-dark-secondary h-full overflow-hidden flex flex-col">
       {/* Header - Compact */}
       <div className="px-4 py-3 border-b border-dark-secondary flex items-center justify-between">
         <h2 className="text-base font-bold truncate" style={{ color: courseColor }}>{courseName}</h2>

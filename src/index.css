@@ -30,10 +30,15 @@
 }
 
 /* Base dark theme styles */
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   background-color: var(--color-dark-bg);
   color: var(--color-dark-text);
-  min-height: 100vh;
+  margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 

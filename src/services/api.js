@@ -63,8 +63,12 @@ export const studentAuthAPI = {
 // Score APIs
 export const scoreAPI = {
   submitPractice: (data) => api.post('/scores/practice', data),
+  submitPracticeAttempt: (data) => api.post('/scores/practice-attempt', data),
+  getPracticeAttempts: (topicId) => api.get(`/scores/practice-attempts/${topicId}`),
+  getPracticeAttemptDetail: (attemptId) => api.get(`/scores/practice-attempt/${attemptId}`),
   submitCoding: (data) => api.post('/scores/coding', data),
   submitCodingChallenge: (data) => api.post('/scores/coding-submit', data),
+  getCodingSubmission: (topicId) => api.get(`/scores/coding-submission/${topicId}`),
   markComplete: (data) => api.post('/scores/complete', data),
   getCompletions: (courseId) => api.get('/scores/completions', { params: { courseId } }),
   getMyProgress: () => api.get('/scores/my-progress'),

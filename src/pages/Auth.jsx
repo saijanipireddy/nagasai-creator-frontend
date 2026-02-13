@@ -55,17 +55,17 @@ const footerLinks = [
 /* ─────────── Animated Background (shared) ─────────── */
 const AnimatedBackground = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] rounded-full opacity-30"
-      style={{ background: 'radial-gradient(circle, rgba(233,69,96,0.4) 0%, transparent 70%)', animation: 'blobFloat 8s ease-in-out infinite' }}
+    <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] rounded-full opacity-20"
+      style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%)', animation: 'blobFloat 8s ease-in-out infinite' }}
     />
-    <div className="absolute top-1/3 -right-32 w-[400px] h-[400px] rounded-full opacity-20"
-      style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.5) 0%, transparent 70%)', animation: 'blobFloat 10s ease-in-out infinite reverse' }}
+    <div className="absolute top-1/3 -right-32 w-[400px] h-[400px] rounded-full opacity-15"
+      style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)', animation: 'blobFloat 10s ease-in-out infinite reverse' }}
     />
-    <div className="absolute -bottom-20 left-1/3 w-[350px] h-[350px] rounded-full opacity-15"
-      style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)', animation: 'blobFloat 12s ease-in-out infinite' }}
+    <div className="absolute -bottom-20 left-1/3 w-[350px] h-[350px] rounded-full opacity-10"
+      style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 70%)', animation: 'blobFloat 12s ease-in-out infinite' }}
     />
     <div className="absolute inset-0 opacity-[0.03]"
-      style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }}
+      style={{ backgroundImage: 'linear-gradient(rgba(0,0,0,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.03) 1px, transparent 1px)', backgroundSize: '60px 60px' }}
     />
   </div>
 );
@@ -73,18 +73,18 @@ const AnimatedBackground = () => (
 /* ─────────── Form Left Panel (shared branding side) ─────────── */
 const FormLeftPanel = ({ isLogin }) => (
   <div className="hidden lg:flex lg:w-1/2 relative overflow-y-auto scrollbar-hidden flex-col px-16 py-16"
-    style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #111827 40%, #0f172a 100%)' }}
+    style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 40%, #c7d2fe 100%)' }}
   >
     {/* Background blobs - sticky so they stay visible while scrolling */}
     <div className="sticky top-0 left-0 w-0 h-0 overflow-visible pointer-events-none">
       <div className="absolute top-[25vh] -left-20 w-[400px] h-[400px] rounded-full opacity-40"
-        style={{ background: 'radial-gradient(circle, rgba(233,69,96,0.4) 0%, transparent 70%)', animation: 'blobFloat 8s ease-in-out infinite' }}
+        style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.2) 0%, transparent 70%)', animation: 'blobFloat 8s ease-in-out infinite' }}
       />
       <div className="absolute top-[50vh] left-[calc(100%+16rem)] w-[350px] h-[350px] rounded-full opacity-25 -translate-x-full"
-        style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.5) 0%, transparent 70%)', animation: 'blobFloat 10s ease-in-out infinite reverse' }}
+        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)', animation: 'blobFloat 10s ease-in-out infinite reverse' }}
       />
       <div className="absolute top-[65vh] left-[33%] w-[250px] h-[250px] rounded-full opacity-15"
-        style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)', animation: 'blobFloat 12s ease-in-out infinite' }}
+        style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%)', animation: 'blobFloat 12s ease-in-out infinite' }}
       />
     </div>
 
@@ -92,12 +92,12 @@ const FormLeftPanel = ({ isLogin }) => (
       {/* Heading */}
       <h1 className="text-4xl xl:text-5xl font-extrabold leading-tight mb-5">
         {isLogin ? (
-          <>Welcome back to your <span className="bg-gradient-to-r from-dark-accent to-purple-400 bg-clip-text text-transparent">learning journey</span></>
+          <>Welcome back to your <span className="bg-gradient-to-r from-dark-accent to-indigo-400 bg-clip-text text-transparent">learning journey</span></>
         ) : (
-          <>Start your path to <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">becoming a developer</span></>
+          <>Start your path to <span className="bg-gradient-to-r from-indigo-500 to-indigo-400 bg-clip-text text-transparent">becoming a developer</span></>
         )}
       </h1>
-      <p className="text-white/50 text-lg leading-relaxed mb-10">
+      <p className="text-indigo-900/60 text-lg leading-relaxed mb-10">
         {isLogin
           ? 'Pick up right where you left off. Your courses, progress, and code playground are waiting for you.'
           : 'Join thousands of learners. Get free access to video tutorials, structured courses, and an interactive code playground.'
@@ -114,7 +114,7 @@ const FormLeftPanel = ({ isLogin }) => (
         ].map((item, i) => (
           <div
             key={i}
-            className="group relative flex flex-col gap-3 p-5 rounded-2xl border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300 overflow-hidden"
+            className="group relative flex flex-col gap-3 p-5 rounded-2xl border border-indigo-200 bg-white hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300 overflow-hidden"
           >
             <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
               style={{ background: `radial-gradient(circle, ${item.glow}, transparent 70%)` }}
@@ -125,18 +125,18 @@ const FormLeftPanel = ({ isLogin }) => (
               <item.icon className="text-lg" style={{ color: item.iconColor }} />
             </div>
             <div className="relative z-10">
-              <h4 className="text-[15px] font-bold text-white mb-0.5">{item.title}</h4>
-              <p className="text-white/40 text-xs leading-relaxed">{item.desc}</p>
+              <h4 className="text-[15px] font-bold text-gray-900 mb-0.5">{item.title}</h4>
+              <p className="text-gray-500 text-xs leading-relaxed">{item.desc}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Testimonial / trust */}
-      <div className="flex items-center gap-5 px-6 py-5 rounded-2xl bg-white/[0.04] border border-white/[0.06]">
+      <div className="flex items-center gap-5 px-6 py-5 rounded-2xl bg-indigo-50/50 border border-indigo-200">
         <div className="flex -space-x-2.5">
           {['#e94560', '#8b5cf6', '#3b82f6', '#22c55e'].map((bg, i) => (
-            <div key={i} className="w-10 h-10 rounded-full border-[3px] border-[#0f172a] flex items-center justify-center text-white text-xs font-bold" style={{ background: bg }}>
+            <div key={i} className="w-10 h-10 rounded-full border-[3px] border-white flex items-center justify-center text-white text-xs font-bold" style={{ background: bg }}>
               {['A', 'K', 'R', 'S'][i]}
             </div>
           ))}
@@ -145,7 +145,7 @@ const FormLeftPanel = ({ isLogin }) => (
           <div className="flex items-center gap-1 mb-1">
             {[...Array(5)].map((_, i) => <FaStar key={i} className="text-amber-400 text-xs" />)}
           </div>
-          <p className="text-white/50 text-sm">Trusted by <span className="text-white font-bold">500+</span> learners</p>
+          <p className="text-indigo-900/70 text-sm">Trusted by <span className="text-indigo-900 font-bold">500+</span> learners</p>
         </div>
       </div>
     </div>
@@ -172,18 +172,18 @@ const LoginForm = ({ onSwitch, onBack }) => {
   return (
     <div className="w-full max-w-[440px] mx-auto animate-content-fade-in">
       {/* Back */}
-      <button onClick={onBack} className="flex items-center gap-2 text-white/50 hover:text-white text-sm font-medium mb-8 transition-colors group">
+      <button onClick={onBack} className="flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm font-medium mb-8 transition-colors group">
         <FaArrowLeft className="text-xs group-hover:-translate-x-1 transition-transform" /> Back
       </button>
 
       {/* Card */}
-      <div className="rounded-2xl border border-white/[0.08] p-8 sm:p-10"
-        style={{ background: 'rgba(255,255,255,0.03)', boxShadow: '0 4px 40px rgba(0,0,0,0.3)' }}
+      <div className="rounded-2xl border border-gray-200 p-8 sm:p-10"
+        style={{ background: 'white', boxShadow: '0 4px 40px rgba(0,0,0,0.08)' }}
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-white mb-2">Sign In</h1>
-          <p className="text-white/50 text-sm">Welcome back! Enter your details below.</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Sign In</h1>
+          <p className="text-gray-500 text-sm">Welcome back! Enter your details below.</p>
         </div>
 
         {error && (
@@ -194,26 +194,26 @@ const LoginForm = ({ onSwitch, onBack }) => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-[13px] font-semibold text-white/70 mb-2 uppercase tracking-wider">Email Address</label>
+            <label className="block text-[13px] font-semibold text-gray-700 mb-2 uppercase tracking-wider">Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => { setEmail(e.target.value); setError(''); }}
               placeholder="you@example.com"
               required
-              className="w-full px-4 py-3.5 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white text-[15px] placeholder-white/25 focus:outline-none focus:border-dark-accent/70 focus:bg-white/[0.08] transition-all"
+              className="w-full px-4 py-3.5 rounded-xl bg-gray-50 border border-gray-300 text-gray-900 text-[15px] placeholder-gray-400 focus:outline-none focus:border-dark-accent focus:bg-white transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-[13px] font-semibold text-white/70 mb-2 uppercase tracking-wider">Password</label>
+            <label className="block text-[13px] font-semibold text-gray-700 mb-2 uppercase tracking-wider">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); setError(''); }}
               placeholder="Enter your password"
               required
-              className="w-full px-4 py-3.5 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white text-[15px] placeholder-white/25 focus:outline-none focus:border-dark-accent/70 focus:bg-white/[0.08] transition-all"
+              className="w-full px-4 py-3.5 rounded-xl bg-gray-50 border border-gray-300 text-gray-900 text-[15px] placeholder-gray-400 focus:outline-none focus:border-dark-accent focus:bg-white transition-all"
             />
           </div>
 
@@ -221,7 +221,7 @@ const LoginForm = ({ onSwitch, onBack }) => {
             type="submit"
             disabled={loading}
             className="w-full py-4 text-white text-[15px] font-bold rounded-xl transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 mt-2"
-            style={{ background: 'linear-gradient(135deg, #e94560, #8b5cf6)', boxShadow: '0 4px 20px rgba(233, 69, 96, 0.35)' }}
+            style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)', boxShadow: '0 4px 20px rgba(79, 70, 229, 0.35)' }}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-3">
@@ -234,13 +234,13 @@ const LoginForm = ({ onSwitch, onBack }) => {
 
         {/* Divider */}
         <div className="flex items-center gap-4 my-7">
-          <div className="flex-1 h-px bg-white/[0.08]" />
-          <span className="text-white/30 text-xs font-medium">OR</span>
-          <div className="flex-1 h-px bg-white/[0.08]" />
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-gray-400 text-xs font-medium">OR</span>
+          <div className="flex-1 h-px bg-gray-200" />
         </div>
 
         {/* Switch */}
-        <p className="text-center text-white/40 text-sm">
+        <p className="text-center text-gray-500 text-sm">
           Don't have an account?{' '}
           <button onClick={onSwitch} className="text-dark-accent font-bold hover:underline transition-colors">
             Sign Up
@@ -253,7 +253,7 @@ const LoginForm = ({ onSwitch, onBack }) => {
         <div className="flex items-center gap-0.5">
           {[...Array(5)].map((_, i) => <FaStar key={i} className="text-amber-400 text-[10px]" />)}
         </div>
-        <span className="text-white/30 text-xs">Trusted by 500+ learners</span>
+        <span className="text-gray-400 text-xs">Trusted by 500+ learners</span>
       </div>
     </div>
   );
@@ -285,18 +285,18 @@ const RegisterForm = ({ onSwitch, onBack }) => {
   return (
     <div className="w-full max-w-[440px] mx-auto animate-content-fade-in">
       {/* Back */}
-      <button onClick={onBack} className="flex items-center gap-2 text-white/50 hover:text-white text-sm font-medium mb-8 transition-colors group">
+      <button onClick={onBack} className="flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm font-medium mb-8 transition-colors group">
         <FaArrowLeft className="text-xs group-hover:-translate-x-1 transition-transform" /> Back
       </button>
 
       {/* Card */}
-      <div className="rounded-2xl border border-white/[0.08] p-8 sm:p-10"
-        style={{ background: 'rgba(255,255,255,0.03)', boxShadow: '0 4px 40px rgba(0,0,0,0.3)' }}
+      <div className="rounded-2xl border border-gray-200 p-8 sm:p-10"
+        style={{ background: 'white', boxShadow: '0 4px 40px rgba(0,0,0,0.08)' }}
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-white mb-2">Create Account</h1>
-          <p className="text-white/50 text-sm">Join for free and start learning today.</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Create Account</h1>
+          <p className="text-gray-500 text-sm">Join for free and start learning today.</p>
         </div>
 
         {error && (
@@ -307,7 +307,7 @@ const RegisterForm = ({ onSwitch, onBack }) => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-[13px] font-semibold text-white/70 mb-2 uppercase tracking-wider">Full Name</label>
+            <label className="block text-[13px] font-semibold text-gray-700 mb-2 uppercase tracking-wider">Full Name</label>
             <input
               type="text"
               name="name"
@@ -315,12 +315,12 @@ const RegisterForm = ({ onSwitch, onBack }) => {
               onChange={handleChange}
               placeholder="Enter your full name"
               required
-              className="w-full px-4 py-3.5 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white text-[15px] placeholder-white/25 focus:outline-none focus:border-purple-500/70 focus:bg-white/[0.08] transition-all"
+              className="w-full px-4 py-3.5 rounded-xl bg-gray-50 border border-gray-300 text-gray-900 text-[15px] placeholder-gray-400 focus:outline-none focus:border-dark-accent focus:bg-white transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-[13px] font-semibold text-white/70 mb-2 uppercase tracking-wider">Email Address</label>
+            <label className="block text-[13px] font-semibold text-gray-700 mb-2 uppercase tracking-wider">Email Address</label>
             <input
               type="email"
               name="email"
@@ -328,12 +328,12 @@ const RegisterForm = ({ onSwitch, onBack }) => {
               onChange={handleChange}
               placeholder="you@example.com"
               required
-              className="w-full px-4 py-3.5 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white text-[15px] placeholder-white/25 focus:outline-none focus:border-purple-500/70 focus:bg-white/[0.08] transition-all"
+              className="w-full px-4 py-3.5 rounded-xl bg-gray-50 border border-gray-300 text-gray-900 text-[15px] placeholder-gray-400 focus:outline-none focus:border-dark-accent focus:bg-white transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-[13px] font-semibold text-white/70 mb-2 uppercase tracking-wider">Password</label>
+            <label className="block text-[13px] font-semibold text-gray-700 mb-2 uppercase tracking-wider">Password</label>
             <input
               type="password"
               name="password"
@@ -341,16 +341,16 @@ const RegisterForm = ({ onSwitch, onBack }) => {
               onChange={handleChange}
               placeholder="Min. 6 characters"
               required
-              className="w-full px-4 py-3.5 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white text-[15px] placeholder-white/25 focus:outline-none focus:border-purple-500/70 focus:bg-white/[0.08] transition-all"
+              className="w-full px-4 py-3.5 rounded-xl bg-gray-50 border border-gray-300 text-gray-900 text-[15px] placeholder-gray-400 focus:outline-none focus:border-dark-accent focus:bg-white transition-all"
             />
-            <p className="text-white/25 text-xs mt-2">Must be at least 6 characters</p>
+            <p className="text-gray-400 text-xs mt-2">Must be at least 6 characters</p>
           </div>
 
           <button
             type="submit"
             disabled={loading}
             className="w-full py-4 text-white text-[15px] font-bold rounded-xl transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 mt-2"
-            style={{ background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)', boxShadow: '0 4px 20px rgba(139, 92, 246, 0.35)' }}
+            style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)', boxShadow: '0 4px 20px rgba(79, 70, 229, 0.35)' }}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-3">
@@ -363,15 +363,15 @@ const RegisterForm = ({ onSwitch, onBack }) => {
 
         {/* Divider */}
         <div className="flex items-center gap-4 my-7">
-          <div className="flex-1 h-px bg-white/[0.08]" />
-          <span className="text-white/30 text-xs font-medium">OR</span>
-          <div className="flex-1 h-px bg-white/[0.08]" />
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-gray-400 text-xs font-medium">OR</span>
+          <div className="flex-1 h-px bg-gray-200" />
         </div>
 
         {/* Switch */}
-        <p className="text-center text-white/40 text-sm">
+        <p className="text-center text-gray-500 text-sm">
           Already have an account?{' '}
-          <button onClick={onSwitch} className="text-purple-400 font-bold hover:underline transition-colors">
+          <button onClick={onSwitch} className="text-dark-accent font-bold hover:underline transition-colors">
             Sign In
           </button>
         </p>
@@ -385,8 +385,8 @@ const RegisterForm = ({ onSwitch, onBack }) => {
           { icon: FaStar, text: '100% Free' },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-1.5">
-            <item.icon className="text-white/20 text-[10px]" />
-            <span className="text-white/30 text-xs">{item.text}</span>
+            <item.icon className="text-gray-400 text-[10px]" />
+            <span className="text-gray-500 text-xs">{item.text}</span>
           </div>
         ))}
       </div>
@@ -456,38 +456,38 @@ const Auth = () => {
 
       {/* ───── Navbar ───── */}
       <nav
-        className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06]"
-        style={{ background: 'rgba(10, 10, 10, 0.8)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
+        className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200"
+        style={{ background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between h-[76px] px-6 sm:px-10">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-dark-accent to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-dark-accent to-indigo-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-extrabold text-lg">N</span>
             </div>
-            <span className="text-xl font-extrabold text-white tracking-tight">
+            <span className="text-xl font-extrabold text-gray-900 tracking-tight">
               Naga sai J
             </span>
           </div>
 
           {/* Nav links */}
           <div className="hidden sm:flex items-center gap-10">
-            <a href="#features" className="text-base font-bold text-white/80 hover:text-white transition-colors">Features</a>
-            <a href="#stats" className="text-base font-bold text-white/80 hover:text-white transition-colors">About</a>
+            <a href="#features" className="text-base font-bold text-gray-700 hover:text-gray-900 transition-colors">Features</a>
+            <a href="#stats" className="text-base font-bold text-gray-700 hover:text-gray-900 transition-colors">About</a>
           </div>
 
           {/* Auth buttons */}
           <div className="flex items-center gap-5">
             <button
               onClick={showLogin}
-              className="hidden sm:block text-base font-bold text-white/80 hover:text-white transition-colors"
+              className="hidden sm:block text-base font-bold text-gray-700 hover:text-gray-900 transition-colors"
             >
               Sign In
             </button>
             <button
               onClick={showRegister}
               className="px-6 py-3 text-base font-bold text-white rounded-lg transition-all hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #e94560, #8b5cf6)' }}
+              style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)' }}
             >
               Get Started
             </button>
@@ -511,7 +511,7 @@ const Auth = () => {
             className={`text-5xl sm:text-6xl md:text-7xl font-extrabold leading-[1.1] mb-6 transition-all duration-700 delay-100 ${animated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
           >
             Master Web Development{' '}
-            <span className="bg-gradient-to-r from-dark-accent via-purple-400 to-blue-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-dark-accent via-indigo-500 to-indigo-400 bg-clip-text text-transparent">
               Step by Step
             </span>
           </h1>
@@ -528,7 +528,7 @@ const Auth = () => {
             <button
               onClick={showLogin}
               className="group inline-flex items-center gap-3 px-8 py-4 text-white font-semibold rounded-2xl text-lg shadow-xl transition-all hover:scale-[1.03] hover:shadow-2xl"
-              style={{ background: 'linear-gradient(135deg, #e94560, #8b5cf6)', boxShadow: '0 8px 30px rgba(233, 69, 96, 0.35)' }}
+              style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)', boxShadow: '0 8px 30px rgba(79, 70, 229, 0.35)' }}
             >
               <FaPlay className="text-sm" />
               Get Started Free
@@ -557,7 +557,7 @@ const Auth = () => {
               return (
                 <div
                   key={i}
-                  className="group relative flex flex-col items-center gap-3 py-8 px-5 rounded-2xl bg-dark-card/70 border border-white/[0.08] hover:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden cursor-default"
+                  className="group relative flex flex-col items-center gap-3 py-8 px-5 rounded-2xl bg-white border border-gray-200 hover:border-indigo-300 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden cursor-default"
                   style={{ boxShadow: `0 4px 24px ${c.glow}` }}
                 >
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
@@ -568,7 +568,7 @@ const Auth = () => {
                   >
                     <s.icon className="text-white text-xl" />
                   </div>
-                  <span className="relative z-10 text-4xl sm:text-5xl font-extrabold bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent">
+                  <span className="relative z-10 text-4xl sm:text-5xl font-extrabold bg-gradient-to-b from-gray-900 to-gray-900/70 bg-clip-text text-transparent">
                     {s.value}
                   </span>
                   <span className="relative z-10 text-dark-muted text-sm font-medium tracking-wide uppercase">
@@ -593,17 +593,17 @@ const Auth = () => {
 
       {/* ───── Features Section ───── */}
       <section id="features" className="py-28 sm:py-32 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-dark-card/30 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-100/50 to-transparent pointer-events-none" />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-dark-accent/30 bg-dark-accent/10 mb-6">
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-indigo-300 bg-indigo-50 mb-6">
               <FaStar className="text-dark-accent text-xs" />
               <span className="text-sm text-dark-accent font-semibold tracking-wide uppercase">Why choose us</span>
             </div>
             <h2 className="text-4xl sm:text-5xl font-extrabold mt-3 mb-5 leading-tight">
               Everything you need to{' '}
-              <span className="bg-gradient-to-r from-dark-accent via-purple-400 to-blue-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-dark-accent via-indigo-500 to-indigo-400 bg-clip-text text-transparent">
                 learn coding
               </span>
             </h2>
@@ -616,7 +616,7 @@ const Auth = () => {
             {features.map((f, i) => (
               <div
                 key={i}
-                className="group relative p-8 sm:p-10 rounded-3xl bg-dark-card/80 border border-white/[0.08] hover:border-white/20 transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl overflow-hidden"
+                className="group relative p-8 sm:p-10 rounded-3xl bg-white border border-gray-200 hover:border-indigo-300 shadow-sm transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl overflow-hidden"
                 style={{ boxShadow: `0 4px 30px ${f.bg}` }}
               >
                 {/* Hover glow */}
@@ -646,16 +646,16 @@ const Auth = () => {
       {/* ───── CTA Section ───── */}
       <section className="py-28 sm:py-32 px-6">
         <div className="max-w-4xl mx-auto relative">
-          <div className="relative rounded-3xl overflow-hidden border border-white/[0.08]"
-            style={{ background: 'linear-gradient(135deg, rgba(26,26,46,0.95), rgba(22,33,62,0.95), rgba(15,52,96,0.7))' }}
+          <div className="relative rounded-3xl overflow-hidden border border-indigo-200"
+            style={{ background: 'linear-gradient(135deg, rgba(238,242,255,0.95), rgba(224,231,255,0.95), rgba(199,210,254,0.7))' }}
           >
-            <div className="absolute top-0 right-0 w-80 h-80 bg-dark-accent/25 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/25 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-200/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-300/30 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10 text-center px-8 py-20 sm:px-16 sm:py-24">
-              <div className="w-20 h-20 bg-gradient-to-br from-dark-accent to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl"
-                style={{ boxShadow: '0 0 50px rgba(233, 69, 96, 0.4)' }}
+              <div className="w-20 h-20 bg-gradient-to-br from-dark-accent to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl"
+                style={{ boxShadow: '0 0 50px rgba(79, 70, 229, 0.3)' }}
               >
                 <FaRocket className="text-white text-3xl" />
               </div>
@@ -666,7 +666,7 @@ const Auth = () => {
               <button
                 onClick={showLogin}
                 className="group inline-flex items-center gap-3 px-10 py-5 text-white font-bold rounded-2xl text-lg transition-all hover:scale-[1.03] hover:shadow-2xl"
-                style={{ background: 'linear-gradient(135deg, #e94560, #8b5cf6)', boxShadow: '0 10px 40px rgba(233, 69, 96, 0.4)' }}
+                style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)', boxShadow: '0 10px 40px rgba(79, 70, 229, 0.35)' }}
               >
                 <FaUsers className="text-xl" />
                 Get Started Free
@@ -678,13 +678,13 @@ const Auth = () => {
       </section>
 
       {/* ───── Footer ───── */}
-      <footer className="relative border-t border-white/[0.06] overflow-hidden">
+      <footer className="relative border-t border-gray-200 overflow-hidden">
         {/* Background glow */}
         <div className="absolute bottom-0 left-1/4 w-[400px] h-[250px] rounded-full opacity-[0.06] pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(233,69,96,0.8), transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.5), transparent 70%)' }}
         />
         <div className="absolute bottom-0 right-1/4 w-[300px] h-[200px] rounded-full opacity-[0.04] pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.8), transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.5), transparent 70%)' }}
         />
 
         <div className="max-w-6xl mx-auto px-6 pt-20 pb-10 relative z-10">
@@ -693,13 +693,13 @@ const Auth = () => {
             {/* Brand column */}
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-dark-accent to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
-                  style={{ boxShadow: '0 0 24px rgba(233, 69, 96, 0.3)' }}
+                <div className="w-12 h-12 bg-gradient-to-br from-dark-accent to-indigo-500 rounded-xl flex items-center justify-center shadow-lg"
+                  style={{ boxShadow: '0 0 24px rgba(79, 70, 229, 0.3)' }}
                 >
                   <span className="text-white font-extrabold text-xl">N</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-extrabold text-white">
+                  <h3 className="text-xl font-extrabold text-gray-900">
                     Naga sai J
                   </h3>
                   <p className="text-xs text-dark-muted tracking-wider uppercase font-medium">Learning Platform</p>
@@ -712,7 +712,7 @@ const Auth = () => {
 
             {/* Quick Links column */}
             <div>
-              <h4 className="text-base font-extrabold text-white uppercase tracking-wider mb-6">Quick Links</h4>
+              <h4 className="text-base font-extrabold text-gray-900 uppercase tracking-wider mb-6">Quick Links</h4>
               <ul className="space-y-4">
                 <li>
                   <a href="#features" className="text-base font-medium text-dark-muted hover:text-dark-accent transition-colors flex items-center gap-2.5 group">
@@ -743,12 +743,12 @@ const Auth = () => {
 
             {/* Connect column */}
             <div>
-              <h4 className="text-base font-extrabold text-white uppercase tracking-wider mb-6">Connect</h4>
+              <h4 className="text-base font-extrabold text-gray-900 uppercase tracking-wider mb-6">Connect</h4>
               <div className="flex flex-col gap-4">
                 <a href="https://github.com" target="_blank" rel="noreferrer"
                   className="flex items-center gap-3.5 text-base font-medium text-dark-muted hover:text-dark-text transition-colors group"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center group-hover:border-white/20 group-hover:bg-white/[0.08] transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center group-hover:border-gray-300 group-hover:bg-gray-100 transition-all">
                     <FaGithub className="text-lg" />
                   </div>
                   GitHub
@@ -756,7 +756,7 @@ const Auth = () => {
                 <a href="https://linkedin.com" target="_blank" rel="noreferrer"
                   className="flex items-center gap-3.5 text-base font-medium text-dark-muted hover:text-blue-400 transition-colors group"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center group-hover:border-blue-400/30 group-hover:bg-blue-400/10 transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center group-hover:border-blue-400/30 group-hover:bg-blue-400/10 transition-all">
                     <FaLinkedin className="text-lg" />
                   </div>
                   LinkedIn
@@ -764,7 +764,7 @@ const Auth = () => {
                 <a href="mailto:hello@example.com"
                   className="flex items-center gap-3.5 text-base font-medium text-dark-muted hover:text-purple-400 transition-colors group"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center group-hover:border-purple-400/30 group-hover:bg-purple-400/10 transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center group-hover:border-purple-400/30 group-hover:bg-purple-400/10 transition-all">
                     <FaEnvelope className="text-lg" />
                   </div>
                   Email
@@ -774,12 +774,12 @@ const Auth = () => {
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8" />
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-8" />
 
           {/* Bottom bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-base text-dark-muted font-medium">
-              &copy; {new Date().getFullYear()} <span className="font-bold bg-gradient-to-r from-dark-accent to-purple-400 bg-clip-text text-transparent">Naga sai J</span>. All rights reserved.
+              &copy; {new Date().getFullYear()} <span className="font-bold bg-gradient-to-r from-dark-accent to-indigo-400 bg-clip-text text-transparent">Naga sai J</span>. All rights reserved.
             </p>
             <p className="text-sm text-dark-muted/60 flex items-center gap-2 font-medium">
               Made with <FaHeart className="text-dark-accent text-xs" /> for learners everywhere

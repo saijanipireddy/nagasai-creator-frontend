@@ -21,7 +21,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-dark-sidebar border-r border-dark-secondary z-40 transition-all duration-300
+        className={`fixed top-[72px] left-0 h-[calc(100vh-72px)] bg-dark-sidebar border-r border-dark-secondary z-40 shadow-sm transition-all duration-300
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isCollapsed ? 'lg:w-20' : 'w-64'}`}
       >
@@ -51,14 +51,18 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                   className={({ isActive }) => `
                     flex items-center gap-4 p-3 rounded-xl transition-all duration-200
                     ${isActive
-                      ? 'bg-dark-accent text-white shadow-lg shadow-dark-accent/20'
-                      : 'hover:bg-dark-secondary text-dark-muted hover:text-white'}
+                      ? 'bg-indigo-50 shadow-sm'
+                      : 'hover:bg-gray-100'}
                     ${isCollapsed ? 'lg:justify-center' : ''}
                   `}
                   onClick={onClose}
                 >
-                  <item.icon className="text-xl flex-shrink-0" />
-                  <span className={`${isCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
+                  {({ isActive }) => (
+                    <>
+                      <item.icon className={`text-2xl flex-shrink-0 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
+                      <span className={`text-base font-semibold ${isActive ? 'text-indigo-600' : 'text-black'} ${isCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
+                    </>
+                  )}
                 </NavLink>
               </li>
             ))}

@@ -1,6 +1,6 @@
 const StatCard = ({ icon: Icon, label, value, color, trend }) => {
   return (
-    <div className="bg-dark-card p-6 rounded-xl border border-dark-secondary hover:border-dark-accent/50 transition-all duration-300 group hover:shadow-lg hover:shadow-dark-accent/5">
+    <div className="bg-dark-card p-6 rounded-xl border border-dark-secondary hover:border-dark-accent/50 transition-all duration-300 shadow-sm group hover:shadow-lg hover:shadow-dark-accent/5">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-dark-muted text-sm mb-1">{label}</p>

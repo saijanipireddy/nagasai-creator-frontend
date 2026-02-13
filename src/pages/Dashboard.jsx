@@ -57,7 +57,7 @@ const Dashboard = () => {
               <div className="w-10 h-10 bg-dark-accent rounded-lg flex items-center justify-center">
                 <FaRocket className="text-white" />
               </div>
-              <span className="text-dark-accent font-medium">Learn Full Stack Development</span>
+              <span className="text-dark-accent font-semibold text-base">Learn Full Stack Development</span>
             </div>
 
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
@@ -65,21 +65,21 @@ const Dashboard = () => {
               <span className="text-dark-accent"> Step by Step</span>
             </h1>
 
-            <p className="text-dark-muted text-lg mb-6 max-w-xl">
+            <p className="text-dark-muted text-xl mb-6 max-w-xl">
               Daily videos, presentations, practice questions, and coding challenges to help you become a full-stack developer.
             </p>
 
             <div className="flex flex-wrap gap-3">
               <Link
                 to="/courses"
-                className="inline-flex items-center gap-2 bg-dark-accent px-6 py-3 rounded-xl hover:bg-dark-accent/80 transition-all font-medium shadow-lg shadow-dark-accent/25"
+                className="inline-flex items-center gap-2 bg-dark-accent px-7 py-3.5 rounded-xl hover:bg-dark-accent/80 transition-all font-semibold text-base shadow-lg shadow-dark-accent/25"
               >
                 <FaPlay className="text-sm" />
                 Start Learning
               </Link>
               <Link
                 to="/playground"
-                className="inline-flex items-center gap-2 bg-dark-secondary px-6 py-3 rounded-xl hover:bg-dark-secondary/80 transition-all font-medium"
+                className="inline-flex items-center gap-2 bg-dark-secondary px-7 py-3.5 rounded-xl hover:bg-dark-secondary/80 transition-all font-semibold text-base"
               >
                 <FaCode />
                 Code Playground
@@ -89,47 +89,75 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Progress Stats */}
-      {progressStats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-dark-card rounded-xl border border-dark-secondary p-5 hover:border-dark-accent/50 transition-colors">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                <FaTrophy className="text-yellow-500" />
+      {/* Progress Stats — Donut Pie Charts */}
+      {progressStats && (() => {
+        const total = progressStats.totalPoints || 1;
+        const slices = [
+          { value: progressStats.practicePoints, label: 'Practice', color: '#3b82f6', light: '#dbeafe', icon: FaChartLine },
+          { value: progressStats.codingPoints, label: 'Coding', color: '#22c55e', light: '#dcfce7', icon: FaCode },
+          { value: progressStats.topicsCompleted, label: 'Topics', color: '#a855f7', light: '#f3e8ff', icon: FaCheckCircle },
+        ];
+
+        // Build pie slices for the main donut
+        const size = 160;
+        const cx = size / 2, cy = size / 2, r = 60;
+        const pieTotal = slices.reduce((s, sl) => s + sl.value, 0) || 1;
+        let cumAngle = -90; // start from top
+        const arcs = slices.map((sl) => {
+          const pct = sl.value / pieTotal;
+          const startAngle = cumAngle;
+          const sweep = pct * 360;
+          cumAngle += sweep;
+          const endAngle = startAngle + sweep;
+          const startRad = (startAngle * Math.PI) / 180;
+          const endRad = (endAngle * Math.PI) / 180;
+          const x1 = cx + r * Math.cos(startRad);
+          const y1 = cy + r * Math.sin(startRad);
+          const x2 = cx + r * Math.cos(endRad);
+          const y2 = cy + r * Math.sin(endRad);
+          const largeArc = sweep > 180 ? 1 : 0;
+          const d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+          return { ...sl, d, pct };
+        });
+
+        return (
+          <div className="bg-dark-card rounded-2xl border border-dark-secondary p-6 md:p-8">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              {/* Main Donut Pie */}
+              <div className="relative shrink-0" style={{ width: size, height: size }}>
+                <svg width={size} height={size}>
+                  {/* Pie slices */}
+                  {arcs.map((arc, i) => (
+                    <path key={i} d={arc.d} fill={arc.color} opacity="0.85" className="transition-all duration-500 hover:opacity-100" />
+                  ))}
+                  {/* Center hole for donut */}
+                  <circle cx={cx} cy={cy} r="38" fill="white" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <FaTrophy className="text-yellow-500 text-xl mb-0.5" />
+                  <span className="text-3xl font-extrabold text-gray-900 leading-tight">{total}</span>
+                  <span className="text-xs font-semibold text-dark-muted uppercase tracking-wider">Points</span>
+                </div>
+              </div>
+
+              {/* Stat Breakdown Cards */}
+              <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {slices.map(({ value, label, color, light, icon: Icon }) => (
+                  <div key={label} className="flex items-center gap-4 bg-dark-bg rounded-xl p-4 border border-dark-secondary/50">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: light }}>
+                      <Icon className="text-xl" style={{ color }} />
+                    </div>
+                    <div>
+                      <p className="text-3xl font-extrabold text-gray-900 leading-tight">{value}</p>
+                      <p className="text-dark-muted text-base font-medium">{label}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            <p className="text-2xl font-bold">{progressStats.totalPoints}</p>
-            <p className="text-dark-muted text-sm">Total Points</p>
           </div>
-          <div className="bg-dark-card rounded-xl border border-dark-secondary p-5 hover:border-blue-500/50 transition-colors">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <FaChartLine className="text-blue-500" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold">{progressStats.practicePoints}</p>
-            <p className="text-dark-muted text-sm">Practice Score</p>
-          </div>
-          <div className="bg-dark-card rounded-xl border border-dark-secondary p-5 hover:border-green-500/50 transition-colors">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <FaCode className="text-green-500" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold">{progressStats.codingPoints}</p>
-            <p className="text-dark-muted text-sm">Coding Score</p>
-          </div>
-          <div className="bg-dark-card rounded-xl border border-dark-secondary p-5 hover:border-purple-500/50 transition-colors">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                <FaCheckCircle className="text-purple-500" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold">{progressStats.topicsCompleted}</p>
-            <p className="text-dark-muted text-sm">Topics Completed</p>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Features - Using CSS animation delays for better performance */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -140,8 +168,8 @@ const Dashboard = () => {
           <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center mb-4">
             <FaYoutube className="text-red-500 text-xl" />
           </div>
-          <h3 className="font-bold text-lg mb-2">Video Tutorials</h3>
-          <p className="text-dark-muted text-sm">Learn with detailed video explanations for every topic</p>
+          <h3 className="font-bold text-xl mb-2">Video Tutorials</h3>
+          <p className="text-dark-muted text-base">Learn with detailed video explanations for every topic</p>
         </div>
 
         <div
@@ -151,8 +179,8 @@ const Dashboard = () => {
           <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
             <FaLaptopCode className="text-blue-500 text-xl" />
           </div>
-          <h3 className="font-bold text-lg mb-2">Practice & Code</h3>
-          <p className="text-dark-muted text-sm">Hands-on practice questions and coding challenges</p>
+          <h3 className="font-bold text-xl mb-2">Practice & Code</h3>
+          <p className="text-dark-muted text-base">Hands-on practice questions and coding challenges</p>
         </div>
 
         <div
@@ -162,8 +190,8 @@ const Dashboard = () => {
           <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4">
             <FaGraduationCap className="text-purple-500 text-xl" />
           </div>
-          <h3 className="font-bold text-lg mb-2">Structured Learning</h3>
-          <p className="text-dark-muted text-sm">Follow a clear path from beginner to advanced</p>
+          <h3 className="font-bold text-xl mb-2">Structured Learning</h3>
+          <p className="text-dark-muted text-base">Follow a clear path from beginner to advanced</p>
         </div>
       </div>
 
@@ -171,10 +199,10 @@ const Dashboard = () => {
       <div className="bg-dark-card rounded-xl border border-dark-secondary p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold">Learning Path</h2>
-            <p className="text-dark-muted text-sm">Follow the recommended order for best results</p>
+            <h2 className="text-2xl font-bold">Learning Path</h2>
+            <p className="text-dark-muted text-base">Follow the recommended order for best results</p>
           </div>
-          <Link to="/courses" className="text-dark-accent text-sm hover:underline flex items-center gap-1">
+          <Link to="/courses" className="text-dark-accent text-base font-semibold hover:underline flex items-center gap-1.5">
             View All <FaArrowRight className="text-xs" />
           </Link>
         </div>
@@ -202,8 +230,8 @@ const Dashboard = () => {
                   >
                     <FaBook className="text-2xl" style={{ color: course.color }} />
                   </div>
-                  <h3 className="font-semibold mb-1">{course.name}</h3>
-                  <p className="text-dark-muted text-xs">{course.totalTopics || 0} Topics</p>
+                  <h3 className="font-semibold text-base mb-1">{course.name}</h3>
+                  <p className="text-dark-muted text-sm">{course.totalTopics || 0} Topics</p>
                 </div>
               </Link>
             ))}
@@ -225,13 +253,13 @@ const Dashboard = () => {
               <FaCode className="text-green-500 text-2xl" />
             </div>
             <div>
-              <h3 className="font-bold text-lg">Code Playground</h3>
-              <p className="text-dark-muted text-sm">Practice HTML, CSS, JavaScript, Python & SQL in your browser</p>
+              <h3 className="font-bold text-xl">Code Playground</h3>
+              <p className="text-dark-muted text-base">Practice HTML, CSS, JavaScript, Python & SQL in your browser</p>
             </div>
           </div>
           <Link
             to="/playground"
-            className="inline-flex items-center gap-2 bg-green-500 px-5 py-2.5 rounded-lg hover:bg-green-600 transition-colors font-medium whitespace-nowrap"
+            className="inline-flex items-center gap-2 bg-green-500 px-6 py-3 rounded-xl hover:bg-green-600 transition-colors font-semibold text-base whitespace-nowrap"
           >
             <FaCode />
             Open Playground

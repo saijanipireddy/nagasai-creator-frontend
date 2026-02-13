@@ -17,7 +17,7 @@ const Layout = () => {
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
       <main
-        className={`mt-16 h-[calc(100vh-4rem)] overflow-hidden relative transition-all duration-300
+        className={`mt-[72px] h-[calc(100vh-72px)] overflow-hidden relative transition-all duration-300
           ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}
       >
         <div className="p-4 md:p-6 h-full overflow-y-auto">

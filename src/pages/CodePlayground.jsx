@@ -535,19 +535,19 @@ ${jsCode}`;
     : 'h-[calc(100vh-4rem-3rem)] min-h-[500px] -m-4 md:-m-6';
 
   return (
-    <div className={`flex flex-col ${containerClass} ${isDarkMode ? 'bg-dark-bg' : 'bg-gray-100'}`}>
+    <div className={`flex flex-col ${containerClass} ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-gray-100'}`}>
       {/* Header - Desktop */}
-      <div className={`hidden md:flex items-center justify-end gap-2 p-2 border-b shrink-0 ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+      <div className={`hidden md:flex items-center justify-end gap-2 p-2 border-b shrink-0 ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center gap-2">
           {loadingMessage && (
-            <span className="text-xs text-dark-accent animate-pulse">{loadingMessage}</span>
+            <span className="text-xs text-[#e94560] animate-pulse">{loadingMessage}</span>
           )}
 
           <select
             value={activeLanguage}
             onChange={(e) => setActiveLanguage(e.target.value)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer focus:outline-none
-              ${isDarkMode ? 'bg-dark-secondary text-white' : 'bg-gray-100 text-gray-800'}`}
+              ${isDarkMode ? 'bg-[#0f3460] text-white' : 'bg-gray-100 text-gray-800'}`}
           >
             <option value="web">Web</option>
             <option value="python">Python</option>
@@ -565,31 +565,31 @@ ${jsCode}`;
             <span className="text-sm">{isRunning ? 'Running...' : 'Run'}</span>
           </button>
 
-          <button onClick={resetCode} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`} title="Reset Code">
+          <button onClick={resetCode} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`} title="Reset Code">
             <FaRedo className="text-sm" />
           </button>
 
-          <button onClick={downloadCode} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`} title="Download">
+          <button onClick={downloadCode} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`} title="Download">
             <FaDownload className="text-sm" />
           </button>
 
-          <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`} title="Toggle Theme">
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`} title="Toggle Theme">
             {isDarkMode ? <FaSun className="text-sm" /> : <FaMoon className="text-sm" />}
           </button>
 
-          <button onClick={() => setIsFullscreen(!isFullscreen)} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`} title="Toggle Fullscreen">
+          <button onClick={() => setIsFullscreen(!isFullscreen)} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`} title="Toggle Fullscreen">
             {isFullscreen ? <FaCompress className="text-sm" /> : <FaExpand className="text-sm" />}
           </button>
         </div>
       </div>
 
       {/* Header - Mobile */}
-      <div className={`md:hidden flex items-center justify-between px-2 py-2 border-b shrink-0 ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+      <div className={`md:hidden flex items-center justify-between px-2 py-2 border-b shrink-0 ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
         <select
           value={activeLanguage}
           onChange={(e) => setActiveLanguage(e.target.value)}
           className={`px-2 py-1 rounded-lg text-xs font-medium cursor-pointer focus:outline-none
-            ${isDarkMode ? 'bg-dark-secondary text-white' : 'bg-gray-100 text-gray-800'}`}
+            ${isDarkMode ? 'bg-[#0f3460] text-white' : 'bg-gray-100 text-gray-800'}`}
         >
           <option value="web">Web</option>
           <option value="python">Python</option>
@@ -599,7 +599,7 @@ ${jsCode}`;
 
         <div className="flex items-center gap-1">
           {loadingMessage && (
-            <span className="text-[10px] text-dark-accent animate-pulse mr-1">{loadingMessage.split(' ')[0]}...</span>
+            <span className="text-[10px] text-[#e94560] animate-pulse mr-1">{loadingMessage.split(' ')[0]}...</span>
           )}
 
           <button
@@ -612,39 +612,39 @@ ${jsCode}`;
             {isRunning ? '...' : 'Run'}
           </button>
 
-          <button onClick={resetCode} className={`p-1.5 rounded-lg ${isDarkMode ? 'text-dark-muted' : 'text-gray-600'}`}>
+          <button onClick={resetCode} className={`p-1.5 rounded-lg ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
             <FaRedo className="text-xs" />
           </button>
 
-          <button onClick={downloadCode} className={`p-1.5 rounded-lg ${isDarkMode ? 'text-dark-muted' : 'text-gray-600'}`}>
+          <button onClick={downloadCode} className={`p-1.5 rounded-lg ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
             <FaDownload className="text-xs" />
           </button>
 
-          <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-1.5 rounded-lg ${isDarkMode ? 'text-dark-muted' : 'text-gray-600'}`}>
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-1.5 rounded-lg ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
             {isDarkMode ? <FaSun className="text-xs" /> : <FaMoon className="text-xs" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Tab Navigation */}
-      <div className={`md:hidden flex border-b shrink-0 ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+      <div className={`md:hidden flex border-b shrink-0 ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
         <button
           onClick={() => setMobilePanel('editor')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors relative
-            ${mobilePanel === 'editor' ? isDarkMode ? 'text-dark-accent' : 'text-blue-600' : isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}
+            ${mobilePanel === 'editor' ? isDarkMode ? 'text-[#e94560]' : 'text-blue-600' : isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
         >
           <FaCode />
           Editor
-          {mobilePanel === 'editor' && <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-dark-accent' : 'bg-blue-600'}`} />}
+          {mobilePanel === 'editor' && <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-[#e94560]' : 'bg-blue-600'}`} />}
         </button>
         <button
           onClick={() => setMobilePanel('output')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors relative
-            ${mobilePanel === 'output' ? isDarkMode ? 'text-dark-accent' : 'text-blue-600' : isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}
+            ${mobilePanel === 'output' ? isDarkMode ? 'text-[#e94560]' : 'text-blue-600' : isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
         >
           <FaTerminal />
           Output
-          {mobilePanel === 'output' && <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-dark-accent' : 'bg-blue-600'}`} />}
+          {mobilePanel === 'output' && <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-[#e94560]' : 'bg-blue-600'}`} />}
         </button>
       </div>
 
@@ -670,11 +670,11 @@ ${jsCode}`;
                 style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
               >
                 {/* Editor */}
-                <div className={`min-h-0 flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+                <div className={`min-h-0 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
                   {/* Editor header for non-web */}
                   {activeLanguage !== 'web' && (
-                    <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
-                      <FaCode className={`text-sm ${isDarkMode ? 'text-dark-accent' : 'text-blue-500'}`} />
+                    <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
+                      <FaCode className={`text-sm ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
                       <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
                         {LANGUAGES[activeLanguage].name} Editor
                       </span>
@@ -683,7 +683,7 @@ ${jsCode}`;
 
                   {/* Web tabs */}
                   {activeLanguage === 'web' && (
-                    <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                    <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                       {[
                         { id: 'html', label: 'HTML', icon: FaHtml5, color: '#e34c26' },
                         { id: 'css', label: 'CSS', icon: FaCss3Alt, color: '#264de4' },
@@ -694,8 +694,8 @@ ${jsCode}`;
                           onClick={() => setActiveWebTab(tab.id)}
                           className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors relative
                             ${activeWebTab === tab.id
-                              ? isDarkMode ? 'bg-dark-secondary' : 'bg-gray-100'
-                              : isDarkMode ? 'hover:bg-dark-secondary/50' : 'hover:bg-gray-50'}`}
+                              ? isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-100'
+                              : isDarkMode ? 'hover:bg-[#0f3460]/50' : 'hover:bg-gray-50'}`}
                         >
                           <tab.icon style={{ color: tab.color }} className="text-sm" />
                           <span className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>{tab.label}</span>
@@ -721,9 +721,9 @@ ${jsCode}`;
                 </div>
 
                 {/* Input Panel */}
-                <div className={`min-h-0 flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
-                  <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'bg-dark-secondary/50 border-dark-secondary' : 'bg-gray-50 border-gray-200'}`}>
-                    <FaTerminal className={`text-xs ${isDarkMode ? 'text-dark-accent' : 'text-blue-500'}`} />
+                <div className={`min-h-0 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
+                  <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'bg-[#0f3460]/50 border-[#0f3460]' : 'bg-gray-50 border-gray-200'}`}>
+                    <FaTerminal className={`text-xs ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
                     <span className={`text-xs font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
                       Input (one value per line)
                     </span>
@@ -733,16 +733,16 @@ ${jsCode}`;
                     onChange={(e) => activeLanguage === 'python' ? setPythonInput(e.target.value) : setJsInput(e.target.value)}
                     placeholder="Enter input values here..."
                     className={`flex-1 w-full p-2 text-sm font-mono resize-none focus:outline-none
-                      ${isDarkMode ? 'bg-dark-bg text-white placeholder-dark-muted' : 'bg-white text-gray-800 placeholder-gray-400'}`}
+                      ${isDarkMode ? 'bg-[#0f0f0f] text-white placeholder-[#a0a0a0]' : 'bg-white text-gray-800 placeholder-gray-400'}`}
                   />
                 </div>
               </Split>
             ) : (
               /* Editor only (no input for web/sql) */
-              <div className={`h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+              <div className={`h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
                 {/* Web tabs */}
                 {activeLanguage === 'web' && (
-                  <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                  <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                     {[
                       { id: 'html', label: 'HTML', icon: FaHtml5, color: '#e34c26' },
                       { id: 'css', label: 'CSS', icon: FaCss3Alt, color: '#264de4' },
@@ -753,8 +753,8 @@ ${jsCode}`;
                         onClick={() => setActiveWebTab(tab.id)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors relative
                           ${activeWebTab === tab.id
-                            ? isDarkMode ? 'bg-dark-secondary' : 'bg-gray-100'
-                            : isDarkMode ? 'hover:bg-dark-secondary/50' : 'hover:bg-gray-50'}`}
+                            ? isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-100'
+                            : isDarkMode ? 'hover:bg-[#0f3460]/50' : 'hover:bg-gray-50'}`}
                       >
                         <tab.icon style={{ color: tab.color }} className="text-sm" />
                         <span className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>{tab.label}</span>
@@ -768,8 +768,8 @@ ${jsCode}`;
 
                 {/* SQL header */}
                 {activeLanguage === 'sql' && (
-                  <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
-                    <FaDatabase className={`text-sm ${isDarkMode ? 'text-dark-accent' : 'text-blue-500'}`} />
+                  <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
+                    <FaDatabase className={`text-sm ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
                     <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
                       SQL Editor
                     </span>
@@ -803,8 +803,8 @@ ${jsCode}`;
                 style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
               >
                 {/* Preview */}
-                <div className={`min-h-0 flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
-                  <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                <div className={`min-h-0 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
+                  <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                     <div className="flex gap-1.5">
                       <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
                       <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
@@ -830,12 +830,12 @@ ${jsCode}`;
                 </div>
 
                 {/* Console */}
-                <div className={`min-h-0 flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
-                  <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'bg-dark-secondary/50 border-dark-secondary' : 'bg-gray-50 border-gray-200'}`}>
-                    <FaTerminal className={`text-xs ${isDarkMode ? 'text-dark-accent' : 'text-blue-500'}`} />
+                <div className={`min-h-0 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
+                  <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'bg-[#0f3460]/50 border-[#0f3460]' : 'bg-gray-50 border-gray-200'}`}>
+                    <FaTerminal className={`text-xs ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
                     <span className={`text-xs font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Console</span>
                   </div>
-                  <div className={`flex-1 overflow-auto p-2 ${isDarkMode ? 'bg-dark-bg' : 'bg-gray-100'}`}>
+                  <div className={`flex-1 overflow-auto p-2 ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-gray-100'}`}>
                     {consoleOutput.map((log, i) => (
                       <div
                         key={i}
@@ -853,9 +853,9 @@ ${jsCode}`;
               </Split>
             ) : (
               /* Output only */
-              <div className={`h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+              <div className={`h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
                 {/* Output header */}
-                <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                <div className={`flex items-center gap-2 px-3 py-1.5 border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                   {activeLanguage === 'web' ? (
                     <>
                       <div className="flex gap-1.5">
@@ -867,12 +867,12 @@ ${jsCode}`;
                     </>
                   ) : activeLanguage === 'sql' ? (
                     <>
-                      <FaTable className={`text-sm ${isDarkMode ? 'text-dark-accent' : 'text-blue-500'}`} />
+                      <FaTable className={`text-sm ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
                       <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Results</span>
                     </>
                   ) : (
                     <>
-                      <FaTerminal className={`text-sm ${isDarkMode ? 'text-dark-accent' : 'text-blue-500'}`} />
+                      <FaTerminal className={`text-sm ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
                       <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Output</span>
                     </>
                   )}
@@ -901,16 +901,16 @@ ${jsCode}`;
 
                   {/* Python Output */}
                   {activeLanguage === 'python' && (
-                    <div className={`h-full p-3 font-mono text-sm whitespace-pre-wrap ${isDarkMode ? 'bg-dark-bg text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
+                    <div className={`h-full p-3 font-mono text-sm whitespace-pre-wrap ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
                       {!pyodideReady ? (
-                        <div className="flex items-center gap-2 text-dark-accent">
-                          <div className="w-4 h-4 border-2 border-dark-accent border-t-transparent rounded-full animate-spin"></div>
+                        <div className="flex items-center gap-2 text-[#e94560]">
+                          <div className="w-4 h-4 border-2 border-[#e94560] border-t-transparent rounded-full animate-spin"></div>
                           Loading Python environment...
                         </div>
                       ) : pythonOutput ? (
                         pythonOutput
                       ) : (
-                        <span className={isDarkMode ? 'text-dark-muted' : 'text-gray-400'}>
+                        <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}>
                           Click "Run" to execute Python code
                         </span>
                       )}
@@ -919,20 +919,20 @@ ${jsCode}`;
 
                   {/* SQL Results */}
                   {activeLanguage === 'sql' && (
-                    <div className={`h-full overflow-auto ${isDarkMode ? 'bg-dark-bg' : 'bg-gray-50'}`}>
+                    <div className={`h-full overflow-auto ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-gray-50'}`}>
                       {!sqlReady ? (
-                        <div className="flex items-center gap-2 p-3 text-dark-accent">
-                          <div className="w-4 h-4 border-2 border-dark-accent border-t-transparent rounded-full animate-spin"></div>
+                        <div className="flex items-center gap-2 p-3 text-[#e94560]">
+                          <div className="w-4 h-4 border-2 border-[#e94560] border-t-transparent rounded-full animate-spin"></div>
                           Loading SQL environment...
                         </div>
                       ) : sqlResults.length === 0 ? (
-                        <div className={`p-3 ${isDarkMode ? 'text-dark-muted' : 'text-gray-400'}`}>
+                        <div className={`p-3 ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}`}>
                           Click "Run" to execute SQL queries
                         </div>
                       ) : (
                         <div className="p-3 space-y-3">
                           {sqlResults.map((result, i) => (
-                            <div key={i} className={`rounded-lg overflow-hidden border ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                            <div key={i} className={`rounded-lg overflow-hidden border ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                               {result.error ? (
                                 <div className="p-2 bg-red-500/10 text-red-500 text-sm">
                                   Error: {result.error}
@@ -945,7 +945,7 @@ ${jsCode}`;
                                 <div className="overflow-x-auto">
                                   <table className="w-full text-sm">
                                     <thead>
-                                      <tr className={isDarkMode ? 'bg-dark-secondary' : 'bg-gray-100'}>
+                                      <tr className={isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-100'}>
                                         {result.columns.map((col, j) => (
                                           <th key={j} className={`px-2 py-1.5 text-left font-medium text-xs ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
                                             {col}
@@ -955,17 +955,17 @@ ${jsCode}`;
                                     </thead>
                                     <tbody>
                                       {result.values.map((row, j) => (
-                                        <tr key={j} className={`border-t ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                                        <tr key={j} className={`border-t ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                                           {row.map((cell, k) => (
                                             <td key={k} className={`px-2 py-1.5 text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                              {cell === null ? <span className="text-dark-muted italic">NULL</span> : String(cell)}
+                                              {cell === null ? <span className="text-[#a0a0a0] italic">NULL</span> : String(cell)}
                                             </td>
                                           ))}
                                         </tr>
                                       ))}
                                     </tbody>
                                   </table>
-                                  <div className={`px-2 py-1 text-xs ${isDarkMode ? 'bg-dark-secondary/50 text-dark-muted' : 'bg-gray-50 text-gray-500'}`}>
+                                  <div className={`px-2 py-1 text-xs ${isDarkMode ? 'bg-[#0f3460]/50 text-[#a0a0a0]' : 'bg-gray-50 text-gray-500'}`}>
                                     {result.values.length} row{result.values.length !== 1 ? 's' : ''}
                                   </div>
                                 </div>
@@ -979,11 +979,11 @@ ${jsCode}`;
 
                   {/* JavaScript Output */}
                   {activeLanguage === 'javascript' && (
-                    <div className={`h-full p-3 font-mono text-sm whitespace-pre-wrap ${isDarkMode ? 'bg-dark-bg text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
+                    <div className={`h-full p-3 font-mono text-sm whitespace-pre-wrap ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
                       {jsOutput ? (
                         jsOutput
                       ) : (
-                        <span className={isDarkMode ? 'text-dark-muted' : 'text-gray-400'}>
+                        <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}>
                           Click "Run" to execute JavaScript code
                         </span>
                       )}
@@ -1000,10 +1000,10 @@ ${jsCode}`;
       <div className="md:hidden flex-1 min-h-0 flex flex-col">
         {/* Mobile Editor Panel */}
         {mobilePanel === 'editor' && (
-          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
             {/* Web tabs for mobile */}
             {activeLanguage === 'web' && (
-              <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+              <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                 {[
                   { id: 'html', label: 'HTML', icon: FaHtml5, color: '#e34c26' },
                   { id: 'css', label: 'CSS', icon: FaCss3Alt, color: '#264de4' },
@@ -1013,7 +1013,7 @@ ${jsCode}`;
                     key={tab.id}
                     onClick={() => setActiveWebTab(tab.id)}
                     className={`flex-1 flex items-center justify-center gap-1 py-2 transition-colors relative text-xs
-                      ${activeWebTab === tab.id ? isDarkMode ? 'bg-dark-secondary' : 'bg-gray-100' : ''}`}
+                      ${activeWebTab === tab.id ? isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-100' : ''}`}
                   >
                     <tab.icon style={{ color: tab.color }} className="text-sm" />
                     {tab.label}
@@ -1027,7 +1027,7 @@ ${jsCode}`;
 
             {/* Language header for non-web */}
             {activeLanguage !== 'web' && (
-              <div className={`flex items-center gap-2 px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+              <div className={`flex items-center gap-2 px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                 {activeLanguage === 'python' && <FaPython className="text-sm" style={{ color: '#3776ab' }} />}
                 {activeLanguage === 'sql' && <FaDatabase className="text-sm" style={{ color: '#00758f' }} />}
                 {activeLanguage === 'javascript' && <FaJs className="text-sm" style={{ color: '#f7df1e' }} />}
@@ -1051,9 +1051,9 @@ ${jsCode}`;
 
             {/* Input section for Python/JS on mobile */}
             {hasInput && (
-              <div className={`border-t shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
-                <div className={`flex items-center gap-2 px-3 py-1.5 ${isDarkMode ? 'bg-dark-secondary/50' : 'bg-gray-50'}`}>
-                  <FaKeyboard className={`text-xs ${isDarkMode ? 'text-dark-accent' : 'text-blue-500'}`} />
+              <div className={`border-t shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
+                <div className={`flex items-center gap-2 px-3 py-1.5 ${isDarkMode ? 'bg-[#0f3460]/50' : 'bg-gray-50'}`}>
+                  <FaKeyboard className={`text-xs ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
                   <span className="text-xs font-medium">Input</span>
                 </div>
                 <textarea
@@ -1062,7 +1062,7 @@ ${jsCode}`;
                   placeholder="Enter input values (one per line)..."
                   rows={3}
                   className={`w-full p-2 text-xs font-mono resize-none focus:outline-none
-                    ${isDarkMode ? 'bg-dark-bg text-white placeholder-dark-muted' : 'bg-white text-gray-800 placeholder-gray-400'}`}
+                    ${isDarkMode ? 'bg-[#0f0f0f] text-white placeholder-[#a0a0a0]' : 'bg-white text-gray-800 placeholder-gray-400'}`}
                 />
               </div>
             )}
@@ -1071,9 +1071,9 @@ ${jsCode}`;
 
         {/* Mobile Output Panel */}
         {mobilePanel === 'output' && (
-          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
             {/* Output header */}
-            <div className={`flex items-center gap-2 px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+            <div className={`flex items-center gap-2 px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
               {activeLanguage === 'web' ? (
                 <>
                   <div className="flex gap-1.5">
@@ -1085,12 +1085,12 @@ ${jsCode}`;
                 </>
               ) : activeLanguage === 'sql' ? (
                 <>
-                  <FaTable className={`text-xs ${isDarkMode ? 'text-dark-accent' : 'text-blue-500'}`} />
+                  <FaTable className={`text-xs ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
                   <span className={`text-xs font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Results</span>
                 </>
               ) : (
                 <>
-                  <FaTerminal className={`text-xs ${isDarkMode ? 'text-dark-accent' : 'text-blue-500'}`} />
+                  <FaTerminal className={`text-xs ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
                   <span className={`text-xs font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Output</span>
                 </>
               )}
@@ -1119,34 +1119,34 @@ ${jsCode}`;
 
               {/* Python Output */}
               {activeLanguage === 'python' && (
-                <div className={`h-full p-3 font-mono text-xs whitespace-pre-wrap ${isDarkMode ? 'bg-dark-bg text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
+                <div className={`h-full p-3 font-mono text-xs whitespace-pre-wrap ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
                   {!pyodideReady ? (
-                    <div className="flex items-center gap-2 text-dark-accent">
-                      <div className="w-3 h-3 border-2 border-dark-accent border-t-transparent rounded-full animate-spin"></div>
+                    <div className="flex items-center gap-2 text-[#e94560]">
+                      <div className="w-3 h-3 border-2 border-[#e94560] border-t-transparent rounded-full animate-spin"></div>
                       Loading Python...
                     </div>
                   ) : pythonOutput ? pythonOutput : (
-                    <span className={isDarkMode ? 'text-dark-muted' : 'text-gray-400'}>Click "Run" to execute</span>
+                    <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}>Click "Run" to execute</span>
                   )}
                 </div>
               )}
 
               {/* SQL Results */}
               {activeLanguage === 'sql' && (
-                <div className={`h-full overflow-auto ${isDarkMode ? 'bg-dark-bg' : 'bg-gray-50'}`}>
+                <div className={`h-full overflow-auto ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-gray-50'}`}>
                   {!sqlReady ? (
-                    <div className="flex items-center gap-2 p-3 text-dark-accent text-xs">
-                      <div className="w-3 h-3 border-2 border-dark-accent border-t-transparent rounded-full animate-spin"></div>
+                    <div className="flex items-center gap-2 p-3 text-[#e94560] text-xs">
+                      <div className="w-3 h-3 border-2 border-[#e94560] border-t-transparent rounded-full animate-spin"></div>
                       Loading SQL...
                     </div>
                   ) : sqlResults.length === 0 ? (
-                    <div className={`p-3 text-xs ${isDarkMode ? 'text-dark-muted' : 'text-gray-400'}`}>
+                    <div className={`p-3 text-xs ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}`}>
                       Click "Run" to execute
                     </div>
                   ) : (
                     <div className="p-2 space-y-2">
                       {sqlResults.map((result, i) => (
-                        <div key={i} className={`rounded-lg overflow-hidden border ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                        <div key={i} className={`rounded-lg overflow-hidden border ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                           {result.error ? (
                             <div className="p-2 bg-red-500/10 text-red-500 text-xs">Error: {result.error}</div>
                           ) : result.message ? (
@@ -1157,7 +1157,7 @@ ${jsCode}`;
                             <div className="overflow-x-auto">
                               <table className="w-full text-xs">
                                 <thead>
-                                  <tr className={isDarkMode ? 'bg-dark-secondary' : 'bg-gray-100'}>
+                                  <tr className={isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-100'}>
                                     {result.columns.map((col, j) => (
                                       <th key={j} className={`px-2 py-1 text-left font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>{col}</th>
                                     ))}
@@ -1165,17 +1165,17 @@ ${jsCode}`;
                                 </thead>
                                 <tbody>
                                   {result.values.slice(0, 50).map((row, j) => (
-                                    <tr key={j} className={`border-t ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                                    <tr key={j} className={`border-t ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                                       {row.map((cell, k) => (
                                         <td key={k} className={`px-2 py-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                          {cell === null ? <span className="text-dark-muted italic">NULL</span> : String(cell)}
+                                          {cell === null ? <span className="text-[#a0a0a0] italic">NULL</span> : String(cell)}
                                         </td>
                                       ))}
                                     </tr>
                                   ))}
                                 </tbody>
                               </table>
-                              <div className={`px-2 py-1 text-[10px] ${isDarkMode ? 'bg-dark-secondary/50 text-dark-muted' : 'bg-gray-50 text-gray-500'}`}>
+                              <div className={`px-2 py-1 text-[10px] ${isDarkMode ? 'bg-[#0f3460]/50 text-[#a0a0a0]' : 'bg-gray-50 text-gray-500'}`}>
                                 {result.values.length} row{result.values.length !== 1 ? 's' : ''}
                               </div>
                             </div>
@@ -1189,9 +1189,9 @@ ${jsCode}`;
 
               {/* JavaScript Output */}
               {activeLanguage === 'javascript' && (
-                <div className={`h-full p-3 font-mono text-xs whitespace-pre-wrap ${isDarkMode ? 'bg-dark-bg text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
+                <div className={`h-full p-3 font-mono text-xs whitespace-pre-wrap ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
                   {jsOutput ? jsOutput : (
-                    <span className={isDarkMode ? 'text-dark-muted' : 'text-gray-400'}>Click "Run" to execute</span>
+                    <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}>Click "Run" to execute</span>
                   )}
                 </div>
               )}
@@ -1199,9 +1199,9 @@ ${jsCode}`;
 
             {/* Console for web on mobile */}
             {activeLanguage === 'web' && consoleOutput.length > 0 && (
-              <div className={`max-h-28 border-t overflow-auto ${isDarkMode ? 'bg-dark-bg border-dark-secondary' : 'bg-gray-100 border-gray-200'}`}>
-                <div className={`sticky top-0 flex items-center gap-2 px-2 py-1 ${isDarkMode ? 'bg-dark-secondary/80' : 'bg-gray-200'}`}>
-                  <FaTerminal className="text-[10px] text-dark-accent" />
+              <div className={`max-h-28 border-t overflow-auto ${isDarkMode ? 'bg-[#0f0f0f] border-[#0f3460]' : 'bg-gray-100 border-gray-200'}`}>
+                <div className={`sticky top-0 flex items-center gap-2 px-2 py-1 ${isDarkMode ? 'bg-[#0f3460]/80' : 'bg-gray-200'}`}>
+                  <FaTerminal className="text-[10px] text-[#e94560]" />
                   <span className="text-[10px] font-medium">Console</span>
                 </div>
                 <div className="p-2">

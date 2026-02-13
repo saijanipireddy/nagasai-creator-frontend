@@ -48,7 +48,7 @@ const renderDescription = (text) => {
     } else if (part.startsWith('==') && part.endsWith('==')) {
       return <mark key={index} className="bg-yellow-500/30 text-yellow-300 px-1 rounded">{part.slice(2, -2)}</mark>;
     } else if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={index} className="bg-dark-secondary px-1.5 py-0.5 rounded text-pink-400 font-mono text-xs">{part.slice(1, -1)}</code>;
+      return <code key={index} className="bg-[#0f3460] px-1.5 py-0.5 rounded text-pink-400 font-mono text-xs">{part.slice(1, -1)}</code>;
     }
     return part;
   });
@@ -510,18 +510,18 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
   if (loadingSubmission) {
     return (
-      <div className="fixed inset-0 bg-dark-bg z-50 flex items-center justify-center">
-        <div className="w-10 h-10 border-3 border-dark-accent border-t-transparent rounded-full animate-spin" />
+      <div className="fixed inset-0 bg-[#0f0f0f] z-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-3 border-[#e94560] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!codingPractice?.title) {
     return (
-      <div className="fixed inset-0 bg-dark-bg z-50 flex items-center justify-center">
-        <div className="text-center text-dark-muted">
+      <div className="fixed inset-0 bg-[#0f0f0f] z-50 flex items-center justify-center">
+        <div className="text-center text-[#a0a0a0]">
           <p className="text-xl mb-4">No coding practice available</p>
-          <button onClick={onClose} className="px-4 py-2 bg-dark-accent rounded-lg hover:bg-dark-accent/80">
+          <button onClick={onClose} className="px-4 py-2 bg-[#e94560] rounded-lg hover:bg-[#e94560]/80">
             Go Back
           </button>
         </div>
@@ -530,13 +530,13 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
   }
 
   return (
-    <div className={`fixed inset-0 z-50 flex flex-col ${isDarkMode ? 'bg-dark-bg' : 'bg-gray-100'}`}>
+    <div className={`fixed inset-0 z-50 flex flex-col ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-gray-100'}`}>
       {/* Header - Desktop */}
-      <div className={`hidden md:flex items-center justify-between px-4 py-2 border-b shrink-0 ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+      <div className={`hidden md:flex items-center justify-between px-4 py-2 border-b shrink-0 ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
-            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted hover:text-white' : 'hover:bg-gray-200 text-gray-600'}`}
+            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0] hover:text-white' : 'hover:bg-gray-200 text-gray-600'}`}
           >
             <FaTimes />
           </button>
@@ -549,7 +549,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowProblem(!showProblem)}
-            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${showProblem ? 'bg-dark-accent text-white' : isDarkMode ? 'bg-dark-secondary text-dark-muted' : 'bg-gray-200 text-gray-600'}`}
+            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${showProblem ? 'bg-[#e94560] text-white' : isDarkMode ? 'bg-[#0f3460] text-[#a0a0a0]' : 'bg-gray-200 text-gray-600'}`}
           >
             {showProblem ? 'Hide Problem' : 'Show Problem'}
           </button>
@@ -582,7 +582,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
           <button
             onClick={resetCode}
-            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`}
+            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
             title="Reset Code"
           >
             <FaRedo className="text-sm" />
@@ -590,7 +590,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
           <button
             onClick={handleCopyCode}
-            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`}
+            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
             title="Copy Code"
           >
             {copied ? <FaCheck className="text-sm text-green-500" /> : <FaCopy className="text-sm" />}
@@ -598,7 +598,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`}
+            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
             title="Toggle Theme"
           >
             {isDarkMode ? <FaSun className="text-sm" /> : <FaMoon className="text-sm" />}
@@ -607,11 +607,11 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
       </div>
 
       {/* Header - Mobile */}
-      <div className={`md:hidden flex items-center justify-between px-3 py-2 border-b shrink-0 ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+      <div className={`md:hidden flex items-center justify-between px-3 py-2 border-b shrink-0 ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center gap-2">
           <button
             onClick={onClose}
-            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`}
+            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
           >
             <FaTimes className="text-sm" />
           </button>
@@ -650,14 +650,14 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
           <button
             onClick={resetCode}
-            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`}
+            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
           >
             <FaRedo className="text-xs" />
           </button>
 
           <button
             onClick={handleCopyCode}
-            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-dark-secondary text-dark-muted' : 'hover:bg-gray-200 text-gray-600'}`}
+            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
           >
             {copied ? <FaCheck className="text-xs text-green-500" /> : <FaCopy className="text-xs" />}
           </button>
@@ -665,7 +665,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
       </div>
 
       {/* Mobile Tab Navigation */}
-      <div className={`md:hidden flex border-b shrink-0 ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+      <div className={`md:hidden flex border-b shrink-0 ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
         {[
           { id: 'problem', label: 'Problem', icon: FaFileAlt },
           { id: 'editor', label: 'Editor', icon: FaCode },
@@ -676,13 +676,13 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
             onClick={() => setActivePanel(tab.id)}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors relative
               ${activePanel === tab.id
-                ? isDarkMode ? 'text-dark-accent' : 'text-blue-600'
-                : isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}
+                ? isDarkMode ? 'text-[#e94560]' : 'text-blue-600'
+                : isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
           >
             <tab.icon className="text-sm" />
             {tab.label}
             {activePanel === tab.id && (
-              <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-dark-accent' : 'bg-blue-600'}`} />
+              <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-[#e94560]' : 'bg-blue-600'}`} />
             )}
           </button>
         ))}
@@ -699,9 +699,9 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
           style={{ display: 'flex', height: '100%' }}
         >
           {/* Left Panel - Problem Description */}
-          <div className={`h-full overflow-hidden flex flex-col ${isDarkMode ? 'bg-dark-card' : 'bg-white'} ${!showProblem ? 'hidden' : ''}`}>
+          <div className={`h-full overflow-hidden flex flex-col ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'} ${!showProblem ? 'hidden' : ''}`}>
             <div className="flex-1 overflow-y-auto p-4">
-              <h2 className={`text-base font-semibold mb-3 ${isDarkMode ? 'text-dark-accent' : 'text-blue-600'}`}>Problem Description</h2>
+              <h2 className={`text-base font-semibold mb-3 ${isDarkMode ? 'text-[#e94560]' : 'text-blue-600'}`}>Problem Description</h2>
               <div className={`text-sm leading-relaxed whitespace-pre-wrap ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {renderDescription(codingPractice.description)}
               </div>
@@ -714,12 +714,12 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                   </h3>
                   <div className="space-y-2">
                     {codingPractice.imageLinks.map((link, index) => (
-                      <div key={index} className={`flex items-center gap-2 p-2 rounded-lg border ${isDarkMode ? 'bg-dark-bg border-dark-secondary' : 'bg-gray-50 border-gray-200'}`}>
+                      <div key={index} className={`flex items-center gap-2 p-2 rounded-lg border ${isDarkMode ? 'bg-[#0f0f0f] border-[#0f3460]' : 'bg-gray-50 border-gray-200'}`}>
                         <span className="text-cyan-400 text-xs font-medium min-w-[80px]">{link.label || `Link ${index + 1}`}:</span>
                         <input type="text" value={link.url} readOnly className="flex-1 bg-transparent text-xs font-mono text-gray-400 outline-none truncate" />
                         <button
                           onClick={() => copyImageLink(link.url, index)}
-                          className={`px-2 py-1 text-xs rounded transition-colors ${copiedLink === index ? 'bg-green-500 text-white' : isDarkMode ? 'bg-dark-secondary hover:bg-dark-secondary/80 text-gray-300' : 'bg-gray-200 text-gray-600'}`}
+                          className={`px-2 py-1 text-xs rounded transition-colors ${copiedLink === index ? 'bg-green-500 text-white' : isDarkMode ? 'bg-[#0f3460] hover:bg-[#0f3460]/80 text-gray-300' : 'bg-gray-200 text-gray-600'}`}
                         >
                           {copiedLink === index ? 'Copied!' : 'Copy'}
                         </button>
@@ -736,24 +736,24 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                     <FaImage className="text-sm" /> Reference Image
                   </h3>
                   <div
-                    className={`relative group rounded-lg p-3 cursor-pointer transition-colors ${isDarkMode ? 'bg-dark-bg hover:bg-dark-secondary/50' : 'bg-gray-50 hover:bg-gray-100'}`}
+                    className={`relative group rounded-lg p-3 cursor-pointer transition-colors ${isDarkMode ? 'bg-[#0f0f0f] hover:bg-[#0f3460]/50' : 'bg-gray-50 hover:bg-gray-100'}`}
                     onClick={() => setImageExpanded(true)}
                     style={{ height: '280px' }}
                   >
                     <img
                       src={`${BACKEND_URL}${codingPractice.referenceImage}`}
                       alt="Reference UI"
-                      className="rounded-lg border-2 border-dark-secondary hover:border-blue-400 transition-colors"
+                      className="rounded-lg border-2 border-[#0f3460] hover:border-blue-400 transition-colors"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                     <button
                       onClick={(e) => { e.stopPropagation(); setImageExpanded(true); }}
-                      className="absolute top-5 right-5 p-2 bg-dark-card/90 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-dark-secondary"
+                      className="absolute top-5 right-5 p-2 bg-[#1a1a2e]/90 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#0f3460]"
                     >
                       <FaExpand className="text-sm" />
                     </button>
                   </div>
-                  <p className="text-xs text-dark-muted mt-2 text-center">Click image to enlarge</p>
+                  <p className="text-xs text-[#a0a0a0] mt-2 text-center">Click image to enlarge</p>
                 </div>
               )}
 
@@ -763,7 +763,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                   <h3 className="text-base font-semibold mb-2 text-green-400 flex items-center gap-2">
                     <FaCheck className="text-sm" /> Expected Output
                   </h3>
-                  <pre className={`p-3 rounded-lg text-sm overflow-x-auto font-mono border ${isDarkMode ? 'bg-dark-bg text-gray-300 border-dark-secondary' : 'bg-gray-50 text-gray-700 border-gray-200'}`}>
+                  <pre className={`p-3 rounded-lg text-sm overflow-x-auto font-mono border ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300 border-[#0f3460]' : 'bg-gray-50 text-gray-700 border-gray-200'}`}>
                     {codingPractice.expectedOutput}
                   </pre>
                 </div>
@@ -772,10 +772,10 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
             {/* Hints */}
             {codingPractice.hints && codingPractice.hints.length > 0 && (
-              <div className={`border-t ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+              <div className={`border-t ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                 <button
                   onClick={() => setShowHints(!showHints)}
-                  className={`w-full flex items-center justify-between p-3 transition-colors ${isDarkMode ? 'hover:bg-dark-secondary/50' : 'hover:bg-gray-50'}`}
+                  className={`w-full flex items-center justify-between p-3 transition-colors ${isDarkMode ? 'hover:bg-[#0f3460]/50' : 'hover:bg-gray-50'}`}
                 >
                   <span className="flex items-center gap-2 text-yellow-500 font-medium text-sm">
                     <FaLightbulb /> Hints ({codingPractice.hints.length})
@@ -783,7 +783,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                   {showHints ? <FaChevronDown /> : <FaChevronUp />}
                 </button>
                 {showHints && (
-                  <div className={`p-3 ${isDarkMode ? 'bg-dark-bg/50' : 'bg-gray-50'}`}>
+                  <div className={`p-3 ${isDarkMode ? 'bg-[#0f0f0f]/50' : 'bg-gray-50'}`}>
                     <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-yellow-500 text-xs font-medium">
@@ -793,14 +793,14 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                           <button
                             onClick={() => setCurrentHintIndex(prev => Math.max(0, prev - 1))}
                             disabled={currentHintIndex === 0}
-                            className={`px-2 py-1 text-xs rounded disabled:opacity-50 ${isDarkMode ? 'bg-dark-secondary' : 'bg-gray-200'}`}
+                            className={`px-2 py-1 text-xs rounded disabled:opacity-50 ${isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-200'}`}
                           >
                             Prev
                           </button>
                           <button
                             onClick={() => setCurrentHintIndex(prev => Math.min(codingPractice.hints.length - 1, prev + 1))}
                             disabled={currentHintIndex >= codingPractice.hints.length - 1}
-                            className={`px-2 py-1 text-xs rounded disabled:opacity-50 ${isDarkMode ? 'bg-dark-secondary' : 'bg-gray-200'}`}
+                            className={`px-2 py-1 text-xs rounded disabled:opacity-50 ${isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-200'}`}
                           >
                             Next
                           </button>
@@ -827,10 +827,10 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
               style={{ display: 'flex', height: '100%' }}
             >
               {/* Editor Panel */}
-              <div className={`h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+              <div className={`h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
                 {/* Web Tabs */}
                 {isWebPlayground && (
-                  <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                  <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                     {[
                       { id: 'html', label: 'HTML', icon: FaHtml5, color: '#e34c26' },
                       { id: 'css', label: 'CSS', icon: FaCss3Alt, color: '#264de4' },
@@ -841,8 +841,8 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                         onClick={() => setActiveWebTab(tab.id)}
                         className={`flex items-center gap-1.5 px-4 py-2 transition-colors relative
                           ${activeWebTab === tab.id
-                            ? isDarkMode ? 'bg-dark-secondary' : 'bg-gray-100'
-                            : isDarkMode ? 'hover:bg-dark-secondary/50' : 'hover:bg-gray-50'}`}
+                            ? isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-100'
+                            : isDarkMode ? 'hover:bg-[#0f3460]/50' : 'hover:bg-gray-50'}`}
                       >
                         <tab.icon style={{ color: tab.color }} className="text-sm" />
                         <span className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>{tab.label}</span>
@@ -856,7 +856,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
                 {/* Non-web header */}
                 {!isWebPlayground && (
-                  <div className={`flex items-center gap-2 px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                  <div className={`flex items-center gap-2 px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                     <FaCode className={`text-sm`} style={{ color: langConfig.color }} />
                     <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
                       {langConfig.name} Editor
@@ -878,9 +878,9 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
               </div>
 
               {/* Output/Preview Panel */}
-              <div className={`h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+              <div className={`h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
                 {/* Output header */}
-                <div className={`flex items-center gap-2 px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+                <div className={`flex items-center gap-2 px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                   {isWebPlayground ? (
                     <>
                       <div className="flex gap-1.5">
@@ -892,7 +892,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                     </>
                   ) : (
                     <>
-                      <FaTerminal className={`text-sm ${isDarkMode ? 'text-dark-accent' : 'text-blue-500'}`} />
+                      <FaTerminal className={`text-sm ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
                       <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Output</span>
                     </>
                   )}
@@ -919,9 +919,9 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                             </div>
                           )}
                         </div>
-                        <div className={`min-h-0 flex flex-col ${isDarkMode ? 'bg-dark-bg' : 'bg-gray-100'}`}>
-                          <div className={`flex items-center gap-2 px-2 py-1 border-b ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
-                            <FaTerminal className="text-xs text-dark-accent" />
+                        <div className={`min-h-0 flex flex-col ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-gray-100'}`}>
+                          <div className={`flex items-center gap-2 px-2 py-1 border-b ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
+                            <FaTerminal className="text-xs text-[#e94560]" />
                             <span className="text-xs font-medium">Console</span>
                           </div>
                           <div className="flex-1 overflow-auto p-2">
@@ -945,8 +945,8 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                       </div>
                     )
                   ) : (
-                    <div className={`h-full p-3 font-mono text-sm whitespace-pre-wrap ${isDarkMode ? 'bg-dark-bg text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
-                      {output || <span className={isDarkMode ? 'text-dark-muted' : 'text-gray-400'}>Click "Run" to execute code</span>}
+                    <div className={`h-full p-3 font-mono text-sm whitespace-pre-wrap ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
+                      {output || <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}>Click "Run" to execute code</span>}
                     </div>
                   )}
                 </div>
@@ -960,8 +960,8 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
       <div className="md:hidden flex-1 min-h-0 flex flex-col">
         {/* Problem Panel - Mobile */}
         {activePanel === 'problem' && (
-          <div className={`flex-1 overflow-y-auto p-3 ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
-            <h2 className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-dark-accent' : 'text-blue-600'}`}>Problem Description</h2>
+          <div className={`flex-1 overflow-y-auto p-3 ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
+            <h2 className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-[#e94560]' : 'text-blue-600'}`}>Problem Description</h2>
             <div className={`text-xs leading-relaxed whitespace-pre-wrap ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               {renderDescription(codingPractice.description)}
             </div>
@@ -975,7 +975,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                 <img
                   src={`${BACKEND_URL}${codingPractice.referenceImage}`}
                   alt="Reference UI"
-                  className="w-full rounded-lg border border-dark-secondary"
+                  className="w-full rounded-lg border border-[#0f3460]"
                   onClick={() => setImageExpanded(true)}
                 />
               </div>
@@ -985,7 +985,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
             {codingPractice.expectedOutput && (
               <div className="mt-4">
                 <h3 className="text-sm font-semibold mb-2 text-green-400">Expected Output</h3>
-                <pre className={`p-2 rounded-lg text-xs overflow-x-auto font-mono ${isDarkMode ? 'bg-dark-bg text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
+                <pre className={`p-2 rounded-lg text-xs overflow-x-auto font-mono ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
                   {codingPractice.expectedOutput}
                 </pre>
               </div>
@@ -1009,14 +1009,14 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                       <button
                         onClick={() => setCurrentHintIndex(prev => Math.max(0, prev - 1))}
                         disabled={currentHintIndex === 0}
-                        className="px-2 py-1 text-xs rounded bg-dark-secondary disabled:opacity-50"
+                        className="px-2 py-1 text-xs rounded bg-[#0f3460] disabled:opacity-50"
                       >
                         Prev
                       </button>
                       <button
                         onClick={() => setCurrentHintIndex(prev => Math.min(codingPractice.hints.length - 1, prev + 1))}
                         disabled={currentHintIndex >= codingPractice.hints.length - 1}
-                        className="px-2 py-1 text-xs rounded bg-dark-secondary disabled:opacity-50"
+                        className="px-2 py-1 text-xs rounded bg-[#0f3460] disabled:opacity-50"
                       >
                         Next
                       </button>
@@ -1030,10 +1030,10 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
         {/* Editor Panel - Mobile */}
         {activePanel === 'editor' && (
-          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
             {/* Web Tabs - Mobile */}
             {isWebPlayground && (
-              <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-dark-secondary' : 'border-gray-200'}`}>
+              <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
                 {[
                   { id: 'html', label: 'HTML', icon: FaHtml5, color: '#e34c26' },
                   { id: 'css', label: 'CSS', icon: FaCss3Alt, color: '#264de4' },
@@ -1044,7 +1044,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                     onClick={() => setActiveWebTab(tab.id)}
                     className={`flex-1 flex items-center justify-center gap-1 py-2 transition-colors relative text-xs
                       ${activeWebTab === tab.id
-                        ? isDarkMode ? 'bg-dark-secondary' : 'bg-gray-100'
+                        ? isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-100'
                         : ''}`}
                   >
                     <tab.icon style={{ color: tab.color }} className="text-sm" />
@@ -1073,7 +1073,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
         {/* Output Panel - Mobile */}
         {activePanel === 'output' && (
-          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
             <div className="flex-1 min-h-0 overflow-auto">
               {isWebPlayground ? (
                 <div className="h-full bg-white">
@@ -1086,14 +1086,14 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                   )}
                 </div>
               ) : (
-                <div className={`h-full p-3 font-mono text-xs whitespace-pre-wrap ${isDarkMode ? 'bg-dark-bg text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
-                  {output || <span className={isDarkMode ? 'text-dark-muted' : 'text-gray-400'}>Click "Run" to execute code</span>}
+                <div className={`h-full p-3 font-mono text-xs whitespace-pre-wrap ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
+                  {output || <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}>Click "Run" to execute code</span>}
                 </div>
               )}
             </div>
             {/* Console for mobile */}
             {isWebPlayground && consoleOutput.length > 0 && (
-              <div className={`max-h-32 overflow-auto border-t ${isDarkMode ? 'bg-dark-bg border-dark-secondary' : 'bg-gray-100 border-gray-200'}`}>
+              <div className={`max-h-32 overflow-auto border-t ${isDarkMode ? 'bg-[#0f0f0f] border-[#0f3460]' : 'bg-gray-100 border-gray-200'}`}>
                 <div className="p-2">
                   {consoleOutput.map((log, i) => (
                     <div key={i} className={`text-xs font-mono py-0.5 ${log.level === 'error' ? 'text-red-500' : log.level === 'warn' ? 'text-yellow-500' : isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -1110,7 +1110,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
       {/* Results Panel Overlay */}
       {showResults && submitStatus && (
         <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className={`w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl border shadow-2xl ${isDarkMode ? 'bg-dark-card border-dark-secondary' : 'bg-white border-gray-200'}`}>
+          <div className={`w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl border shadow-2xl ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
             {/* Header */}
             <div className="px-6 pt-8 pb-4 text-center">
               {/* Status Icon */}
@@ -1151,19 +1151,19 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
 
                 return (
                   <>
-                    <p className={`mt-2 text-base ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>
+                    <p className={`mt-2 text-base ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
                       {totalTests > 0 ? `${passedTests}/${totalTests} tests passed` : 'Submission recorded'}
                     </p>
 
                     {totalTests > 0 && (
                       <div className="mt-4 px-4">
                         <div className="flex justify-between text-sm mb-1.5">
-                          <span className={isDarkMode ? 'text-dark-muted' : 'text-gray-500'}>Score</span>
+                          <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}>Score</span>
                           <span className={`font-bold ${submitStatus === 'pass' ? 'text-green-400' : 'text-red-400'}`}>
                             {scorePercent}%
                           </span>
                         </div>
-                        <div className={`h-3 rounded-full overflow-hidden ${isDarkMode ? 'bg-dark-secondary/30' : 'bg-gray-200'}`}>
+                        <div className={`h-3 rounded-full overflow-hidden ${isDarkMode ? 'bg-[#0f3460]/30' : 'bg-gray-200'}`}>
                           <div
                             className={`h-full rounded-full transition-all duration-700 ${submitStatus === 'pass' ? 'bg-green-500' : 'bg-red-500'}`}
                             style={{ width: `${scorePercent}%` }}
@@ -1181,7 +1181,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
               {/* Non-web test cases */}
               {!isWebPlayground && submitDetails && submitDetails.length > 0 && !submitDetails[0]?.visual && (
                 <div className="space-y-3 mb-4">
-                  <h4 className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>
+                  <h4 className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
                     Test Cases
                   </h4>
                   {submitDetails.map((tc, i) => (
@@ -1200,20 +1200,20 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                       </div>
                       {tc.input && (
                         <div className="mb-1">
-                          <span className={`text-xs ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>Input: </span>
-                          <code className={`text-xs px-1.5 py-0.5 rounded font-mono ${isDarkMode ? 'bg-dark-secondary/40 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
+                          <span className={`text-xs ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>Input: </span>
+                          <code className={`text-xs px-1.5 py-0.5 rounded font-mono ${isDarkMode ? 'bg-[#0f3460]/40 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
                             {tc.input}
                           </code>
                         </div>
                       )}
                       <div className="mb-1">
-                        <span className={`text-xs ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>Expected: </span>
-                        <code className={`text-xs px-1.5 py-0.5 rounded font-mono ${isDarkMode ? 'bg-dark-secondary/40 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
+                        <span className={`text-xs ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>Expected: </span>
+                        <code className={`text-xs px-1.5 py-0.5 rounded font-mono ${isDarkMode ? 'bg-[#0f3460]/40 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
                           {tc.expected}
                         </code>
                       </div>
                       <div>
-                        <span className={`text-xs ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>Output: </span>
+                        <span className={`text-xs ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>Output: </span>
                         <code className={`text-xs px-1.5 py-0.5 rounded font-mono ${
                           tc.passed
                             ? isDarkMode ? 'bg-green-500/10 text-green-400' : 'bg-green-100 text-green-700'
@@ -1230,7 +1230,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
               {/* Web test results */}
               {isWebPlayground && testResults && testResults.length > 0 && (
                 <div className="space-y-3 mb-4">
-                  <h4 className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>
+                  <h4 className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
                     Test Results
                   </h4>
                   {testResults.map((result, i) => {
@@ -1267,7 +1267,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                     <FaCheck className="text-green-400" />
                     <span className="text-green-400 font-medium text-sm">Code submitted successfully!</span>
                   </div>
-                  <p className={`text-xs mt-1 ${isDarkMode ? 'text-dark-muted' : 'text-gray-500'}`}>
+                  <p className={`text-xs mt-1 ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
                     No automated tests configured for this challenge.
                   </p>
                 </div>
@@ -1275,7 +1275,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className={`px-6 py-5 border-t ${isDarkMode ? 'border-dark-secondary/20' : 'border-gray-200'}`}>
+            <div className={`px-6 py-5 border-t ${isDarkMode ? 'border-[#0f3460]/20' : 'border-gray-200'}`}>
               <div className="flex gap-3">
                 <button
                   onClick={() => {
@@ -1287,7 +1287,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                   }}
                   className={`flex-1 py-3 rounded-xl font-bold text-base transition-colors ${
                     isDarkMode
-                      ? 'bg-dark-secondary text-white hover:bg-dark-secondary/80'
+                      ? 'bg-[#0f3460] text-white hover:bg-[#0f3460]/80'
                       : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                   }`}
                 >
@@ -1317,10 +1317,10 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
               className="max-w-full max-h-[85vh] object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />
-            <button onClick={() => setImageExpanded(false)} className="absolute top-4 right-4 p-3 bg-dark-card rounded-full hover:bg-dark-secondary transition-colors">
+            <button onClick={() => setImageExpanded(false)} className="absolute top-4 right-4 p-3 bg-[#1a1a2e] rounded-full hover:bg-[#0f3460] transition-colors">
               <FaTimes className="text-xl" />
             </button>
-            <p className="text-center text-dark-muted mt-4">Click outside or press X to close</p>
+            <p className="text-center text-[#a0a0a0] mt-4">Click outside or press X to close</p>
           </div>
         </div>
       )}

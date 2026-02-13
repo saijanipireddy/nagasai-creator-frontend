@@ -88,8 +88,8 @@ const TopicSidebar = ({
                   onClick={() => handleTopicClick(topic)}
                   className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200
                     ${isSelected
-                      ? 'bg-dark-accent/20 text-white'
-                      : 'hover:bg-dark-secondary text-dark-muted hover:text-white'}`}
+                      ? 'bg-dark-accent/20 text-black'
+                      : 'hover:bg-dark-secondary text-black'}`}
                 >
                   {/* Status Icon */}
                   <div
@@ -98,7 +98,7 @@ const TopicSidebar = ({
                         ? 'bg-green-500 text-white'
                         : isSelected
                           ? 'bg-dark-accent text-white'
-                          : 'bg-dark-secondary text-dark-muted'
+                          : 'bg-dark-secondary text-black'
                       }`}
                   >
                     {allCompleted ? (
@@ -166,7 +166,7 @@ const TopicSidebar = ({
                               ${isActiveTab
                                 ? 'bg-dark-accent text-white shadow-md'
                                 : hasContent
-                                  ? 'hover:bg-dark-secondary text-dark-muted hover:text-white'
+                                  ? 'hover:bg-dark-secondary text-black'
                                   : 'text-dark-muted/50 cursor-default'
                               }`}
                             disabled={!hasContent}

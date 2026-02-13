@@ -27,7 +27,7 @@ const CourseCard = ({ course }) => {
   return (
     <Link
       to={`/course/${courseId}`}
-      className="bg-dark-card rounded-xl border border-dark-secondary hover:border-dark-accent/50 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-dark-accent/10 group"
+      className="bg-dark-card rounded-xl border border-dark-secondary hover:border-dark-accent/50 overflow-hidden transition-all duration-300 shadow-sm hover:-translate-y-2 hover:shadow-xl hover:shadow-dark-accent/10 group"
     >
       {/* Icon Header */}
       <div

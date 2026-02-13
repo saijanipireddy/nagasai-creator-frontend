@@ -72,25 +72,23 @@ const AnimatedBackground = () => (
 
 /* ─────────── Form Left Panel (shared branding side) ─────────── */
 const FormLeftPanel = ({ isLogin }) => (
-  <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-center px-16">
-    {/* Background */}
-    <div className="absolute inset-0"
-      style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #111827 40%, #0f172a 100%)' }}
-    />
-    <div className="absolute top-1/4 -left-20 w-[400px] h-[400px] rounded-full opacity-40"
-      style={{ background: 'radial-gradient(circle, rgba(233,69,96,0.4) 0%, transparent 70%)', animation: 'blobFloat 8s ease-in-out infinite' }}
-    />
-    <div className="absolute bottom-1/4 -right-16 w-[350px] h-[350px] rounded-full opacity-25"
-      style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.5) 0%, transparent 70%)', animation: 'blobFloat 10s ease-in-out infinite reverse' }}
-    />
-    <div className="absolute top-2/3 left-1/3 w-[250px] h-[250px] rounded-full opacity-15"
-      style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)', animation: 'blobFloat 12s ease-in-out infinite' }}
-    />
-    <div className="absolute inset-0 opacity-[0.03]"
-      style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)', backgroundSize: '50px 50px' }}
-    />
+  <div className="hidden lg:flex lg:w-1/2 relative overflow-y-auto scrollbar-hidden flex-col px-16 py-16"
+    style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #111827 40%, #0f172a 100%)' }}
+  >
+    {/* Background blobs - sticky so they stay visible while scrolling */}
+    <div className="sticky top-0 left-0 w-0 h-0 overflow-visible pointer-events-none">
+      <div className="absolute top-[25vh] -left-20 w-[400px] h-[400px] rounded-full opacity-40"
+        style={{ background: 'radial-gradient(circle, rgba(233,69,96,0.4) 0%, transparent 70%)', animation: 'blobFloat 8s ease-in-out infinite' }}
+      />
+      <div className="absolute top-[50vh] left-[calc(100%+16rem)] w-[350px] h-[350px] rounded-full opacity-25 -translate-x-full"
+        style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.5) 0%, transparent 70%)', animation: 'blobFloat 10s ease-in-out infinite reverse' }}
+      />
+      <div className="absolute top-[65vh] left-[33%] w-[250px] h-[250px] rounded-full opacity-15"
+        style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)', animation: 'blobFloat 12s ease-in-out infinite' }}
+      />
+    </div>
 
-    <div className="relative z-10 max-w-lg">
+    <div className="relative z-10 max-w-lg my-auto">
       {/* Heading */}
       <h1 className="text-4xl xl:text-5xl font-extrabold leading-tight mb-5">
         {isLogin ? (
@@ -407,9 +405,15 @@ const Auth = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Scroll to top when switching views
+  // Lock body scroll on login/register, allow on landing
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (view === 'login' || view === 'register') {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    return () => { document.body.style.overflow = ''; };
   }, [view]);
 
   if (user) {
@@ -423,17 +427,17 @@ const Auth = () => {
   /* ─── Login / Register View ─── */
   if (view === 'login' || view === 'register') {
     return (
-      <div className="min-h-screen bg-dark-bg text-dark-text flex">
+      <div className="h-screen overflow-hidden bg-dark-bg text-dark-text flex">
         {/* Left Panel - Branding (desktop) */}
         <FormLeftPanel isLogin={view === 'login'} />
 
         {/* Right Panel - Form */}
-        <div className="w-full lg:w-1/2 relative flex items-center justify-center px-6 sm:px-10 lg:px-16 py-12 overflow-y-auto">
+        <div className="w-full lg:w-1/2 relative flex flex-col px-6 sm:px-10 lg:px-16 py-12 overflow-y-auto scrollbar-hidden">
           {/* Mobile background blobs */}
           <div className="lg:hidden">
             <AnimatedBackground />
           </div>
-          <div className="relative z-10 w-full">
+          <div className="relative z-10 w-full my-auto">
             {view === 'login'
               ? <LoginForm onSwitch={showRegister} onBack={showLanding} />
               : <RegisterForm onSwitch={showLogin} onBack={showLanding} />

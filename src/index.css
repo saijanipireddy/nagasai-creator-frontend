@@ -29,10 +29,18 @@
   background: #ff6b6b;
 }
 
+/* Hide scrollbar but keep scrolling */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Base dark theme styles */
 html, body, #root {
   height: 100%;
-  overflow: hidden;
 }
 
 body {

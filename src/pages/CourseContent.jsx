@@ -28,19 +28,21 @@ const CourseContent = () => {
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const fetchCourses = async () => {
+      try {
+        const { data } = await courseAPI.getAll(controller.signal);
+        setCourses(data);
+      } catch (error) {
+        if (error.name === 'CanceledError') return;
+        console.error('Failed to fetch courses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchCourses();
+    return () => controller.abort();
   }, []);
-
-  const fetchCourses = async () => {
-    try {
-      const { data } = await courseAPI.getAll();
-      setCourses(data);
-    } catch (error) {
-      console.error('Failed to fetch courses:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Memoize filtered courses to prevent unnecessary recalculations
   const filteredCourses = useMemo(() => {

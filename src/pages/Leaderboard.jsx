@@ -48,20 +48,22 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const fetchLeaderboard = async () => {
+      try {
+        const { data } = await scoreAPI.getLeaderboard(controller.signal);
+        setLeaderboard(data.leaderboard || []);
+        setMyRank(data.myRank);
+      } catch (error) {
+        if (error.name === 'CanceledError') return;
+        console.error('Failed to fetch leaderboard:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchLeaderboard();
+    return () => controller.abort();
   }, []);
-
-  const fetchLeaderboard = async () => {
-    try {
-      const { data } = await scoreAPI.getLeaderboard();
-      setLeaderboard(data.leaderboard || []);
-      setMyRank(data.myRank);
-    } catch (error) {
-      console.error('Failed to fetch leaderboard:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (

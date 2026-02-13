@@ -1,43 +1,34 @@
-import { useState, useEffect, useMemo } from 'react';
-import { FaBook, FaPlay, FaCode, FaYoutube, FaArrowRight, FaRocket, FaLaptopCode, FaGraduationCap, FaTrophy, FaChartLine, FaCheckCircle } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaBook, FaPlay, FaCode, FaYoutube, FaArrowRight, FaRocket, FaLaptopCode, FaGraduationCap } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { courseAPI, scoreAPI } from '../services/api';
+import { courseAPI } from '../services/api';
 import { DashboardSkeleton } from '../components/Loaders/Skeleton';
 
 const Dashboard = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [animationStarted, setAnimationStarted] = useState(false);
-  const [progressStats, setProgressStats] = useState(null);
 
   useEffect(() => {
-    fetchCourses();
-    fetchProgress();
-    const timer = setTimeout(() => setAnimationStarted(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const fetchCourses = async () => {
-    try {
-      const { data } = await courseAPI.getAll();
-      setCourses(data);
-    } catch (error) {
-      console.error('Failed to fetch courses:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchProgress = async () => {
-    try {
-      const { data } = await scoreAPI.getMyProgress();
-      if (data?.stats?.totalPoints > 0) {
-        setProgressStats(data.stats);
+    const controller = new AbortController();
+    const fetchCourses = async () => {
+      try {
+        const { data } = await courseAPI.getAll(controller.signal);
+        setCourses(data);
+      } catch (error) {
+        if (error.name === 'CanceledError') return;
+        console.error('Failed to fetch courses:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      // Student may not have any scores yet - that's fine
-    }
-  };
+    };
+    fetchCourses();
+    const timer = setTimeout(() => setAnimationStarted(true), 100);
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, []);
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -46,12 +37,8 @@ const Dashboard = () => {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-dark-card via-dark-sidebar to-dark-card border border-dark-secondary">
-        {/* Background Elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-dark-accent/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
-
-        <div className="relative p-8 md:p-12">
+      <div className="rounded-2xl bg-dark-card border border-dark-secondary">
+        <div className="p-8 md:p-12">
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 bg-dark-accent rounded-lg flex items-center justify-center">
@@ -72,7 +59,7 @@ const Dashboard = () => {
             <div className="flex flex-wrap gap-3">
               <Link
                 to="/courses"
-                className="inline-flex items-center gap-2 bg-dark-accent px-7 py-3.5 rounded-xl hover:bg-dark-accent/80 transition-all font-semibold text-base shadow-lg shadow-dark-accent/25"
+                className="inline-flex items-center gap-2 bg-dark-accent text-white px-7 py-3.5 rounded-xl hover:bg-dark-accent/80 transition-all font-semibold text-base"
               >
                 <FaPlay className="text-sm" />
                 Start Learning
@@ -88,76 +75,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Progress Stats — Donut Pie Charts */}
-      {progressStats && (() => {
-        const total = progressStats.totalPoints || 1;
-        const slices = [
-          { value: progressStats.practicePoints, label: 'Practice', color: '#3b82f6', light: '#dbeafe', icon: FaChartLine },
-          { value: progressStats.codingPoints, label: 'Coding', color: '#22c55e', light: '#dcfce7', icon: FaCode },
-          { value: progressStats.topicsCompleted, label: 'Topics', color: '#a855f7', light: '#f3e8ff', icon: FaCheckCircle },
-        ];
-
-        // Build pie slices for the main donut
-        const size = 160;
-        const cx = size / 2, cy = size / 2, r = 60;
-        const pieTotal = slices.reduce((s, sl) => s + sl.value, 0) || 1;
-        let cumAngle = -90; // start from top
-        const arcs = slices.map((sl) => {
-          const pct = sl.value / pieTotal;
-          const startAngle = cumAngle;
-          const sweep = pct * 360;
-          cumAngle += sweep;
-          const endAngle = startAngle + sweep;
-          const startRad = (startAngle * Math.PI) / 180;
-          const endRad = (endAngle * Math.PI) / 180;
-          const x1 = cx + r * Math.cos(startRad);
-          const y1 = cy + r * Math.sin(startRad);
-          const x2 = cx + r * Math.cos(endRad);
-          const y2 = cy + r * Math.sin(endRad);
-          const largeArc = sweep > 180 ? 1 : 0;
-          const d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
-          return { ...sl, d, pct };
-        });
-
-        return (
-          <div className="bg-dark-card rounded-2xl border border-dark-secondary p-6 md:p-8">
-            <div className="flex flex-col md:flex-row items-center gap-8">
-              {/* Main Donut Pie */}
-              <div className="relative shrink-0" style={{ width: size, height: size }}>
-                <svg width={size} height={size}>
-                  {/* Pie slices */}
-                  {arcs.map((arc, i) => (
-                    <path key={i} d={arc.d} fill={arc.color} opacity="0.85" className="transition-all duration-500 hover:opacity-100" />
-                  ))}
-                  {/* Center hole for donut */}
-                  <circle cx={cx} cy={cy} r="38" fill="white" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <FaTrophy className="text-yellow-500 text-xl mb-0.5" />
-                  <span className="text-3xl font-extrabold text-gray-900 leading-tight">{total}</span>
-                  <span className="text-xs font-semibold text-dark-muted uppercase tracking-wider">Points</span>
-                </div>
-              </div>
-
-              {/* Stat Breakdown Cards */}
-              <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {slices.map(({ value, label, color, light, icon: Icon }) => (
-                  <div key={label} className="flex items-center gap-4 bg-dark-bg rounded-xl p-4 border border-dark-secondary/50">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: light }}>
-                      <Icon className="text-xl" style={{ color }} />
-                    </div>
-                    <div>
-                      <p className="text-3xl font-extrabold text-gray-900 leading-tight">{value}</p>
-                      <p className="text-dark-muted text-base font-medium">{label}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
 
       {/* Features - Using CSS animation delays for better performance */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -246,11 +163,11 @@ const Dashboard = () => {
       </div>
 
       {/* Code Playground CTA */}
-      <div className="bg-gradient-to-r from-green-600/20 via-emerald-600/20 to-teal-600/20 rounded-xl border border-green-500/30 p-6 md:p-8">
+      <div className="bg-dark-card rounded-xl border border-dark-secondary p-6 md:p-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-green-500/20 rounded-xl flex items-center justify-center">
-              <FaCode className="text-green-500 text-2xl" />
+            <div className="w-14 h-14 bg-dark-accent/10 rounded-xl flex items-center justify-center">
+              <FaCode className="text-dark-accent text-2xl" />
             </div>
             <div>
               <h3 className="font-bold text-xl">Code Playground</h3>
@@ -259,7 +176,7 @@ const Dashboard = () => {
           </div>
           <Link
             to="/playground"
-            className="inline-flex items-center gap-2 bg-green-500 px-6 py-3 rounded-xl hover:bg-green-600 transition-colors font-semibold text-base whitespace-nowrap"
+            className="inline-flex items-center gap-2 bg-dark-accent text-white px-6 py-3 rounded-xl hover:bg-dark-accent/80 transition-colors font-semibold text-base whitespace-nowrap"
           >
             <FaCode />
             Open Playground

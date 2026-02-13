@@ -3,11 +3,10 @@ import axios from 'axios';
 export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 const API_URL = `${BACKEND_URL}/api`;
 
-// Resolve file URLs — handles both old local paths (/uploads/...) and new Supabase URLs (https://...)
+// Resolve file URLs from Supabase Storage
 export const getFileUrl = (filePath) => {
   if (!filePath) return '';
-  if (filePath.startsWith('http')) return filePath;
-  return `${BACKEND_URL}${filePath}`;
+  return filePath;
 };
 
 const api = axios.create({
@@ -35,7 +34,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    if (error.name !== 'CanceledError') {
+      console.error('API Error:', error.response?.data || error.message);
+    }
     return Promise.reject(error);
   }
 );
@@ -50,14 +51,15 @@ const extractData = (response) => {
 
 // Course APIs
 export const courseAPI = {
-  getAll: () => api.get('/courses').then(extractData),
-  getById: (id) => api.get(`/courses/${id}`),
-  getTopics: (courseId) => api.get(`/courses/${courseId}/topics`).then(extractData)
+  getAll: (signal) => api.get('/courses', { signal }).then(extractData),
+  getById: (id, signal) => api.get(`/courses/${id}`, { signal }),
+  getTopics: (courseId, signal) => api.get(`/courses/${courseId}/topics`, { signal }).then(extractData),
+  getTopicsSummary: (courseId, signal) => api.get(`/courses/${courseId}/topics-summary`, { signal }).then(extractData)
 };
 
 // Topic APIs
 export const topicAPI = {
-  getById: (id) => api.get(`/topics/${id}`)
+  getById: (id, signal) => api.get(`/topics/${id}`, { signal })
 };
 
 // Student Auth APIs
@@ -71,15 +73,15 @@ export const studentAuthAPI = {
 export const scoreAPI = {
   submitPractice: (data) => api.post('/scores/practice', data),
   submitPracticeAttempt: (data) => api.post('/scores/practice-attempt', data),
-  getPracticeAttempts: (topicId) => api.get(`/scores/practice-attempts/${topicId}`),
-  getPracticeAttemptDetail: (attemptId) => api.get(`/scores/practice-attempt/${attemptId}`),
+  getPracticeAttempts: (topicId, signal) => api.get(`/scores/practice-attempts/${topicId}`, { signal }),
+  getPracticeAttemptDetail: (attemptId, signal) => api.get(`/scores/practice-attempt/${attemptId}`, { signal }),
   submitCoding: (data) => api.post('/scores/coding', data),
   submitCodingChallenge: (data) => api.post('/scores/coding-submit', data),
-  getCodingSubmission: (topicId) => api.get(`/scores/coding-submission/${topicId}`),
+  getCodingSubmission: (topicId, signal) => api.get(`/scores/coding-submission/${topicId}`, { signal }),
   markComplete: (data) => api.post('/scores/complete', data),
-  getCompletions: (courseId) => api.get('/scores/completions', { params: { courseId } }),
-  getMyProgress: () => api.get('/scores/my-progress'),
-  getLeaderboard: () => api.get('/scores/leaderboard'),
+  getCompletions: (courseId, signal) => api.get('/scores/completions', { params: { courseId }, signal }),
+  getMyProgress: (signal) => api.get('/scores/my-progress', { signal }),
+  getLeaderboard: (signal) => api.get('/scores/leaderboard', { signal }),
 };
 
 export default api;

@@ -73,12 +73,13 @@ const TopicSidebar = ({
             const isExpanded = expandedTopicId === topicId;
 
             // Check if all available sub-items are completed
+            // Works with both summary fields (practiceCount, codingPracticeTitle) and full data fields
             const topicCompletions = completions[topicId] || [];
             const availableItems = [];
             if (topic.videoUrl) availableItems.push('video');
             if (topic.pdfUrl) availableItems.push('ppt');
-            if (topic.practice?.length > 0) availableItems.push('practice');
-            if (topic.codingPractice?.title) availableItems.push('codingPractice');
+            if (topic.practice?.length > 0 || topic.practiceCount > 0) availableItems.push('practice');
+            if (topic.codingPractice?.title || topic.codingPracticeTitle) availableItems.push('codingPractice');
             const allCompleted = availableItems.length > 0 && availableItems.every(item => topicCompletions.includes(item));
 
             return (
@@ -128,12 +129,12 @@ const TopicSidebar = ({
                       const isItemCompleted = topicCompletions.includes(item.id);
                       const isLast = itemIndex === subItems.length - 1;
 
-                      // Check if content exists for this item
+                      // Check if content exists for this item (supports both summary + full data)
                       let hasContent = true;
                       if (item.id === 'video') hasContent = !!topic.videoUrl;
                       if (item.id === 'ppt') hasContent = !!topic.pdfUrl;
-                      if (item.id === 'practice') hasContent = topic.practice?.length > 0;
-                      if (item.id === 'codingPractice') hasContent = !!topic.codingPractice?.title;
+                      if (item.id === 'practice') hasContent = topic.practice?.length > 0 || topic.practiceCount > 0;
+                      if (item.id === 'codingPractice') hasContent = !!topic.codingPractice?.title || !!topic.codingPracticeTitle;
 
                       return (
                         <div key={item.id} className="flex">

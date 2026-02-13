@@ -10,7 +10,7 @@ import PracticeLanding from '../components/Courses/PracticeLanding';
 import PracticeQuiz from '../components/Courses/PracticeQuiz';
 import PracticeResults from '../components/Courses/PracticeResults';
 import ReviewMistakes from '../components/Courses/ReviewMistakes';
-import { courseAPI, scoreAPI, BACKEND_URL, getFileUrl } from '../services/api';
+import { courseAPI, topicAPI, scoreAPI, BACKEND_URL, getFileUrl } from '../services/api';
 import {
   CourseTopicsSkeleton,
   VideoPlayerSkeleton,
@@ -55,8 +55,10 @@ const CourseTopics = () => {
   const { courseId } = useParams();
   const { setSidebarCollapsed } = useOutletContext();
   const [course, setCourse] = useState(null);
-  const [topics, setTopics] = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [topics, setTopics] = useState([]);           // summary data for sidebar
+  const [selectedTopic, setSelectedTopic] = useState(null); // full topic data (or summary until loaded)
+  const [fullTopicCache, setFullTopicCache] = useState({}); // cache: { topicId: fullTopicData }
+  const [topicLoading, setTopicLoading] = useState(false);  // loading full topic on-demand
   const [activeTab, setActiveTab] = useState('video');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -79,37 +81,77 @@ const CourseTopics = () => {
   // Auto-collapse main sidebar when entering course view
   useEffect(() => {
     setSidebarCollapsed(true);
-
-    // Expand sidebar when leaving this page
     return () => setSidebarCollapsed(false);
   }, [setSidebarCollapsed]);
 
+  // Phase 1: Load summary data (fast) for sidebar + course info + completions
   useEffect(() => {
+    const controller = new AbortController();
+    const fetchCourseData = async () => {
+      try {
+        const [courseRes, topicsRes, completionsRes] = await Promise.all([
+          courseAPI.getById(courseId, controller.signal),
+          courseAPI.getTopicsSummary(courseId, controller.signal),
+          scoreAPI.getCompletions(courseId, controller.signal).catch(() => ({ data: { completions: {} } }))
+        ]);
+        setCourse(courseRes.data);
+        setTopics(topicsRes.data);
+        setCompletions(completionsRes.data.completions || {});
+        // Auto-select first topic (will trigger on-demand full load)
+        if (topicsRes.data.length > 0) {
+          setSelectedTopic(topicsRes.data[0]);
+        }
+      } catch (error) {
+        if (error.name === 'CanceledError') return;
+        console.error('Failed to fetch course data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchCourseData();
+    return () => controller.abort();
   }, [courseId]);
 
-  const fetchCourseData = async () => {
-    try {
-      const [courseRes, topicsRes, completionsRes] = await Promise.all([
-        courseAPI.getById(courseId),
-        courseAPI.getTopics(courseId),
-        scoreAPI.getCompletions(courseId).catch(() => ({ data: { completions: {} } }))
-      ]);
-      setCourse(courseRes.data);
-      setTopics(topicsRes.data);
-      setCompletions(completionsRes.data.completions || {});
-      if (topicsRes.data.length > 0) {
-        setSelectedTopic(topicsRes.data[0]);
-      }
-    } catch (error) {
-      console.error('Failed to fetch course data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Phase 2: Fetch full topic data on-demand when a topic is selected
   useEffect(() => {
-    if (selectedTopic) {
+    if (!selectedTopic) return;
+    const topicId = selectedTopic._id;
+
+    // Already have full data cached
+    if (fullTopicCache[topicId]) {
+      setSelectedTopic(fullTopicCache[topicId]);
+      return;
+    }
+
+    // If topic already has practice array, it's already full data
+    if (selectedTopic.practice) return;
+
+    const controller = new AbortController();
+    setTopicLoading(true);
+
+    topicAPI.getById(topicId, controller.signal)
+      .then(res => {
+        const fullData = res.data;
+        setFullTopicCache(prev => ({ ...prev, [topicId]: fullData }));
+        // Only update if still the selected topic
+        setSelectedTopic(current => {
+          if ((current?._id) === topicId) return fullData;
+          return current;
+        });
+      })
+      .catch(err => {
+        if (err.name === 'CanceledError') return;
+        console.error('Failed to fetch topic details:', err);
+      })
+      .finally(() => setTopicLoading(false));
+
+    return () => controller.abort();
+  }, [selectedTopic?._id]);
+
+  // Reset view state only when a DIFFERENT topic is selected (not when full data replaces summary)
+  const selectedTopicId = selectedTopic?._id;
+  useEffect(() => {
+    if (selectedTopicId) {
       setShowCodingPlayground(false);
       setPdfFullscreen(false);
       setVideoFullscreen(false);
@@ -123,7 +165,7 @@ const CourseTopics = () => {
       const timer = setTimeout(() => setContentLoading(false), 300);
       return () => clearTimeout(timer);
     }
-  }, [selectedTopic]);
+  }, [selectedTopicId]);
 
   // Handle coding practice tab - show full screen playground
   useEffect(() => {
@@ -369,7 +411,7 @@ const CourseTopics = () => {
             {/* Practice Content - State Machine */}
             {activeTab === 'practice' && (
               <div className="h-full">
-                {contentLoading ? (
+                {contentLoading || topicLoading ? (
                   <PracticeSkeleton />
                 ) : selectedTopic.practice && selectedTopic.practice.length > 0 ? (
                   <>
@@ -422,7 +464,7 @@ const CourseTopics = () => {
             {/* Coding Practice Content - Fallback when no content */}
             {activeTab === 'codingPractice' && !selectedTopic.codingPractice?.title && (
               <div className="h-full overflow-y-auto">
-                {contentLoading ? (
+                {contentLoading || topicLoading ? (
                   <CodingPlaygroundSkeleton />
                 ) : (
                 <div className="w-full h-full flex items-center justify-center text-dark-muted bg-dark-card rounded-lg">

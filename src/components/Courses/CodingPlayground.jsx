@@ -6,7 +6,7 @@ import {
   FaCheck, FaCopy, FaImage, FaExpand, FaLink, FaHtml5, FaCss3Alt, FaJs,
   FaPython, FaDatabase, FaDownload, FaSun, FaMoon, FaCompress, FaCode, FaTerminal, FaFileAlt
 } from 'react-icons/fa';
-import { BACKEND_URL, scoreAPI } from '../../services/api';
+import { BACKEND_URL, getFileUrl, scoreAPI } from '../../services/api';
 
 // Language configurations
 const LANGUAGE_CONFIG = {
@@ -741,7 +741,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                     style={{ height: '280px' }}
                   >
                     <img
-                      src={`${BACKEND_URL}${codingPractice.referenceImage}`}
+                      src={getFileUrl(codingPractice.referenceImage)}
                       alt="Reference UI"
                       className="rounded-lg border-2 border-[#0f3460] hover:border-blue-400 transition-colors"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -973,7 +973,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
                   <FaImage className="text-xs" /> Reference
                 </h3>
                 <img
-                  src={`${BACKEND_URL}${codingPractice.referenceImage}`}
+                  src={getFileUrl(codingPractice.referenceImage)}
                   alt="Reference UI"
                   className="w-full rounded-lg border border-[#0f3460]"
                   onClick={() => setImageExpanded(true)}
@@ -1312,7 +1312,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4" onClick={() => setImageExpanded(false)}>
           <div className="relative max-w-5xl max-h-[90vh]">
             <img
-              src={`${BACKEND_URL}${codingPractice.referenceImage}`}
+              src={getFileUrl(codingPractice.referenceImage)}
               alt="Reference UI - Expanded"
               className="max-w-full max-h-[85vh] object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}

@@ -10,7 +10,7 @@ import PracticeLanding from '../components/Courses/PracticeLanding';
 import PracticeQuiz from '../components/Courses/PracticeQuiz';
 import PracticeResults from '../components/Courses/PracticeResults';
 import ReviewMistakes from '../components/Courses/ReviewMistakes';
-import { courseAPI, scoreAPI, BACKEND_URL } from '../services/api';
+import { courseAPI, scoreAPI, BACKEND_URL, getFileUrl } from '../services/api';
 import {
   CourseTopicsSkeleton,
   VideoPlayerSkeleton,
@@ -301,7 +301,7 @@ const CourseTopics = () => {
                     )}
                     {/* Desktop PDF viewer */}
                     <iframe
-                      src={`${BACKEND_URL}${selectedTopic.pdfUrl}`}
+                      src={getFileUrl(selectedTopic.pdfUrl)}
                       className={`w-full h-full hidden sm:block transition-opacity duration-300 ${pdfLoaded ? 'opacity-100' : 'opacity-0'}`}
                       title={selectedTopic.title}
                       onLoad={() => setPdfLoaded(true)}
@@ -309,7 +309,7 @@ const CourseTopics = () => {
 
                     {/* Mobile PDF viewer */}
                     <iframe
-                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(`${BACKEND_URL}${selectedTopic.pdfUrl}`)}&embedded=true`}
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(getFileUrl(selectedTopic.pdfUrl))}&embedded=true`}
                       className="w-full h-full sm:hidden"
                       title={selectedTopic.title}
                       onLoad={() => setPdfLoaded(true)}
@@ -330,7 +330,7 @@ const CourseTopics = () => {
                         {completions[selectedTopic._id]?.includes('ppt') ? 'Completed' : 'Mark as Complete'}
                       </button>
                       <a
-                        href={`${BACKEND_URL}${selectedTopic.pdfUrl}`}
+                        href={getFileUrl(selectedTopic.pdfUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white transition-colors"
@@ -339,7 +339,7 @@ const CourseTopics = () => {
                         <FaExternalLinkAlt className="text-sm" />
                       </a>
                       <a
-                        href={`${BACKEND_URL}${selectedTopic.pdfUrl}`}
+                        href={getFileUrl(selectedTopic.pdfUrl)}
                         download={`${selectedTopic.title}.pdf`}
                         className="p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white transition-colors"
                         title="Download PDF"

@@ -165,7 +165,15 @@ const LoginForm = ({ onSwitch, onBack }) => {
     try {
       await login(email, password);
     } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong');
+      if (!err.response) {
+        if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+          setError('Server is starting up. Please wait a moment and try again.');
+        } else {
+          setError('Unable to connect to server. Please check your internet connection and try again.');
+        }
+      } else {
+        setError(err.response.data?.message || 'Something went wrong');
+      }
     }
   };
 
@@ -187,7 +195,11 @@ const LoginForm = ({ onSwitch, onBack }) => {
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3.5 rounded-xl mb-6 text-sm font-medium text-center">
+          <div className={`px-4 py-3.5 rounded-xl mb-6 text-sm font-medium text-center ${
+            error.includes('starting up')
+              ? 'bg-amber-500/10 border border-amber-500/20 text-amber-500'
+              : 'bg-red-500/10 border border-red-500/20 text-red-400'
+          }`}>
             {error}
           </div>
         )}
@@ -278,7 +290,15 @@ const RegisterForm = ({ onSwitch, onBack }) => {
     try {
       await register(formData.name, formData.email, formData.password);
     } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong');
+      if (!err.response) {
+        if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+          setError('Server is starting up. Please wait a moment and try again.');
+        } else {
+          setError('Unable to connect to server. Please check your internet connection and try again.');
+        }
+      } else {
+        setError(err.response.data?.message || 'Something went wrong');
+      }
     }
   };
 
@@ -300,7 +320,11 @@ const RegisterForm = ({ onSwitch, onBack }) => {
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3.5 rounded-xl mb-6 text-sm font-medium text-center">
+          <div className={`px-4 py-3.5 rounded-xl mb-6 text-sm font-medium text-center ${
+            error.includes('starting up')
+              ? 'bg-amber-500/10 border border-amber-500/20 text-amber-500'
+              : 'bg-red-500/10 border border-red-500/20 text-red-400'
+          }`}>
             {error}
           </div>
         )}

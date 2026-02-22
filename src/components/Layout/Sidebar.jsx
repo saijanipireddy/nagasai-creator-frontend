@@ -29,6 +29,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-lg hover:bg-dark-secondary transition-colors lg:hidden"
+          aria-label="Close sidebar"
         >
           <FaTimes />
         </button>
@@ -37,12 +38,13 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
         <button
           onClick={onToggleCollapse}
           className="hidden lg:flex absolute -right-3 top-8 w-6 h-6 bg-dark-accent rounded-full items-center justify-center hover:bg-dark-accent/80 transition-colors shadow-lg"
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <FaChevronLeft className={`text-xs transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
         </button>
 
         {/* Navigation */}
-        <nav className="p-4 mt-8 lg:mt-4">
+        <nav className="p-4 mt-8 lg:mt-4" aria-label="Main navigation">
           <ul className="space-y-2">
             {navItems.map((item) => (
               <li key={item.path}>

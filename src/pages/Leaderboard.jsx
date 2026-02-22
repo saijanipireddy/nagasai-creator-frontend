@@ -56,7 +56,6 @@ const Leaderboard = () => {
         setMyRank(data.myRank);
       } catch (error) {
         if (error.name === 'CanceledError') return;
-        console.error('Failed to fetch leaderboard:', error);
       } finally {
         setLoading(false);
       }

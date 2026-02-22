@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { FaHtml5, FaCss3Alt, FaJs, FaNodeJs, FaReact, FaPlay, FaBook, FaPython, FaJava, FaDatabase, FaGitAlt, FaDocker, FaAws, FaLinux } from 'react-icons/fa';
 import { SiExpress, SiMongodb } from 'react-icons/si';
@@ -76,4 +77,4 @@ const CourseCard = ({ course }) => {
   );
 };
 
-export default CourseCard;
+export default memo(CourseCard);

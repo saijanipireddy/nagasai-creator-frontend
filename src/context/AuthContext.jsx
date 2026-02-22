@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useMemo, useCallback } from 'react';
 import { studentAuthAPI } from '../services/api';
 
 const AuthContext = createContext(null);
@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     setLoading(true);
     try {
       const { data } = await studentAuthAPI.login({ email, password });
@@ -21,9 +21,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const register = async (name, email, password) => {
+  const register = useCallback(async (name, email, password) => {
     setLoading(true);
     try {
       const { data } = await studentAuthAPI.register({ name, email, password });
@@ -34,16 +34,21 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('studentToken');
     localStorage.removeItem('studentInfo');
     setUser(null);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, loading, login, register, logout }),
+    [user, loading, login, register, logout]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

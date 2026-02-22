@@ -35,7 +35,6 @@ const CourseContent = () => {
         setCourses(data);
       } catch (error) {
         if (error.name === 'CanceledError') return;
-        console.error('Failed to fetch courses:', error);
       } finally {
         setLoading(false);
       }

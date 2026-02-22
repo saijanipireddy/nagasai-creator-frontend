@@ -38,7 +38,7 @@
   scrollbar-width: none;
 }
 
-/* Base dark theme styles */
+/* Base styles */
 html, body, #root {
   height: 100%;
 }
@@ -49,42 +49,6 @@ body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
-/* Utility classes for dark theme colors */
-.bg-dark-bg { background-color: var(--color-dark-bg); }
-.bg-dark-card { background-color: var(--color-dark-card); }
-.bg-dark-sidebar { background-color: var(--color-dark-sidebar); }
-.bg-dark-accent { background-color: var(--color-dark-accent); }
-.bg-dark-secondary { background-color: var(--color-dark-secondary); }
-
-.text-dark-text { color: var(--color-dark-text); }
-.text-dark-muted { color: var(--color-dark-muted); }
-.text-dark-accent { color: var(--color-dark-accent); }
-
-.border-dark-secondary { border-color: var(--color-dark-secondary); }
-.border-dark-accent { border-color: var(--color-dark-accent); }
-
-.shadow-dark-accent\/5 { box-shadow: 0 10px 15px -3px rgb(79 70 229 / 0.05); }
-.shadow-dark-accent\/10 { box-shadow: 0 10px 15px -3px rgb(79 70 229 / 0.1); }
-.shadow-dark-accent\/20 { box-shadow: 0 10px 15px -3px rgb(79 70 229 / 0.2); }
-.shadow-dark-accent\/30 { box-shadow: 0 10px 15px -3px rgb(79 70 229 / 0.3); }
-
-.hover\:bg-dark-accent:hover { background-color: var(--color-dark-accent); }
-.hover\:bg-dark-secondary:hover { background-color: var(--color-dark-secondary); }
-.hover\:bg-dark-secondary\/50:hover { background-color: rgb(229 231 235 / 0.5); }
-.hover\:bg-dark-secondary\/80:hover { background-color: rgb(229 231 235 / 0.8); }
-.hover\:bg-dark-accent\/80:hover { background-color: rgb(79 70 229 / 0.8); }
-
-.hover\:text-dark-accent:hover { color: var(--color-dark-accent); }
-.hover\:text-white:hover { color: white; }
-
-.hover\:border-dark-accent:hover { border-color: var(--color-dark-accent); }
-.hover\:border-dark-accent\/50:hover { border-color: rgb(79 70 229 / 0.5); }
-
-.focus\:outline-none:focus { outline: none; }
-.focus\:border-dark-accent:focus { border-color: var(--color-dark-accent); }
-
-.placeholder-dark-muted::placeholder { color: var(--color-dark-muted); }
 
 /* React Split styles */
 .split-horizontal {
@@ -125,16 +89,10 @@ body {
   height: 6px !important;
 }
 
-/* Fade in animation for accordions */
+/* Fade in animation */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fadeIn {
@@ -143,16 +101,12 @@ body {
 
 /* Shimmer animation for skeleton loaders */
 @keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .animate-shimmer {
-  animation: shimmer 2s ease-in-out infinite;
+  animation: shimmer 1.5s ease-in-out infinite;
   background: linear-gradient(
     90deg,
     var(--color-dark-secondary) 0%,
@@ -161,67 +115,15 @@ body {
     var(--color-dark-secondary) 100%
   );
   background-size: 200% 100%;
+  border-radius: 0.5rem;
 }
 
-/* Pulse glow animation for loading indicators */
-@keyframes pulseGlow {
-  0%, 100% {
-    opacity: 1;
-    box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
-  }
-  50% {
-    opacity: 0.7;
-    box-shadow: 0 0 40px rgba(79, 70, 229, 0.5);
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 2s ease-in-out infinite;
-}
-
-/* Spinning loader with gradient */
-@keyframes spin-gradient {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.loader-spin {
-  animation: spin-gradient 1s linear infinite;
-}
-
-/* Content fade in animation */
+/* Content fade in */
 @keyframes contentFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-content-fade-in {
   animation: contentFadeIn 0.4s ease-out forwards;
-}
-
-/* Skeleton text line animation */
-@keyframes textShimmer {
-  0% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.5;
-  }
-}
-
-.animate-text-shimmer {
-  animation: textShimmer 1.5s ease-in-out infinite;
 }

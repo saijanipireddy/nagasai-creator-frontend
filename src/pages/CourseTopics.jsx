@@ -103,7 +103,6 @@ const CourseTopics = () => {
         }
       } catch (error) {
         if (error.name === 'CanceledError') return;
-        console.error('Failed to fetch course data:', error);
       } finally {
         setLoading(false);
       }
@@ -141,7 +140,6 @@ const CourseTopics = () => {
       })
       .catch(err => {
         if (err.name === 'CanceledError') return;
-        console.error('Failed to fetch topic details:', err);
       })
       .finally(() => setTopicLoading(false));
 
@@ -192,7 +190,7 @@ const CourseTopics = () => {
     try {
       await scoreAPI.markComplete({ topicId, itemType });
     } catch (err) {
-      console.error('Failed to mark complete:', err);
+      // Revert handled below
       // Revert on failure
       setCompletions(prev => {
         const existing = prev[topicId] || [];

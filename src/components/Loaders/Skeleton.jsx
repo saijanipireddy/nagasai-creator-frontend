@@ -1,6 +1,6 @@
 // Base Skeleton component with shimmer animation
 const Skeleton = ({ className = '', variant = 'default' }) => {
-  const baseClasses = 'animate-pulse bg-gradient-to-r from-dark-secondary via-dark-card to-dark-secondary bg-[length:200%_100%] animate-shimmer';
+  const baseClasses = 'animate-shimmer';
 
   const variants = {
     default: 'rounded-lg',

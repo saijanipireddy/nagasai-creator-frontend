@@ -33,6 +33,7 @@ const Navbar = ({ onToggleSidebar }) => {
           <button
             onClick={onToggleSidebar}
             className="p-2.5 rounded-xl hover:bg-gray-100 transition-colors lg:hidden text-gray-500"
+            aria-label="Toggle sidebar"
           >
             <FaBars className="text-xl" />
           </button>
@@ -48,7 +49,7 @@ const Navbar = ({ onToggleSidebar }) => {
         {/* Right — Actions */}
         <div className="flex items-center gap-3">
           {/* Notification Bell */}
-          <button className="relative p-2.5 rounded-xl hover:bg-gray-50 transition-colors text-gray-400 hover:text-gray-600">
+          <button className="relative p-2.5 rounded-xl hover:bg-gray-50 transition-colors text-gray-400 hover:text-gray-600" aria-label="Notifications">
             <FaBell className="text-xl" />
             {notifications > 0 && (
               <span className="absolute top-1 right-1 w-[18px] h-[18px] bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold ring-2 ring-white">
@@ -65,6 +66,8 @@ const Navbar = ({ onToggleSidebar }) => {
             <button
               onClick={() => setProfileOpen(!profileOpen)}
               className={`flex items-center gap-3 py-2 px-2.5 pr-4 rounded-xl transition-colors ${profileOpen ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
+              aria-label="Profile menu"
+              aria-expanded={profileOpen}
             >
               <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-base font-bold">
                 {initials}

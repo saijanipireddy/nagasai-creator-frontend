@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { FaBook, FaPlay, FaCode, FaYoutube, FaArrowRight, FaRocket, FaLaptopCode, FaGraduationCap } from 'react-icons/fa';
+import { useState, useEffect, useRef } from 'react';
+import { FaBook, FaPlay, FaCode, FaArrowRight, FaYoutube, FaLaptopCode, FaGraduationCap, FaCheckCircle, FaRocket, FaTrophy, FaSeedling, FaLightbulb, FaCogs, FaCloudUploadAlt, FaPencilAlt, FaFlask } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { courseAPI } from '../services/api';
-import { DashboardSkeleton } from '../components/Loaders/Skeleton';
 
 const Dashboard = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [animationStarted, setAnimationStarted] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -22,160 +22,186 @@ const Dashboard = () => {
       }
     };
     fetchCourses();
-    const timer = setTimeout(() => setAnimationStarted(true), 100);
-    return () => {
-      controller.abort();
-      clearTimeout(timer);
-    };
+    return () => controller.abort();
   }, []);
 
-  if (loading) {
-    return <DashboardSkeleton />;
-  }
+  const totalSteps = 7;
+
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % totalSteps);
+    }, 3000);
+    return () => clearInterval(intervalRef.current);
+  }, []);
+
+  const handleStepHover = (index) => {
+    clearInterval(intervalRef.current);
+    setActiveStep(index);
+  };
+
+  const handleStepLeave = () => {
+    intervalRef.current = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % totalSteps);
+    }, 3000);
+  };
 
   return (
     <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="rounded-2xl bg-dark-card border border-dark-secondary">
-        <div className="p-8 md:p-12">
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-dark-accent rounded-lg flex items-center justify-center">
-                <FaRocket className="text-white" />
-              </div>
-              <span className="text-dark-accent font-semibold text-base">Learn Full Stack Development</span>
-            </div>
-
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
-              Master Web Development
-              <span className="text-dark-accent"> Step by Step</span>
-            </h1>
-
-            <p className="text-dark-muted text-xl mb-6 max-w-xl">
-              Daily videos, presentations, practice questions, and coding challenges to help you become a full-stack developer.
-            </p>
-
-            <div className="flex flex-wrap gap-3">
-              <Link
-                to="/courses"
-                className="inline-flex items-center gap-2 bg-dark-accent text-white px-7 py-3.5 rounded-xl hover:bg-dark-accent/80 transition-all font-semibold text-base"
-              >
-                <FaPlay className="text-sm" />
-                Start Learning
-              </Link>
-              <Link
-                to="/playground"
-                className="inline-flex items-center gap-2 bg-dark-secondary px-7 py-3.5 rounded-xl hover:bg-dark-secondary/80 transition-all font-semibold text-base"
-              >
-                <FaCode />
-                Code Playground
-              </Link>
-            </div>
-          </div>
+      {/* Hero */}
+      <div className="bg-white rounded-2xl p-8 md:p-10 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+          Master Web Development,<br />
+          <span className="text-indigo-500">Step by Step</span>
+        </h1>
+        <p className="text-slate-500 text-lg md:text-xl mt-4 max-w-2xl leading-relaxed">
+          Videos, presentations, practice questions, and coding challenges — everything you need to become a full-stack developer.
+        </p>
+        <div className="flex flex-wrap gap-4 mt-8">
+          <Link
+            to="/courses"
+            className="inline-flex items-center gap-2.5 bg-indigo-500 text-white px-8 py-3.5 rounded-xl hover:bg-indigo-600 transition-colors font-semibold text-base"
+          >
+            <FaPlay className="text-sm" />
+            Start Learning
+          </Link>
+          <Link
+            to="/playground"
+            className="inline-flex items-center gap-2.5 bg-white text-slate-700 px-8 py-3.5 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-base border border-slate-200 shadow-sm"
+          >
+            <FaCode className="text-base" />
+            Code Playground
+          </Link>
         </div>
       </div>
 
-      {/* Features - Using CSS animation delays for better performance */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div
-          className={`bg-dark-card rounded-xl border border-dark-secondary p-6 hover:border-dark-accent/50 hover:scale-105 hover:-translate-y-1 transition-all duration-500 ease-out ${animationStarted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-          style={{ transitionDelay: '0ms' }}
-        >
-          <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center mb-4">
-            <FaYoutube className="text-red-500 text-xl" />
+      {/* Features */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { icon: FaYoutube, title: 'Video Tutorials', desc: 'Detailed video explanations for every topic with hands-on demonstrations' },
+          { icon: FaLaptopCode, title: 'Practice & Code', desc: 'Hands-on practice questions and real coding challenges to build skills' },
+          { icon: FaGraduationCap, title: 'Structured Path', desc: 'Clear learning path from beginner to advanced with guided progression' },
+        ].map((f) => (
+          <div key={f.title} className="group bg-white rounded-2xl p-7 shadow-md shadow-slate-200/60 ring-1 ring-slate-100 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-300/50 transition-all duration-300">
+            <div className="w-14 h-14 bg-indigo-50 rounded-xl flex items-center justify-center mb-5 group-hover:bg-indigo-100 transition-colors duration-300">
+              <f.icon className="text-indigo-500 text-xl group-hover:text-indigo-600 transition-colors duration-300" />
+            </div>
+            <h3 className="font-bold text-slate-900 text-xl mb-2">{f.title}</h3>
+            <p className="text-slate-500 text-base leading-relaxed">{f.desc}</p>
           </div>
-          <h3 className="font-bold text-xl mb-2">Video Tutorials</h3>
-          <p className="text-dark-muted text-base">Learn with detailed video explanations for every topic</p>
-        </div>
-
-        <div
-          className={`bg-dark-card rounded-xl border border-dark-secondary p-6 hover:border-dark-accent/50 hover:scale-105 hover:-translate-y-1 transition-all duration-500 ease-out ${animationStarted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-          style={{ transitionDelay: '150ms' }}
-        >
-          <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
-            <FaLaptopCode className="text-blue-500 text-xl" />
-          </div>
-          <h3 className="font-bold text-xl mb-2">Practice & Code</h3>
-          <p className="text-dark-muted text-base">Hands-on practice questions and coding challenges</p>
-        </div>
-
-        <div
-          className={`bg-dark-card rounded-xl border border-dark-secondary p-6 hover:border-dark-accent/50 hover:scale-105 hover:-translate-y-1 transition-all duration-500 ease-out ${animationStarted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-          style={{ transitionDelay: '300ms' }}
-        >
-          <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4">
-            <FaGraduationCap className="text-purple-500 text-xl" />
-          </div>
-          <h3 className="font-bold text-xl mb-2">Structured Learning</h3>
-          <p className="text-dark-muted text-base">Follow a clear path from beginner to advanced</p>
-        </div>
+        ))}
       </div>
 
-      {/* Learning Path / Courses */}
-      <div className="bg-dark-card rounded-xl border border-dark-secondary p-6">
-        <div className="flex items-center justify-between mb-6">
+      {/* Learning Path - Timeline */}
+      <div className="bg-white rounded-2xl p-7 md:p-8 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold">Learning Path</h2>
-            <p className="text-dark-muted text-base">Follow the recommended order for best results</p>
+            <h2 className="text-2xl font-bold text-slate-900">Your Learning Journey</h2>
+            <p className="text-slate-500 text-base mt-1">From zero to Full Stack Developer</p>
           </div>
-          <Link to="/courses" className="text-dark-accent text-base font-semibold hover:underline flex items-center gap-1.5">
-            View All <FaArrowRight className="text-xs" />
+          <Link to="/courses" className="inline-flex items-center gap-2 text-indigo-500 text-base font-semibold hover:text-indigo-600 transition-colors">
+            View all <FaArrowRight className="text-sm" />
           </Link>
         </div>
 
-        {courses.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {courses.map((course, index) => (
-              <Link
-                key={course._id}
-                to={`/course/${course._id}`}
-                className="group relative bg-dark-bg rounded-xl p-5 hover:bg-dark-secondary/50 transition-all border border-transparent hover:border-dark-accent/30"
-              >
-                {/* Order Badge */}
-                <div
-                  className="absolute -top-2 -left-2 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg"
-                  style={{ backgroundColor: course.color }}
-                >
-                  {index + 1}
-                </div>
+        {(() => {
+          const steps = [
+            { label: 'Start', desc: 'Begin your journey', icon: FaSeedling },
+            { label: 'Learn', desc: 'Understand concepts', icon: FaLightbulb },
+            { label: 'Practice', desc: 'Hands-on coding', icon: FaPencilAlt },
+            { label: 'Build', desc: 'Create projects', icon: FaCogs },
+            { label: 'Implement', desc: 'Real-world apps', icon: FaCode },
+            { label: 'Deploy', desc: 'Ship to production', icon: FaCloudUploadAlt },
+            { label: 'Goal', desc: 'Full Stack Developer', icon: FaTrophy },
+          ];
+          return (
+            <div className="relative overflow-x-auto scrollbar-hidden pb-2">
+              {/* Background line */}
+              <div className="absolute top-6 left-8 right-8 h-0.5 bg-slate-100 z-0" />
+              {/* Animated fill line */}
+              <div
+                className="absolute top-6 left-8 h-0.5 bg-indigo-500 z-[1] transition-all duration-700 ease-in-out"
+                style={{ width: `${(activeStep / (steps.length - 1)) * 88}%` }}
+              />
 
-                <div className="flex flex-col items-center text-center pt-2">
-                  <div
-                    className="w-16 h-16 rounded-xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110"
-                    style={{ backgroundColor: `${course.color}20` }}
-                  >
-                    <FaBook className="text-2xl" style={{ color: course.color }} />
-                  </div>
-                  <h3 className="font-semibold text-base mb-1">{course.name}</h3>
-                  <p className="text-dark-muted text-sm">{course.totalTopics || 0} Topics</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-dark-muted">
-            <FaBook className="text-5xl mx-auto mb-3 opacity-30" />
-            <p className="font-medium">No courses available yet</p>
-            <p className="text-sm">Courses will appear here once added</p>
-          </div>
-        )}
+              <div className="relative z-10 grid" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}>
+                {steps.map((step, index) => {
+                  const isActive = index === activeStep;
+                  const isPast = index < activeStep;
+                  const isGoal = index === steps.length - 1;
+                  const isStart = index === 0;
+                  const StepIcon = step.icon;
+                  return (
+                    <div
+                      key={step.label}
+                      className="flex flex-col items-center cursor-pointer"
+                      onMouseEnter={() => handleStepHover(index)}
+                      onMouseLeave={handleStepLeave}
+                    >
+                      {/* Node */}
+                      <div className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${
+                        isActive
+                          ? isGoal
+                            ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-110'
+                            : isStart
+                              ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-110'
+                              : 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 scale-110'
+                          : isPast
+                            ? 'bg-emerald-500 text-white'
+                            : isGoal
+                              ? 'bg-white text-amber-300 border-2 border-dashed border-amber-200'
+                              : 'bg-white text-slate-400 border-2 border-slate-200'
+                      }`}>
+                        {isPast && !isStart ? (
+                          <FaCheckCircle className="text-base" />
+                        ) : (
+                          <StepIcon className="text-base" />
+                        )}
+                        {isActive && (
+                          <span className={`absolute inset-0 rounded-full border-2 animate-ping opacity-25 ${
+                            isGoal ? 'border-amber-400' : isStart ? 'border-emerald-400' : 'border-indigo-400'
+                          }`} />
+                        )}
+                      </div>
+
+                      {/* Label */}
+                      <p className={`text-sm font-bold mt-3 transition-colors duration-300 ${
+                        isActive
+                          ? isGoal ? 'text-amber-600' : isStart ? 'text-emerald-600' : 'text-indigo-600'
+                          : isPast ? 'text-emerald-600' : 'text-slate-500'
+                      }`}>
+                        {step.label}
+                      </p>
+                      <p className={`text-xs mt-0.5 transition-colors duration-300 ${
+                        isActive
+                          ? isGoal ? 'text-amber-400' : isStart ? 'text-emerald-400' : 'text-indigo-400'
+                          : isPast ? 'text-emerald-400' : 'text-slate-400'
+                      }`}>
+                        {step.desc}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
-      {/* Code Playground CTA */}
-      <div className="bg-dark-card rounded-xl border border-dark-secondary p-6 md:p-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+      {/* Playground CTA */}
+      <div className="bg-white rounded-2xl p-7 md:p-8 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-dark-accent/10 rounded-xl flex items-center justify-center">
-              <FaCode className="text-dark-accent text-2xl" />
+            <div className="w-14 h-14 bg-indigo-50 rounded-xl flex items-center justify-center">
+              <FaCode className="text-indigo-500 text-xl" />
             </div>
             <div>
-              <h3 className="font-bold text-xl">Code Playground</h3>
-              <p className="text-dark-muted text-base">Practice HTML, CSS, JavaScript, Python & SQL in your browser</p>
+              <h3 className="font-bold text-slate-900 text-xl">Code Playground</h3>
+              <p className="text-slate-500 text-base mt-0.5">Practice HTML, CSS, JavaScript, Python & SQL in your browser</p>
             </div>
           </div>
           <Link
             to="/playground"
-            className="inline-flex items-center gap-2 bg-dark-accent text-white px-6 py-3 rounded-xl hover:bg-dark-accent/80 transition-colors font-semibold text-base whitespace-nowrap"
+            className="inline-flex items-center gap-2.5 bg-indigo-500 text-white px-8 py-3.5 rounded-xl hover:bg-indigo-600 transition-colors font-semibold text-base whitespace-nowrap"
           >
             <FaCode />
             Open Playground

@@ -529,10 +529,10 @@ ${jsCode}`;
   const hasInput = activeLanguage === 'python' || activeLanguage === 'javascript';
   const hasConsole = activeLanguage === 'web' && consoleOutput.length > 0;
 
-  // Calculate height: 100vh - navbar(4rem) - padding(1.5rem top + 1.5rem bottom on md)
+  // Fill the entire content area: cancel layout padding and use full height
   const containerClass = isFullscreen
     ? 'fixed inset-0 z-[9999]'
-    : 'h-[calc(100vh-4rem-3rem)] min-h-[500px] -m-4 md:-m-6';
+    : 'h-[calc(100vh-5rem)] min-h-[500px] -m-5 md:-m-6';
 
   return (
     <div className={`flex flex-col ${containerClass} ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-gray-100'}`}>

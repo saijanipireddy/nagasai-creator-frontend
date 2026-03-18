@@ -13,7 +13,6 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept-Encoding': 'gzip, deflate, br'
   },
   timeout: 30000
 });
@@ -30,10 +29,15 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle response errors
+// Handle response errors — auto-logout on 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('studentToken');
+      localStorage.removeItem('studentInfo');
+      window.location.href = '/auth';
+    }
     return Promise.reject(error);
   }
 );

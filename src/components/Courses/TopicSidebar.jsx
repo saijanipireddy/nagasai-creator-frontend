@@ -1,42 +1,30 @@
 import { useState, useEffect } from 'react';
-import { FaCheck, FaPlay, FaFileAlt, FaQuestion, FaChevronDown, FaChevronRight, FaLaptopCode } from 'react-icons/fa';
+import { FaPlay, FaFileAlt, FaQuestion, FaChevronDown, FaLaptopCode, FaArrowLeft } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const subItems = [
-  { id: 'video', label: 'Video', icon: FaPlay },
-  { id: 'ppt', label: 'PPT/PDF', icon: FaFileAlt },
-  { id: 'practice', label: 'Practice', icon: FaQuestion },
-  { id: 'codingPractice', label: 'Code Practice', icon: FaLaptopCode }
+  { id: 'video', label: 'Video Lesson', icon: FaPlay, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-400', activeBg: 'bg-blue-500', activeShadow: 'shadow-blue-500/30' },
+  { id: 'ppt', label: 'PPT / PDF', icon: FaFileAlt, iconBg: 'bg-orange-500/10', iconColor: 'text-orange-400', activeBg: 'bg-orange-500', activeShadow: 'shadow-orange-500/30' },
+  { id: 'practice', label: 'Practice Quiz', icon: FaQuestion, iconBg: 'bg-purple-500/10', iconColor: 'text-purple-400', activeBg: 'bg-purple-500', activeShadow: 'shadow-purple-500/30' },
+  { id: 'codingPractice', label: 'Code Practice', icon: FaLaptopCode, iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-400', activeBg: 'bg-emerald-500', activeShadow: 'shadow-emerald-500/30' },
 ];
 
 const TopicSidebar = ({
-  topics,
-  selectedTopic,
-  onSelectTopic,
-  courseName,
-  courseColor,
-  activeTab,
-  onTabChange,
-  completions = {}
+  topics, selectedTopic, onSelectTopic, courseName,
+  activeTab, onTabChange
 }) => {
-  // Track which topic is expanded (separate from selected)
   const [expandedTopicId, setExpandedTopicId] = useState(null);
 
-  // Auto-expand selected topic when it changes
   useEffect(() => {
-    if (selectedTopic) {
-      setExpandedTopicId(selectedTopic._id || selectedTopic.id);
-    }
+    if (selectedTopic) setExpandedTopicId(selectedTopic._id || selectedTopic.id);
   }, [selectedTopic]);
 
   const handleTopicClick = (topic) => {
     const topicId = topic._id || topic.id;
-
-    // Toggle expand/collapse
     if (expandedTopicId === topicId) {
-      setExpandedTopicId(null); // Collapse if already expanded
+      setExpandedTopicId(null);
     } else {
-      setExpandedTopicId(topicId); // Expand this topic
-      // Only change selected topic and tab if it's a different topic
+      setExpandedTopicId(topicId);
       const selectedId = selectedTopic?._id || selectedTopic?.id;
       if (selectedId !== topicId) {
         onSelectTopic(topic);
@@ -46,149 +34,156 @@ const TopicSidebar = ({
   };
 
   const handleSubItemClick = (topic, tabId) => {
-    // Make sure this topic is selected when clicking a sub-item
     const selectedId = selectedTopic?._id || selectedTopic?.id;
     const topicId = topic._id || topic.id;
-    if (selectedId !== topicId) {
-      onSelectTopic(topic);
-    }
+    if (selectedId !== topicId) onSelectTopic(topic);
     onTabChange(tabId);
   };
 
   return (
-    <div className="w-72 bg-dark-sidebar border-r border-dark-secondary h-full overflow-hidden flex flex-col">
-      {/* Header - Compact */}
-      <div className="px-4 py-3 border-b border-dark-secondary flex items-center justify-between">
-        <h2 className="text-base font-bold truncate" style={{ color: courseColor }}>{courseName}</h2>
-        <span className="text-dark-muted text-xs ml-2 whitespace-nowrap">{topics.length} topics</span>
+    <div className="w-[320px] bg-[#0c1017] h-full overflow-hidden flex flex-col border-r border-slate-800/60">
+
+      {/* ── Header ── */}
+      <div className="px-6 pt-6 pb-5">
+        <Link
+          to="/courses"
+          className="inline-flex items-center gap-2.5 text-slate-500 hover:text-white text-sm font-medium mb-5 transition-colors group"
+        >
+          <FaArrowLeft className="text-xs group-hover:-translate-x-1 transition-transform duration-200" />
+          All Courses
+        </Link>
+
+        <h2 className="text-lg font-bold text-white leading-snug">
+          {courseName}
+        </h2>
+        <p className="text-xs text-slate-500 mt-1.5">{topics.length} topics</p>
       </div>
 
-      {/* Topics List */}
-      <div className="flex-1 overflow-y-auto p-2">
-        <ul className="space-y-1">
-          {topics.map((topic, index) => {
-            const topicId = topic._id || topic.id;
-            const selectedId = selectedTopic?._id || selectedTopic?.id;
-            const isSelected = selectedId === topicId;
-            const isExpanded = expandedTopicId === topicId;
+      <div className="h-px bg-slate-800/80 mx-6" />
 
-            // Check if all available sub-items are completed
-            // Works with both summary fields (practiceCount, codingPracticeTitle) and full data fields
-            const topicCompletions = completions[topicId] || [];
-            const availableItems = [];
-            if (topic.videoUrl) availableItems.push('video');
-            if (topic.pdfUrl) availableItems.push('ppt');
-            if (topic.practice?.length > 0 || topic.practiceCount > 0) availableItems.push('practice');
-            if (topic.codingPractice?.title || topic.codingPracticeTitle) availableItems.push('codingPractice');
-            const allCompleted = availableItems.length > 0 && availableItems.every(item => topicCompletions.includes(item));
+      {/* ── Section Label ── */}
+      <div className="px-6 pt-5 pb-2">
+        <span className="text-xs font-semibold text-slate-600 uppercase tracking-widest">
+          Course Content
+        </span>
+      </div>
 
-            return (
-              <li key={topicId}>
-                {/* Topic Header */}
-                <button
-                  onClick={() => handleTopicClick(topic)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200
-                    ${isSelected
-                      ? 'bg-dark-accent/20 text-black'
-                      : 'hover:bg-dark-secondary text-black'}`}
+      {/* ── Topics List ── */}
+      <div className="flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar">
+        {topics.map((topic, index) => {
+          const topicId = topic._id || topic.id;
+          const selectedId = selectedTopic?._id || selectedTopic?.id;
+          const isSelected = selectedId === topicId;
+          const isExpanded = expandedTopicId === topicId;
+
+          return (
+            <div key={topicId} className="mb-1.5">
+              {/* ── Topic Row ── */}
+              <button
+                onClick={() => handleTopicClick(topic)}
+                className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-left transition-all duration-200 group
+                  ${isSelected
+                    ? 'bg-indigo-500/10 ring-1 ring-indigo-500/20'
+                    : 'hover:bg-slate-800/50'
+                  }`}
+              >
+                {/* Number */}
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-bold transition-all duration-200
+                  ${isSelected
+                    ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                    : 'bg-slate-800 text-slate-500 group-hover:bg-slate-700 group-hover:text-slate-300'
+                  }`}
                 >
-                  {/* Status Icon */}
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-medium transition-all
-                      ${allCompleted
-                        ? 'bg-green-500 text-white'
-                        : isSelected
-                          ? 'bg-dark-accent text-white'
-                          : 'bg-dark-secondary text-black'
-                      }`}
+                  {index + 1}
+                </div>
+
+                {/* Title */}
+                <div className="flex-1 min-w-0">
+                  <span className={`block text-sm font-semibold leading-snug transition-colors
+                    ${isSelected ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}
                   >
-                    {allCompleted ? (
-                      <FaCheck className="text-xs" />
-                    ) : (
-                      index + 1
-                    )}
-                  </div>
+                    {topic.title}
+                  </span>
+                </div>
 
-                  {/* Topic Title */}
-                  <span className="flex-1 truncate text-sm font-medium">{topic.title}</span>
+                {/* Chevron */}
+                <FaChevronDown
+                  className={`text-xs text-slate-600 flex-shrink-0 transition-transform duration-300 ease-out
+                    ${isExpanded ? 'rotate-0' : '-rotate-90'}`}
+                />
+              </button>
 
-                  {/* Expand/Collapse Icon */}
-                  {isExpanded ? (
-                    <FaChevronDown className="text-xs text-dark-accent transition-transform duration-200" />
-                  ) : (
-                    <FaChevronRight className="text-xs transition-transform duration-200" />
-                  )}
-                </button>
+              {/* ── Expanded Sub-Items ── */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-out
+                  ${isExpanded ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}
+              >
+                <div className="py-2 pl-7 pr-3 space-y-1.5">
+                  {subItems.map((item) => {
+                    const isActiveTab = activeTab === item.id && isSelected;
+                    const IconComponent = item.icon;
 
-                {/* Sub Items (Video, PPT, Practice, Coding) - Timeline layout */}
-                {isExpanded && (
-                  <div className="ml-7 mt-1 animate-fadeIn">
-                    {subItems.map((item, itemIndex) => {
-                      const isActiveTab = activeTab === item.id && isSelected;
-                      const IconComponent = item.icon;
-                      const isItemCompleted = topicCompletions.includes(item.id);
-                      const isLast = itemIndex === subItems.length - 1;
+                    let hasContent = true;
+                    if (item.id === 'video') hasContent = !!topic.videoUrl;
+                    if (item.id === 'ppt') hasContent = !!topic.pdfUrl;
+                    if (item.id === 'practice') hasContent = topic.practice?.length > 0 || topic.practiceCount > 0;
+                    if (item.id === 'codingPractice') hasContent = !!topic.codingPractice?.title || !!topic.codingPracticeTitle;
 
-                      // Check if content exists for this item (supports both summary + full data)
-                      let hasContent = true;
-                      if (item.id === 'video') hasContent = !!topic.videoUrl;
-                      if (item.id === 'ppt') hasContent = !!topic.pdfUrl;
-                      if (item.id === 'practice') hasContent = topic.practice?.length > 0 || topic.practiceCount > 0;
-                      if (item.id === 'codingPractice') hasContent = !!topic.codingPractice?.title || !!topic.codingPracticeTitle;
-
-                      return (
-                        <div key={item.id} className="flex">
-                          {/* Left timeline: circle + vertical line */}
-                          <div className="flex flex-col items-center mr-3 flex-shrink-0">
-                            {/* Circle */}
-                            {isItemCompleted ? (
-                              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                                <FaCheck className="text-[8px] text-white" />
-                              </div>
-                            ) : (
-                              <div className={`w-5 h-5 rounded-full border-2 ${
-                                isActiveTab ? 'border-dark-accent bg-dark-accent/20' : 'border-dark-muted/40'
-                              }`} />
-                            )}
-                            {/* Vertical line (not on last item) */}
-                            {!isLast && (
-                              <div className={`w-0.5 flex-1 min-h-[8px] ${
-                                isItemCompleted && topicCompletions.includes(subItems[itemIndex + 1]?.id)
-                                  ? 'bg-green-500/50'
-                                  : 'bg-dark-secondary'
-                              }`} />
-                            )}
-                          </div>
-
-                          {/* Sub-item button */}
-                          <button
-                            onClick={() => handleSubItemClick(topic, item.id)}
-                            className={`flex-1 flex items-center gap-2 px-3 py-2 mb-1 rounded-lg text-left text-sm transition-all duration-200
-                              ${isActiveTab
-                                ? 'bg-dark-accent text-white shadow-md'
-                                : hasContent
-                                  ? 'hover:bg-dark-secondary text-black'
-                                  : 'text-dark-muted/50 cursor-default'
-                              }`}
-                            disabled={!hasContent}
-                          >
-                            <IconComponent className={`text-sm ${isActiveTab ? 'text-white' : hasContent ? 'text-dark-accent' : 'text-dark-muted/50'}`} />
-                            <span className="flex-1">{item.label}</span>
-                            {!hasContent && (
-                              <span className="text-xs text-dark-muted/50">Soon</span>
-                            )}
-                          </button>
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleSubItemClick(topic, item.id)}
+                        disabled={!hasContent}
+                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-all duration-200
+                          ${isActiveTab
+                            ? `${item.activeBg} text-white shadow-lg ${item.activeShadow}`
+                            : hasContent
+                              ? 'hover:bg-slate-800/60 text-slate-400 hover:text-white'
+                              : 'text-slate-700 cursor-not-allowed'
+                          }`}
+                      >
+                        {/* Colored Icon Box */}
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all
+                          ${isActiveTab
+                            ? 'bg-white/20'
+                            : hasContent
+                              ? item.iconBg
+                              : 'bg-slate-800/30'
+                          }`}
+                        >
+                          <IconComponent className={`text-sm ${
+                            isActiveTab ? 'text-white' : hasContent ? item.iconColor : 'text-slate-700'
+                          }`} />
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+
+                        {/* Label */}
+                        <span className="flex-1 text-sm font-medium">{item.label}</span>
+
+                        {/* Soon badge */}
+                        {!hasContent && (
+                          <span className="text-[11px] text-slate-600 bg-slate-800/50 px-2.5 py-1 rounded-lg font-medium">
+                            Soon
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
+      {/* ── Footer ── */}
+      <div className="px-6 py-4 border-t border-slate-800/60">
+        <div className="flex items-center gap-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+          <span className="text-sm text-slate-500 font-medium">
+            {topics.length} Topics
+          </span>
+        </div>
+      </div>
     </div>
   );
 };

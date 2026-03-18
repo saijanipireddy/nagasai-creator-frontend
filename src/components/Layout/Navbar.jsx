@@ -1,106 +1,49 @@
-import { useState, useRef, useEffect } from 'react';
-import { FaBell, FaBars, FaSignOutAlt, FaChevronDown, FaUser } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
+import { FaBars, FaBell } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const Navbar = ({ onToggleSidebar }) => {
-  const [notifications] = useState(3);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const { user, logout } = useAuth();
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setProfileOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
-  const initials = (user?.name || 'S')
-    .split(' ')
-    .map(w => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
   return (
-    <nav className="fixed top-0 left-0 right-0 h-[72px] bg-white border-b border-gray-100 z-50">
-      <div className="flex items-center justify-between h-full px-5 lg:px-8">
-        {/* Left — Logo & Toggle */}
-        <div className="flex items-center gap-5">
+    <nav className="fixed top-0 left-0 right-0 h-20 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 z-50 shadow-lg shadow-slate-900/30">
+      <div className="flex items-center justify-between h-full px-4 lg:px-6">
+        {/* Left */}
+        <div className="flex items-center gap-4">
           <button
             onClick={onToggleSidebar}
-            className="p-2.5 rounded-xl hover:bg-gray-100 transition-colors lg:hidden text-gray-500"
+            className="p-2.5 rounded-xl hover:bg-white/10 transition-all duration-200 lg:hidden text-slate-400 hover:text-white"
             aria-label="Toggle sidebar"
           >
-            <FaBars className="text-xl" />
+            <FaBars className="text-lg" />
           </button>
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-600/20">
-              <span className="text-white font-extrabold text-lg tracking-tight">N</span>
+          <Link to="/" className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-11 h-11 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                <span className="text-white font-extrabold text-lg">L</span>
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-900" />
             </div>
-            <span className="hidden sm:block text-xl font-extrabold text-gray-900 tracking-tight">NS</span>
-          </div>
+            <div className="hidden sm:block">
+              <h1 className="text-white font-bold text-lg leading-tight tracking-tight">LearnFast</h1>
+              <p className="text-indigo-400 text-[10px] font-semibold tracking-widest uppercase">Learning Platform</p>
+            </div>
+          </Link>
         </div>
 
-        {/* Right — Actions */}
+        {/* Right */}
         <div className="flex items-center gap-3">
-          {/* Notification Bell */}
-          <button className="relative p-2.5 rounded-xl hover:bg-gray-50 transition-colors text-gray-400 hover:text-gray-600" aria-label="Notifications">
-            <FaBell className="text-xl" />
-            {notifications > 0 && (
-              <span className="absolute top-1 right-1 w-[18px] h-[18px] bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold ring-2 ring-white">
-                {notifications}
-              </span>
-            )}
+          <button className="relative p-3 rounded-xl hover:bg-white/10 transition-all duration-200 text-slate-400 hover:text-white">
+            <FaBell className="text-lg" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full ring-2 ring-slate-900" />
           </button>
 
-          {/* Divider */}
-          <div className="hidden sm:block w-px h-9 bg-gray-200 mx-1" />
+          <div className="w-px h-9 bg-white/10 mx-1 hidden sm:block" />
 
-          {/* Profile Dropdown */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className={`flex items-center gap-3 py-2 px-2.5 pr-4 rounded-xl transition-colors ${profileOpen ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
-              aria-label="Profile menu"
-              aria-expanded={profileOpen}
-            >
-              <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-base font-bold">
-                {initials}
-              </div>
-              <div className="hidden sm:block text-left">
-                <p className="text-sm font-semibold text-gray-900 leading-tight">{user?.name || 'Student'}</p>
-                <p className="text-xs text-gray-400 leading-tight mt-0.5">Student</p>
-              </div>
-              <FaChevronDown className={`hidden sm:block text-xs text-gray-400 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {profileOpen && (
-              <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-2xl shadow-xl shadow-black/8 border border-gray-100 overflow-hidden animate-fadeIn">
-                <div className="px-5 py-4 bg-gray-50/50">
-                  <p className="text-base font-bold text-gray-900">{user?.name || 'Student'}</p>
-                  <p className="text-sm text-gray-400 mt-1">{user?.email || 'student@example.com'}</p>
-                </div>
-                <div className="py-2 px-2">
-                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                    <FaUser className="text-gray-400 text-base" />
-                    My Profile
-                  </button>
-                  <button
-                    onClick={logout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
-                  >
-                    <FaSignOutAlt className="text-base" />
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          <button className="flex items-center gap-3 pl-1.5 pr-3.5 py-1.5 rounded-xl hover:bg-white/10 transition-all duration-200">
+            <div className="w-9 h-9 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg flex items-center justify-center">
+              <span className="text-white text-sm font-bold">S</span>
+            </div>
+            <span className="text-slate-300 text-sm font-medium hidden sm:block">Student</span>
+          </button>
         </div>
       </div>
     </nav>

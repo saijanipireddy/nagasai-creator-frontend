@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useOutletContext, Link } from 'react-router-dom';
 import {
-  FaPlay, FaFileAlt, FaQuestion, FaCheck, FaBars, FaBook, FaLaptopCode,
-  FaDownload, FaExpand, FaCompress, FaExternalLinkAlt
+  FaPlay, FaFileAlt, FaQuestion, FaBars, FaBook, FaLaptopCode,
 } from 'react-icons/fa';
 import TopicSidebar from '../components/Courses/TopicSidebar';
 import CodingPlayground from '../components/Courses/CodingPlayground';
 import PracticeLanding from '../components/Courses/PracticeLanding';
 import PracticeQuiz from '../components/Courses/PracticeQuiz';
-import PracticeResults from '../components/Courses/PracticeResults';
 import ReviewMistakes from '../components/Courses/ReviewMistakes';
-import { courseAPI, topicAPI, scoreAPI, BACKEND_URL, getFileUrl } from '../services/api';
+import { courseAPI, topicAPI, BACKEND_URL, getFileUrl } from '../services/api';
 import {
   CourseTopicsSkeleton,
   VideoPlayerSkeleton,
@@ -55,28 +53,24 @@ const CourseTopics = () => {
   const { courseId } = useParams();
   const { setSidebarCollapsed } = useOutletContext();
   const [course, setCourse] = useState(null);
-  const [topics, setTopics] = useState([]);           // summary data for sidebar
-  const [selectedTopic, setSelectedTopic] = useState(null); // full topic data (or summary until loaded)
-  const [fullTopicCache, setFullTopicCache] = useState({}); // cache: { topicId: fullTopicData }
-  const [topicLoading, setTopicLoading] = useState(false);  // loading full topic on-demand
+  const [topics, setTopics] = useState([]);
+  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [fullTopicCache, setFullTopicCache] = useState({});
+  const [topicLoading, setTopicLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('video');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showCodingPlayground, setShowCodingPlayground] = useState(false);
-  const [completions, setCompletions] = useState({});
 
-  // Practice state machine: 'landing' | 'quiz' | 'results' | 'review'
+  // Practice state machine: 'landing' | 'quiz' | 'review'
   const [practiceView, setPracticeView] = useState('landing');
-  const [reviewAttemptId, setReviewAttemptId] = useState(null);
+  const [reviewAnswers, setReviewAnswers] = useState(null);
 
   // Content loading states for tab switching
   const [contentLoading, setContentLoading] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [pdfLoaded, setPdfLoaded] = useState(false);
 
-  // Fullscreen states
-  const [pdfFullscreen, setPdfFullscreen] = useState(false);
-  const [videoFullscreen, setVideoFullscreen] = useState(false);
 
   // Auto-collapse main sidebar when entering course view
   useEffect(() => {
@@ -84,20 +78,17 @@ const CourseTopics = () => {
     return () => setSidebarCollapsed(false);
   }, [setSidebarCollapsed]);
 
-  // Phase 1: Load summary data (fast) for sidebar + course info + completions
+  // Load summary data for sidebar + course info
   useEffect(() => {
     const controller = new AbortController();
     const fetchCourseData = async () => {
       try {
-        const [courseRes, topicsRes, completionsRes] = await Promise.all([
+        const [courseRes, topicsRes] = await Promise.all([
           courseAPI.getById(courseId, controller.signal),
           courseAPI.getTopicsSummary(courseId, controller.signal),
-          scoreAPI.getCompletions(courseId, controller.signal).catch(() => ({ data: { completions: {} } }))
         ]);
         setCourse(courseRes.data);
         setTopics(topicsRes.data);
-        setCompletions(completionsRes.data.completions || {});
-        // Auto-select first topic (will trigger on-demand full load)
         if (topicsRes.data.length > 0) {
           setSelectedTopic(topicsRes.data[0]);
         }
@@ -111,18 +102,16 @@ const CourseTopics = () => {
     return () => controller.abort();
   }, [courseId]);
 
-  // Phase 2: Fetch full topic data on-demand when a topic is selected
+  // Fetch full topic data on-demand when a topic is selected
   useEffect(() => {
     if (!selectedTopic) return;
     const topicId = selectedTopic._id;
 
-    // Already have full data cached
     if (fullTopicCache[topicId]) {
       setSelectedTopic(fullTopicCache[topicId]);
       return;
     }
 
-    // If topic already has practice array, it's already full data
     if (selectedTopic.practice) return;
 
     const controller = new AbortController();
@@ -132,7 +121,6 @@ const CourseTopics = () => {
       .then(res => {
         const fullData = res.data;
         setFullTopicCache(prev => ({ ...prev, [topicId]: fullData }));
-        // Only update if still the selected topic
         setSelectedTopic(current => {
           if ((current?._id) === topicId) return fullData;
           return current;
@@ -146,26 +134,22 @@ const CourseTopics = () => {
     return () => controller.abort();
   }, [selectedTopic?._id]);
 
-  // Reset view state only when a DIFFERENT topic is selected (not when full data replaces summary)
+  // Reset view state when a different topic is selected
   const selectedTopicId = selectedTopic?._id;
   useEffect(() => {
     if (selectedTopicId) {
       setShowCodingPlayground(false);
-      setPdfFullscreen(false);
-      setVideoFullscreen(false);
       setPracticeView('landing');
-      setReviewAttemptId(null);
-      // Reset content loading states when topic changes
+      setReviewAnswers(null);
       setVideoLoaded(false);
       setPdfLoaded(false);
       setContentLoading(true);
-      // Simulate a brief loading state for smooth transition
       const timer = setTimeout(() => setContentLoading(false), 300);
       return () => clearTimeout(timer);
     }
   }, [selectedTopicId]);
 
-  // Handle coding practice tab - show full screen playground
+  // Handle coding practice tab
   useEffect(() => {
     if (activeTab === 'codingPractice' && selectedTopic?.codingPractice?.title) {
       setShowCodingPlayground(true);
@@ -176,27 +160,7 @@ const CourseTopics = () => {
 
   const handleCloseCodingPlayground = () => {
     setShowCodingPlayground(false);
-    setActiveTab('video'); // Switch back to video tab
-  };
-
-  const handleMarkComplete = async (topicId, itemType) => {
-    // Optimistic update
-    setCompletions(prev => {
-      const existing = prev[topicId] || [];
-      if (existing.includes(itemType)) return prev;
-      return { ...prev, [topicId]: [...existing, itemType] };
-    });
-
-    try {
-      await scoreAPI.markComplete({ topicId, itemType });
-    } catch (err) {
-      // Revert handled below
-      // Revert on failure
-      setCompletions(prev => {
-        const existing = prev[topicId] || [];
-        return { ...prev, [topicId]: existing.filter(t => t !== itemType) };
-      });
-    }
+    setActiveTab('video');
   };
 
   if (loading) {
@@ -207,9 +171,9 @@ const CourseTopics = () => {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
         <div className="text-center">
-          <FaBook className="text-6xl text-dark-muted mx-auto mb-4" />
+          <FaBook className="text-6xl text-slate-400 mx-auto mb-4" />
           <h2 className="text-xl font-medium mb-2">Course not found</h2>
-          <Link to="/courses" className="text-dark-accent hover:underline">
+          <Link to="/courses" className="text-indigo-600 hover:underline">
             Back to courses
           </Link>
         </div>
@@ -224,7 +188,6 @@ const CourseTopics = () => {
         codingPractice={selectedTopic.codingPractice}
         topicId={selectedTopic._id}
         onClose={handleCloseCodingPlayground}
-        onComplete={() => handleMarkComplete(selectedTopic._id, 'codingPractice')}
       />
     );
   }
@@ -235,7 +198,7 @@ const CourseTopics = () => {
         {/* Mobile Sidebar Toggle */}
         <button
           onClick={() => setSidebarOpen(true)}
-          className="lg:hidden fixed bottom-4 right-4 z-50 w-12 h-12 bg-dark-accent rounded-full flex items-center justify-center shadow-lg shadow-dark-accent/30"
+          className="lg:hidden fixed bottom-4 right-4 z-50 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 text-white"
         >
           <FaBars />
         </button>
@@ -248,10 +211,10 @@ const CourseTopics = () => {
           />
         )}
 
-        {/* Topics Sidebar - Hidden on mobile, visible on desktop */}
+        {/* Topics Sidebar */}
         <div
           className={`
-            fixed top-16 left-0 z-50 h-[calc(100vh-4rem)]
+            fixed top-20 left-0 z-50 h-[calc(100vh-5rem)] shadow-xl
             lg:static lg:z-auto lg:h-full
             transition-transform duration-300
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -266,58 +229,34 @@ const CourseTopics = () => {
               setSidebarOpen(false);
             }}
             courseName={course.name}
-            courseColor={course.color}
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            completions={completions}
           />
         </div>
 
         {/* Main Content Area */}
         <div className="flex-1 h-full overflow-hidden p-2 md:p-4">
         {selectedTopic ? (
-          <div className="h-full overflow-hidden">
+          <div className="h-full flex flex-col overflow-hidden">
             {/* Video Content */}
             {activeTab === 'video' && (
-              <div className={`${videoFullscreen ? 'fixed inset-0 z-50 bg-dark-bg' : 'h-full'} relative`}>
+              <div className="h-full">
                 {contentLoading ? (
                   <VideoPlayerSkeleton />
                 ) : selectedTopic.videoUrl ? (
-                  <>
+                  <div className="h-full relative rounded-xl overflow-hidden bg-black">
                     {!videoLoaded && <VideoPlayerSkeleton />}
                     <iframe
                       src={getYouTubeEmbedUrl(selectedTopic.videoUrl)}
-                      className={`w-full h-full transition-opacity duration-300 ${videoFullscreen ? '' : 'rounded-lg'} ${videoLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}
+                      className={`w-full h-full transition-opacity duration-300 ${videoLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       title={selectedTopic.title}
                       onLoad={() => setVideoLoaded(true)}
                     />
-                    {/* Floating controls on top of video */}
-                    <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                      <button
-                        onClick={() => handleMarkComplete(selectedTopic._id, 'video')}
-                        disabled={completions[selectedTopic._id]?.includes('video')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          completions[selectedTopic._id]?.includes('video')
-                            ? 'bg-green-500/80 text-white cursor-default'
-                            : 'bg-dark-accent hover:bg-dark-accent/80 text-white'
-                        }`}
-                      >
-                        <FaCheck className="text-xs" />
-                        {completions[selectedTopic._id]?.includes('video') ? 'Completed' : 'Mark as Complete'}
-                      </button>
-                      <button
-                        onClick={() => setVideoFullscreen(!videoFullscreen)}
-                        className="p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white transition-colors"
-                        title={videoFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-                      >
-                        {videoFullscreen ? <FaCompress className="text-sm" /> : <FaExpand className="text-sm" />}
-                      </button>
-                    </div>
-                  </>
+                  </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-dark-muted bg-dark-card rounded-lg">
+                  <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white rounded-xl">
                     <div className="text-center">
                       <FaPlay className="text-6xl mx-auto mb-4 opacity-50" />
                       <p className="text-lg">Video coming soon</p>
@@ -329,74 +268,31 @@ const CourseTopics = () => {
 
             {/* PPT/PDF Content */}
             {activeTab === 'ppt' && (
-              <div className={`${pdfFullscreen ? 'fixed inset-0 z-50 bg-dark-bg' : 'h-full'} relative`}>
+              <div className="h-full">
                 {contentLoading ? (
                   <PDFViewerSkeleton />
                 ) : selectedTopic.pdfUrl ? (
-                  <>
+                  <div className="h-full relative rounded-xl overflow-hidden bg-white">
                     {!pdfLoaded && (
                       <div className="absolute inset-0 z-10">
                         <PDFViewerSkeleton />
                       </div>
                     )}
-                    {/* Desktop PDF viewer */}
                     <iframe
-                      src={getFileUrl(selectedTopic.pdfUrl)}
+                      src={`${getFileUrl(selectedTopic.pdfUrl)}#toolbar=0`}
                       className={`w-full h-full hidden sm:block transition-opacity duration-300 ${pdfLoaded ? 'opacity-100' : 'opacity-0'}`}
                       title={selectedTopic.title}
                       onLoad={() => setPdfLoaded(true)}
                     />
-
-                    {/* Mobile PDF viewer */}
                     <iframe
                       src={`https://docs.google.com/viewer?url=${encodeURIComponent(getFileUrl(selectedTopic.pdfUrl))}&embedded=true`}
                       className="w-full h-full sm:hidden"
                       title={selectedTopic.title}
                       onLoad={() => setPdfLoaded(true)}
                     />
-
-                    {/* Floating controls on top of PDF */}
-                    <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                      <button
-                        onClick={() => handleMarkComplete(selectedTopic._id, 'ppt')}
-                        disabled={completions[selectedTopic._id]?.includes('ppt')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          completions[selectedTopic._id]?.includes('ppt')
-                            ? 'bg-green-500/80 text-white cursor-default'
-                            : 'bg-dark-accent hover:bg-dark-accent/80 text-white'
-                        }`}
-                      >
-                        <FaCheck className="text-xs" />
-                        {completions[selectedTopic._id]?.includes('ppt') ? 'Completed' : 'Mark as Complete'}
-                      </button>
-                      <a
-                        href={getFileUrl(selectedTopic.pdfUrl)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white transition-colors"
-                        title="Open in New Tab"
-                      >
-                        <FaExternalLinkAlt className="text-sm" />
-                      </a>
-                      <a
-                        href={getFileUrl(selectedTopic.pdfUrl)}
-                        download={`${selectedTopic.title}.pdf`}
-                        className="p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white transition-colors"
-                        title="Download PDF"
-                      >
-                        <FaDownload className="text-sm" />
-                      </a>
-                      <button
-                        onClick={() => setPdfFullscreen(!pdfFullscreen)}
-                        className="p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white transition-colors"
-                        title={pdfFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-                      >
-                        {pdfFullscreen ? <FaCompress className="text-sm" /> : <FaExpand className="text-sm" />}
-                      </button>
-                    </div>
-                  </>
+                  </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-dark-muted bg-dark-card rounded-lg">
+                  <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white rounded-xl">
                     <div className="text-center">
                       <FaFileAlt className="text-6xl mx-auto mb-4 opacity-50" />
                       <p className="text-lg">PDF coming soon</p>
@@ -417,39 +313,28 @@ const CourseTopics = () => {
                       <PracticeLanding
                         topic={selectedTopic}
                         onStartQuiz={() => setPracticeView('quiz')}
-                        onViewResults={() => setPracticeView('results')}
                       />
                     )}
                     {practiceView === 'quiz' && (
                       <PracticeQuiz
                         topic={selectedTopic}
-                        onComplete={(result) => {
-                          handleMarkComplete(selectedTopic._id, 'practice');
-                          setPracticeView('results');
-                        }}
+                        onComplete={() => setPracticeView('quiz')}
                         onBack={() => setPracticeView('landing')}
-                      />
-                    )}
-                    {practiceView === 'results' && (
-                      <PracticeResults
-                        topic={selectedTopic}
-                        onBack={() => setPracticeView('landing')}
-                        onReview={(attemptId) => {
-                          setReviewAttemptId(attemptId);
+                        onReview={(answersData) => {
+                          setReviewAnswers(answersData);
                           setPracticeView('review');
                         }}
-                        onPracticeAgain={() => setPracticeView('quiz')}
                       />
                     )}
-                    {practiceView === 'review' && reviewAttemptId && (
+                    {practiceView === 'review' && reviewAnswers && (
                       <ReviewMistakes
-                        attemptId={reviewAttemptId}
-                        onBack={() => setPracticeView('results')}
+                        answers={reviewAnswers}
+                        onBack={() => setPracticeView('landing')}
                       />
                     )}
                   </>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-dark-muted bg-dark-card rounded-lg">
+                  <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white rounded-lg">
                     <div className="text-center">
                       <FaQuestion className="text-6xl mx-auto mb-4 opacity-50" />
                       <p className="text-lg">Practice questions coming soon</p>
@@ -465,7 +350,7 @@ const CourseTopics = () => {
                 {contentLoading || topicLoading ? (
                   <CodingPlaygroundSkeleton />
                 ) : (
-                <div className="w-full h-full flex items-center justify-center text-dark-muted bg-dark-card rounded-lg">
+                <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white rounded-lg">
                   <div className="text-center">
                     <FaLaptopCode className="text-6xl mx-auto mb-4 opacity-50" />
                     <p className="text-lg">Coding practice coming soon</p>
@@ -476,7 +361,7 @@ const CourseTopics = () => {
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-dark-muted">
+          <div className="flex items-center justify-center h-full text-slate-400">
             <div className="text-center">
               <FaBook className="text-6xl mx-auto mb-4 opacity-50" />
               <p className="text-lg mb-2">Select a topic to start learning</p>

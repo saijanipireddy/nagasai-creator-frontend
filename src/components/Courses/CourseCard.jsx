@@ -1,76 +1,49 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { FaHtml5, FaCss3Alt, FaJs, FaNodeJs, FaReact, FaPlay, FaBook, FaPython, FaJava, FaDatabase, FaGitAlt, FaDocker, FaAws, FaLinux } from 'react-icons/fa';
+import { FaHtml5, FaCss3Alt, FaJs, FaNodeJs, FaReact, FaArrowRight, FaBook, FaPython, FaJava, FaDatabase, FaGitAlt, FaDocker, FaAws, FaLinux, FaCheckCircle } from 'react-icons/fa';
 import { SiExpress, SiMongodb } from 'react-icons/si';
 
 const iconMap = {
-  FaHtml5,
-  FaCss3Alt,
-  FaJs,
-  FaNodeJs,
-  FaReact,
-  SiExpress,
-  SiMongodb,
-  FaPython,
-  FaJava,
-  FaDatabase,
-  FaGitAlt,
-  FaDocker,
-  FaAws,
-  FaLinux,
-  FaBook
+  FaHtml5, FaCss3Alt, FaJs, FaNodeJs, FaReact, SiExpress, SiMongodb,
+  FaPython, FaJava, FaDatabase, FaGitAlt, FaDocker, FaAws, FaLinux, FaBook
 };
 
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, index = 0 }) => {
   const Icon = iconMap[course.icon] || FaBook;
   const courseId = course._id || course.id;
 
   return (
     <Link
       to={`/course/${courseId}`}
-      className="bg-dark-card rounded-xl border border-dark-secondary hover:border-dark-accent/50 overflow-hidden transition-all duration-300 shadow-sm hover:-translate-y-2 hover:shadow-xl hover:shadow-dark-accent/10 group"
+      className="group bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 shadow-md shadow-slate-200/60 hover:shadow-xl hover:shadow-slate-300/50 ring-1 ring-slate-100"
     >
-      {/* Icon Header */}
-      <div
-        className="h-32 flex items-center justify-center relative overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${course.color}15, ${course.color}30)` }}
-      >
-        <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          style={{ background: `radial-gradient(circle at center, ${course.color}20, transparent 70%)` }}
-        />
-        <Icon
-          className="text-6xl group-hover:scale-110 transition-transform duration-300 relative z-10"
-          style={{ color: course.color }}
-        />
-
-        {/* Play button on hover */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="w-12 h-12 rounded-full bg-dark-accent/90 flex items-center justify-center shadow-lg">
-            <FaPlay className="text-white text-sm ml-0.5" />
-          </div>
+      {/* Top section - icon left, decorative pattern right */}
+      <div className="flex items-start justify-between p-6 pb-4">
+        <div className="w-14 h-14 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-all duration-300 shrink-0">
+          <Icon className="text-2xl text-indigo-500 group-hover:text-indigo-600 transition-colors duration-300" />
         </div>
+        <FaCheckCircle className="text-xl text-emerald-500" />
       </div>
 
       {/* Content */}
-      <div className="p-5">
-        <h3 className="text-xl font-bold mb-2 group-hover:text-dark-accent transition-colors">{course.name}</h3>
-        <p className="text-dark-muted text-sm mb-4 line-clamp-2">{course.description}</p>
+      <div className="px-6 pb-6">
+        <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wider mb-1.5">COURSE</p>
+        <h3 className="font-bold text-slate-900 text-xl mb-2 group-hover:text-indigo-600 transition-colors leading-tight">
+          {course.name}
+        </h3>
+        <p className="text-slate-500 text-sm line-clamp-2 leading-relaxed mb-5">
+          {course.description}
+        </p>
 
-        {/* Topic Count */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs px-3 py-1 rounded-full bg-dark-secondary text-dark-muted">
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+          <span className="text-xs font-semibold text-slate-500">
             {course.totalTopics || 0} topics
           </span>
-          {course.isPublished ? (
-            <span className="text-xs px-3 py-1 rounded-full bg-green-500/20 text-green-500">
-              Available
-            </span>
-          ) : (
-            <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-500">
-              Coming Soon
-            </span>
-          )}
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+            Start Learning
+            <FaArrowRight className="text-[10px]" />
+          </span>
         </div>
       </div>
     </Link>

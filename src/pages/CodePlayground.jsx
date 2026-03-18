@@ -32,6 +32,49 @@ const LANGUAGES = {
     icon: FaJs,
     color: '#f7df1e',
     description: 'Node.js style JS'
+  },
+  c: {
+    name: 'C',
+    icon: FaCode,
+    color: '#A8B9CC',
+    description: 'C with Piston API',
+    type: 'piston',
+    pistonLang: 'c',
+    pistonVersion: '10.2.0'
+  },
+  cpp: {
+    name: 'C++',
+    icon: FaCode,
+    color: '#00599C',
+    description: 'C++ with Piston API',
+    type: 'piston',
+    pistonLang: 'c++',
+    pistonVersion: '10.2.0'
+  },
+  java: {
+    name: 'Java',
+    icon: FaCode,
+    color: '#007396',
+    description: 'Java with Piston API',
+    type: 'piston',
+    pistonLang: 'java',
+    pistonVersion: '15.0.2'
+  },
+  react: {
+    name: 'React',
+    icon: FaCode,
+    color: '#61DAFB',
+    description: 'React with StackBlitz',
+    type: 'stackblitz',
+    embedUrl: 'https://stackblitz.com/edit/react-331knmhr?embed=1&file=src/App.js&theme=dark&hideNavigation=1'
+  },
+  angular: {
+    name: 'Angular',
+    icon: FaCode,
+    color: '#DD0031',
+    description: 'Angular with StackBlitz',
+    type: 'stackblitz',
+    embedUrl: 'https://stackblitz.com/edit/angular-live-compiler?embed=1&file=src/app/app.component.ts&theme=dark&hideNavigation=1'
   }
 };
 
@@ -52,7 +95,25 @@ const DEFAULT_CODE = {
   },
   python: ``,
   sql: ``,
-  javascript: ``
+  javascript: ``,
+  c: `#include <stdio.h>
+
+int main() {
+    printf("Hello, World!\\n");
+    return 0;
+}`,
+  cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Hello, World!" << endl;
+    return 0;
+}`,
+  java: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}`
 };
 
 const CodePlayground = () => {
@@ -71,10 +132,14 @@ const CodePlayground = () => {
   const [pythonCode, setPythonCode] = useState(() => localStorage.getItem('code-python') || DEFAULT_CODE.python);
   const [sqlCode, setSqlCode] = useState(() => localStorage.getItem('code-sql') || DEFAULT_CODE.sql);
   const [jsCode, setJsCode] = useState(() => localStorage.getItem('code-js') || DEFAULT_CODE.javascript);
+  const [cCode, setCCode] = useState(() => localStorage.getItem('code-c') || DEFAULT_CODE.c);
+  const [cppCode, setCppCode] = useState(() => localStorage.getItem('code-cpp') || DEFAULT_CODE.cpp);
+  const [javaCode, setJavaCode] = useState(() => localStorage.getItem('code-java') || DEFAULT_CODE.java);
 
   // Output states
   const [pythonOutput, setPythonOutput] = useState('');
   const [jsOutput, setJsOutput] = useState('');
+  const [pistonOutput, setPistonOutput] = useState('');
   const [sqlResults, setSqlResults] = useState([]);
   const [consoleOutput, setConsoleOutput] = useState([]);
   const [webPreview, setWebPreview] = useState(''); // Only updates on Run
@@ -82,6 +147,7 @@ const CodePlayground = () => {
   // Input states for Python/JS
   const [pythonInput, setPythonInput] = useState('');
   const [jsInput, setJsInput] = useState('');
+  const [pistonInput, setPistonInput] = useState('');
 
   // UI states
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -129,6 +195,18 @@ const CodePlayground = () => {
   useEffect(() => {
     localStorage.setItem('code-js', jsCode);
   }, [jsCode]);
+
+  useEffect(() => {
+    localStorage.setItem('code-c', cCode);
+  }, [cCode]);
+
+  useEffect(() => {
+    localStorage.setItem('code-cpp', cppCode);
+  }, [cppCode]);
+
+  useEffect(() => {
+    localStorage.setItem('code-java', javaCode);
+  }, [javaCode]);
 
   // Load Pyodide
   const loadPyodide = useCallback(async () => {
@@ -400,6 +478,48 @@ ${jsCode}`;
     }
   };
 
+  // Run C/C++/Java via Piston API
+  const runPiston = async () => {
+    const lang = LANGUAGES[activeLanguage];
+    if (!lang?.type === 'piston') return;
+
+    setIsRunning(true);
+    setPistonOutput('');
+
+    let code;
+    if (activeLanguage === 'c') code = cCode;
+    else if (activeLanguage === 'cpp') code = cppCode;
+    else if (activeLanguage === 'java') code = javaCode;
+
+    try {
+      const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          language: lang.pistonLang,
+          version: lang.pistonVersion,
+          files: [{ content: code }],
+          stdin: pistonInput || '',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.run) {
+        const output = (data.run.stdout || '') + (data.run.stderr || '');
+        setPistonOutput(output || 'Program executed with no output.');
+      } else if (data.message) {
+        setPistonOutput(`Error: ${data.message}`);
+      } else {
+        setPistonOutput('No output received.');
+      }
+    } catch (error) {
+      setPistonOutput(`Execution Error: ${error.message}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   // Run code based on language
   const runCode = () => {
     if (activeLanguage === 'web') {
@@ -411,6 +531,8 @@ ${jsCode}`;
       runSQL();
     } else if (activeLanguage === 'javascript') {
       runJavaScript();
+    } else if (['c', 'cpp', 'java'].includes(activeLanguage)) {
+      runPiston();
     }
   };
 
@@ -441,6 +563,18 @@ ${jsCode}`;
       setJsCode(DEFAULT_CODE.javascript);
       setJsOutput('');
       setJsInput('');
+    } else if (activeLanguage === 'c') {
+      setCCode(DEFAULT_CODE.c);
+      setPistonOutput('');
+      setPistonInput('');
+    } else if (activeLanguage === 'cpp') {
+      setCppCode(DEFAULT_CODE.cpp);
+      setPistonOutput('');
+      setPistonInput('');
+    } else if (activeLanguage === 'java') {
+      setJavaCode(DEFAULT_CODE.java);
+      setPistonOutput('');
+      setPistonInput('');
     }
   };
 
@@ -460,6 +594,18 @@ ${jsCode}`;
       content = sqlCode;
       filename = 'playground.sql';
       type = 'text/sql';
+    } else if (activeLanguage === 'c') {
+      content = cCode;
+      filename = 'playground.c';
+      type = 'text/x-csrc';
+    } else if (activeLanguage === 'cpp') {
+      content = cppCode;
+      filename = 'playground.cpp';
+      type = 'text/x-c++src';
+    } else if (activeLanguage === 'java') {
+      content = javaCode;
+      filename = 'Main.java';
+      type = 'text/x-java';
     } else {
       content = jsCode;
       filename = 'playground.js';
@@ -497,6 +643,9 @@ ${jsCode}`;
     }
     if (activeLanguage === 'python') return pythonCode;
     if (activeLanguage === 'sql') return sqlCode;
+    if (activeLanguage === 'c') return cCode;
+    if (activeLanguage === 'cpp') return cppCode;
+    if (activeLanguage === 'java') return javaCode;
     return jsCode;
   };
 
@@ -509,6 +658,12 @@ ${jsCode}`;
       setPythonCode(value);
     } else if (activeLanguage === 'sql') {
       setSqlCode(value);
+    } else if (activeLanguage === 'c') {
+      setCCode(value);
+    } else if (activeLanguage === 'cpp') {
+      setCppCode(value);
+    } else if (activeLanguage === 'java') {
+      setJavaCode(value);
     } else {
       setJsCode(value);
     }
@@ -522,11 +677,15 @@ ${jsCode}`;
     }
     if (activeLanguage === 'python') return 'python';
     if (activeLanguage === 'sql') return 'sql';
+    if (activeLanguage === 'c') return 'c';
+    if (activeLanguage === 'cpp') return 'cpp';
+    if (activeLanguage === 'java') return 'java';
     return 'javascript';
   };
 
   const theme = isDarkMode ? 'vs-dark' : 'light';
-  const hasInput = activeLanguage === 'python' || activeLanguage === 'javascript';
+  const isPiston = ['c', 'cpp', 'java'].includes(activeLanguage);
+  const hasInput = activeLanguage === 'python' || activeLanguage === 'javascript' || isPiston;
   const hasConsole = activeLanguage === 'web' && consoleOutput.length > 0;
 
   // Fill the entire content area: cancel layout padding and use full height
@@ -553,8 +712,14 @@ ${jsCode}`;
             <option value="python">Python</option>
             <option value="sql">SQL</option>
             <option value="javascript">JavaScript</option>
+            <option value="c">C</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+            <option value="react">React</option>
+            <option value="angular">Angular</option>
           </select>
 
+          {LANGUAGES[activeLanguage]?.type !== 'stackblitz' && (
           <button
             onClick={runCode}
             disabled={isRunning || (activeLanguage === 'python' && !pyodideReady) || (activeLanguage === 'sql' && !sqlReady)}
@@ -564,7 +729,9 @@ ${jsCode}`;
             <FaPlay className={`text-xs ${isRunning ? 'animate-pulse' : ''}`} />
             <span className="text-sm">{isRunning ? 'Running...' : 'Run'}</span>
           </button>
+          )}
 
+          {LANGUAGES[activeLanguage]?.type !== 'stackblitz' && (<>
           <button onClick={resetCode} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`} title="Reset Code">
             <FaRedo className="text-sm" />
           </button>
@@ -576,6 +743,8 @@ ${jsCode}`;
           <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`} title="Toggle Theme">
             {isDarkMode ? <FaSun className="text-sm" /> : <FaMoon className="text-sm" />}
           </button>
+
+          </>)}
 
           <button onClick={() => setIsFullscreen(!isFullscreen)} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`} title="Toggle Fullscreen">
             {isFullscreen ? <FaCompress className="text-sm" /> : <FaExpand className="text-sm" />}
@@ -595,8 +764,14 @@ ${jsCode}`;
           <option value="python">Python</option>
           <option value="sql">SQL</option>
           <option value="javascript">JS</option>
+          <option value="c">C</option>
+          <option value="cpp">C++</option>
+          <option value="java">Java</option>
+          <option value="react">React</option>
+          <option value="angular">Angular</option>
         </select>
 
+        {LANGUAGES[activeLanguage]?.type !== 'stackblitz' && (
         <div className="flex items-center gap-1">
           {loadingMessage && (
             <span className="text-[10px] text-[#e94560] animate-pulse mr-1">{loadingMessage.split(' ')[0]}...</span>
@@ -624,9 +799,24 @@ ${jsCode}`;
             {isDarkMode ? <FaSun className="text-xs" /> : <FaMoon className="text-xs" />}
           </button>
         </div>
+        )}
       </div>
 
+      {/* StackBlitz Embed - Full area for React/Angular */}
+      {LANGUAGES[activeLanguage]?.type === 'stackblitz' && (
+        <div className="flex-1 min-h-0 overflow-hidden relative">
+          <iframe
+            src={LANGUAGES[activeLanguage].embedUrl}
+            className="w-full border-none absolute inset-0"
+            style={{ height: 'calc(100% + 40px)' }}
+            title={`${LANGUAGES[activeLanguage].name} Playground`}
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope"
+          />
+        </div>
+      )}
+
       {/* Mobile Tab Navigation */}
+      {LANGUAGES[activeLanguage]?.type !== 'stackblitz' && (
       <div className={`md:hidden flex border-b shrink-0 ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
         <button
           onClick={() => setMobilePanel('editor')}
@@ -647,8 +837,10 @@ ${jsCode}`;
           {mobilePanel === 'output' && <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-[#e94560]' : 'bg-blue-600'}`} />}
         </button>
       </div>
+      )}
 
       {/* Main Content - Desktop (Split Layout) */}
+      {LANGUAGES[activeLanguage]?.type !== 'stackblitz' && (
       <div className="hidden md:block flex-1 min-h-0">
         <Split
           className="split-horizontal h-full"
@@ -729,8 +921,8 @@ ${jsCode}`;
                     </span>
                   </div>
                   <textarea
-                    value={activeLanguage === 'python' ? pythonInput : jsInput}
-                    onChange={(e) => activeLanguage === 'python' ? setPythonInput(e.target.value) : setJsInput(e.target.value)}
+                    value={isPiston ? pistonInput : activeLanguage === 'python' ? pythonInput : jsInput}
+                    onChange={(e) => isPiston ? setPistonInput(e.target.value) : activeLanguage === 'python' ? setPythonInput(e.target.value) : setJsInput(e.target.value)}
                     placeholder="Enter input values here..."
                     className={`flex-1 w-full p-2 text-sm font-mono resize-none focus:outline-none
                       ${isDarkMode ? 'bg-[#0f0f0f] text-white placeholder-[#a0a0a0]' : 'bg-white text-gray-800 placeholder-gray-400'}`}
@@ -989,14 +1181,29 @@ ${jsCode}`;
                       )}
                     </div>
                   )}
+
+                  {/* C / C++ / Java Output */}
+                  {isPiston && (
+                    <div className={`h-full p-3 font-mono text-sm whitespace-pre-wrap ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
+                      {pistonOutput ? (
+                        pistonOutput
+                      ) : (
+                        <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}>
+                          Click "Run" to execute {LANGUAGES[activeLanguage].name} code
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </div>
         </Split>
       </div>
+      )}
 
       {/* Main Content - Mobile */}
+      {LANGUAGES[activeLanguage]?.type !== 'stackblitz' && (
       <div className="md:hidden flex-1 min-h-0 flex flex-col">
         {/* Mobile Editor Panel */}
         {mobilePanel === 'editor' && (
@@ -1195,6 +1402,15 @@ ${jsCode}`;
                   )}
                 </div>
               )}
+
+              {/* C / C++ / Java Output */}
+              {isPiston && (
+                <div className={`h-full p-3 font-mono text-xs whitespace-pre-wrap ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
+                  {pistonOutput ? pistonOutput : (
+                    <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}>Click "Run" to execute</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Console for web on mobile */}
@@ -1216,6 +1432,7 @@ ${jsCode}`;
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };

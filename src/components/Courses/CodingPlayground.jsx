@@ -24,7 +24,9 @@ const LANGUAGE_CONFIG = {
   go: { name: 'Go', icon: FaCode, color: '#00ADD8', type: 'piston', pistonLang: 'go', pistonVersion: '1.16.2' },
   rust: { name: 'Rust', icon: FaCode, color: '#000000', type: 'piston', pistonLang: 'rust', pistonVersion: '1.68.2' },
   kotlin: { name: 'Kotlin', icon: FaCode, color: '#7F52FF', type: 'piston', pistonLang: 'kotlin', pistonVersion: '1.8.20' },
-  swift: { name: 'Swift', icon: FaCode, color: '#FA7343', type: 'piston', pistonLang: 'swift', pistonVersion: '5.3.3' }
+  swift: { name: 'Swift', icon: FaCode, color: '#FA7343', type: 'piston', pistonLang: 'swift', pistonVersion: '5.3.3' },
+  react: { name: 'React', icon: FaCode, color: '#61DAFB', type: 'stackblitz', embedUrl: 'https://stackblitz.com/edit/react-331knmhr?embed=1&file=src/App.js&theme=dark&hideNavigation=1' },
+  angular: { name: 'Angular', icon: FaCode, color: '#DD0031', type: 'stackblitz', embedUrl: 'https://stackblitz.com/edit/angular-live-compiler?embed=1&file=src/app/app.component.ts&theme=dark&hideNavigation=1' }
 };
 
 // Default HTML template
@@ -59,6 +61,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
   const language = codingPractice?.language || 'javascript';
   const langConfig = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.javascript;
   const isWebPlayground = ['html', 'css', 'javascript'].includes(language);
+  const isStackBlitz = langConfig.type === 'stackblitz';
 
   // Web editor states
   const [html, setHtml] = useState(DEFAULT_HTML);
@@ -524,6 +527,118 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
           <button onClick={onClose} className="px-4 py-2 bg-[#e94560] rounded-lg hover:bg-[#e94560]/80">
             Go Back
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── StackBlitz Playground (React / Angular) ──
+  if (isStackBlitz) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col bg-[#0f0f0f]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2.5 bg-[#1a1a2e] border-b border-[#0f3460] shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-[#0f3460] text-[#a0a0a0] hover:text-white transition-colors"
+            >
+              <FaTimes />
+            </button>
+            <h1 className="text-lg font-bold text-white">{codingPractice.title}</h1>
+            <span className="px-2.5 py-1 rounded-lg text-xs font-bold" style={{ backgroundColor: `${langConfig.color}20`, color: langConfig.color }}>
+              {langConfig.name}
+            </span>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 flex min-h-0">
+          {/* Problem panel (collapsible) */}
+          {showProblem && (
+            <div className="w-[350px] shrink-0 bg-[#1a1a2e] border-r border-[#0f3460] flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[#0f3460]">
+                <h2 className="text-sm font-semibold text-[#e94560]">Problem Description</h2>
+                <button
+                  onClick={() => setShowProblem(false)}
+                  className="p-1.5 rounded-lg hover:bg-[#0f3460] text-[#a0a0a0] hover:text-white transition-colors"
+                >
+                  <FaTimes className="text-xs" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-300">
+                  {renderDescription(codingPractice.description)}
+                </div>
+
+                {codingPractice.referenceImage && (
+                  <div className="mt-6">
+                    <h3 className="text-sm font-semibold mb-3 text-blue-400 flex items-center gap-2">
+                      <FaImage className="text-xs" /> Reference
+                    </h3>
+                    <img
+                      src={getFileUrl(codingPractice.referenceImage)}
+                      alt="Reference"
+                      className="w-full rounded-lg border border-[#0f3460]"
+                    />
+                  </div>
+                )}
+
+                {codingPractice.hints && codingPractice.hints.length > 0 && (
+                  <div className="mt-6">
+                    <button
+                      onClick={() => setShowHints(!showHints)}
+                      className="flex items-center gap-2 text-yellow-500 font-medium text-sm mb-2"
+                    >
+                      <FaLightbulb /> Hints ({codingPractice.hints.length})
+                      {showHints ? <FaChevronDown className="text-xs" /> : <FaChevronUp className="text-xs" />}
+                    </button>
+                    {showHints && (
+                      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-yellow-500 text-xs font-medium">
+                            Hint {currentHintIndex + 1} of {codingPractice.hints.length}
+                          </span>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => setCurrentHintIndex(prev => Math.max(0, prev - 1))}
+                              disabled={currentHintIndex === 0}
+                              className="px-2 py-1 text-xs rounded bg-[#0f3460] disabled:opacity-50"
+                            >Prev</button>
+                            <button
+                              onClick={() => setCurrentHintIndex(prev => Math.min(codingPractice.hints.length - 1, prev + 1))}
+                              disabled={currentHintIndex >= codingPractice.hints.length - 1}
+                              className="px-2 py-1 text-xs rounded bg-[#0f3460] disabled:opacity-50"
+                            >Next</button>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-300">{codingPractice.hints[currentHintIndex]}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* StackBlitz iframe */}
+          <div className="flex-1 min-w-0 relative overflow-hidden">
+            {!showProblem && (
+              <button
+                onClick={() => setShowProblem(true)}
+                className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-lg text-sm font-medium bg-[#e94560] text-white hover:bg-[#e94560]/80 transition-colors shadow-lg"
+              >
+                Show Problem
+              </button>
+            )}
+            <iframe
+              src={langConfig.embedUrl}
+              className="w-full border-none absolute inset-0"
+              style={{ height: 'calc(100% + 40px)' }}
+              title={`${langConfig.name} Playground`}
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope"
+            />
+          </div>
         </div>
       </div>
     );

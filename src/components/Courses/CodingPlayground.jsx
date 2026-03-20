@@ -281,7 +281,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
   // Execute code using Piston API
   const executePistonCode = async (sourceCode, lang, version) => {
     try {
-      const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+      const response = await fetch(import.meta.env.VITE_PISTON_API_URL || 'https://emkc.org/api/v2/piston/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

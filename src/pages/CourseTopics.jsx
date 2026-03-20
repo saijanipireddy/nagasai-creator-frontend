@@ -80,26 +80,34 @@ const CourseTopics = () => {
 
   // Load summary data for sidebar + course info
   useEffect(() => {
+    let cancelled = false;
     const controller = new AbortController();
+    setLoading(true);
+    setCourse(null);
+    setTopics([]);
+    setSelectedTopic(null);
+
     const fetchCourseData = async () => {
       try {
         const [courseRes, topicsRes] = await Promise.all([
           courseAPI.getById(courseId, controller.signal),
           courseAPI.getTopicsSummary(courseId, controller.signal),
         ]);
-        setCourse(courseRes.data);
-        setTopics(topicsRes.data);
-        if (topicsRes.data.length > 0) {
-          setSelectedTopic(topicsRes.data[0]);
+        if (!cancelled) {
+          setCourse(courseRes.data);
+          setTopics(topicsRes.data);
+          if (topicsRes.data.length > 0) {
+            setSelectedTopic(topicsRes.data[0]);
+          }
+          setLoading(false);
         }
       } catch (error) {
-        if (error.name === 'CanceledError') return;
-      } finally {
+        if (cancelled || error.name === 'CanceledError' || error.name === 'AbortError') return;
         setLoading(false);
       }
     };
     fetchCourseData();
-    return () => controller.abort();
+    return () => { cancelled = true; controller.abort(); };
   }, [courseId]);
 
   // Fetch full topic data on-demand when a topic is selected

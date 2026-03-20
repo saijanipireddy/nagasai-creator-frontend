@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard';
 import CourseContent from './pages/CourseContent';
 import CourseTopics from './pages/CourseTopics';
 import CodePlayground from './pages/CodePlayground';
+import Jobs from './pages/Jobs';
+import JobDetail from './pages/JobDetail';
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
                 <Route path="courses" element={<CourseContent />} />
                 <Route path="course/:courseId" element={<CourseTopics />} />
                 <Route path="playground" element={<CodePlayground />} />
+                <Route path="jobs" element={<Jobs />} />
+                <Route path="jobs/:jobId" element={<JobDetail />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

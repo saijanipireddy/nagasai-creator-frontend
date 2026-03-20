@@ -19,19 +19,23 @@ const CourseContent = () => {
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   useEffect(() => {
+    let cancelled = false;
     const controller = new AbortController();
+
     const fetchCourses = async () => {
       try {
         const { data } = await courseAPI.getAll(controller.signal);
-        setCourses(data);
+        if (!cancelled) {
+          setCourses(data);
+          setLoading(false);
+        }
       } catch (error) {
-        if (error.name === 'CanceledError') return;
-      } finally {
+        if (cancelled || error.name === 'CanceledError' || error.name === 'AbortError') return;
         setLoading(false);
       }
     };
     fetchCourses();
-    return () => controller.abort();
+    return () => { cancelled = true; controller.abort(); };
   }, []);
 
   const filteredCourses = useMemo(() => {

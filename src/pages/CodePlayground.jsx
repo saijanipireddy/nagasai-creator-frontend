@@ -492,7 +492,7 @@ ${jsCode}`;
     else if (activeLanguage === 'java') code = javaCode;
 
     try {
-      const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+      const response = await fetch(import.meta.env.VITE_PISTON_API_URL || 'https://emkc.org/api/v2/piston/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -712,9 +712,10 @@ ${jsCode}`;
             <option value="python">Python</option>
             <option value="sql">SQL</option>
             <option value="javascript">JavaScript</option>
-            <option value="c">C</option>
-            <option value="cpp">C++</option>
-            <option value="java">Java</option>
+            {/* C, C++, Java hidden until self-hosted Piston is set up */}
+            {/* <option value="c">C</option> */}
+            {/* <option value="cpp">C++</option> */}
+            {/* <option value="java">Java</option> */}
             <option value="react">React</option>
             <option value="angular">Angular</option>
           </select>
@@ -764,9 +765,10 @@ ${jsCode}`;
           <option value="python">Python</option>
           <option value="sql">SQL</option>
           <option value="javascript">JS</option>
-          <option value="c">C</option>
-          <option value="cpp">C++</option>
-          <option value="java">Java</option>
+          {/* C, C++, Java hidden until self-hosted Piston is set up */}
+          {/* <option value="c">C</option> */}
+          {/* <option value="cpp">C++</option> */}
+          {/* <option value="java">Java</option> */}
           <option value="react">React</option>
           <option value="angular">Angular</option>
         </select>

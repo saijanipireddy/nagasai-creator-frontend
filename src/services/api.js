@@ -85,4 +85,10 @@ export const scoreAPI = {
   getLeaderboard: (signal) => api.get('/scores/leaderboard', { signal }),
 };
 
+// Job APIs
+export const jobAPI = {
+  getAll: (signal) => api.get('/jobs', { signal }).then(res => ({ ...res, data: res.data.jobs })),
+  getById: (id, signal) => api.get(`/jobs/${id}`, { signal }),
+};
+
 export default api;

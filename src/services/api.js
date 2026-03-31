@@ -99,4 +99,14 @@ export const leaderboardAPI = {
   },
 };
 
+// Dashboard Widget API
+export const dashboardWidgetAPI = {
+  get: (month, year, signal) => {
+    const params = new URLSearchParams();
+    if (month) params.set('month', month);
+    if (year) params.set('year', year);
+    return api.get(`/scores/dashboard-widget?${params.toString()}`, { signal });
+  },
+};
+
 export default api;

@@ -5,9 +5,9 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
   const navItems = [
     { path: '/', icon: FaHome, label: 'Dashboard', color: 'from-indigo-500 to-indigo-600' },
     { path: '/courses', icon: FaBook, label: 'Courses', color: 'from-indigo-400 to-indigo-500' },
-    { path: '/playground', icon: FaCode, label: 'Playground', color: 'from-indigo-500 to-indigo-600' },
     { path: '/leaderboard', icon: FaTrophy, label: 'Leaderboard', color: 'from-amber-500 to-amber-600' },
     { path: '/jobs', icon: FaBriefcase, label: 'Jobs Board', color: 'from-emerald-500 to-emerald-600' },
+    { path: '/playground', icon: FaCode, label: 'Playground', color: 'from-indigo-500 to-indigo-600' },
     { path: '/profile', icon: FaUser, label: 'My Profile', color: 'from-slate-500 to-slate-600' }
   ];
 
@@ -39,7 +39,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
         </button>
 
         {/* Navigation */}
-        <nav className="px-4 pt-8 flex-1" aria-label="Main navigation">
+        <nav className="px-4 pt-8 flex-1 overflow-y-auto scrollbar-hidden" aria-label="Main navigation">
           {!isCollapsed && (
             <p className="px-3 mb-4 text-xs font-semibold text-slate-600 uppercase tracking-widest">Menu</p>
           )}

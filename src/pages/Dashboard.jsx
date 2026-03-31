@@ -1,27 +1,44 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaBook, FaPlay, FaCode, FaArrowRight, FaYoutube, FaLaptopCode, FaGraduationCap, FaCheckCircle, FaRocket, FaTrophy, FaSeedling, FaLightbulb, FaCogs, FaCloudUploadAlt, FaPencilAlt, FaFlask } from 'react-icons/fa';
+import { FaBook, FaPlay, FaCode, FaArrowRight, FaCheckCircle, FaTrophy, FaSeedling, FaLightbulb, FaCogs, FaCloudUploadAlt, FaPencilAlt, FaChartLine, FaLaptopCode } from 'react-icons/fa';
+import CourseCard from '../components/Courses/CourseCard';
 import { Link } from 'react-router-dom';
-import { courseAPI } from '../services/api';
+import { enrollmentAPI } from '../services/api';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import DashboardSidebar from '../components/Dashboard/DashboardSidebar';
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 17) return 'Good Afternoon';
+  return 'Good Evening';
+};
 
 const Dashboard = () => {
+  const { student } = useAuth();
   const [courses, setCourses] = useState([]);
+  const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeStep, setActiveStep] = useState(0);
   const intervalRef = useRef(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await courseAPI.getAll(controller.signal);
-        setCourses(data);
+        const [coursesRes, progressRes] = await Promise.all([
+          enrollmentAPI.getMyCourses(controller.signal),
+          api.get('/scores/my-progress', { signal: controller.signal }).catch(() => null),
+        ]);
+        setCourses(coursesRes.data || []);
+        if (progressRes?.data) setProgress(progressRes.data);
       } catch (error) {
         if (error.name === 'CanceledError') return;
       } finally {
         setLoading(false);
       }
     };
-    fetchCourses();
+    fetchData();
     return () => controller.abort();
   }, []);
 
@@ -45,16 +62,23 @@ const Dashboard = () => {
     }, 3000);
   };
 
+  const stats = progress?.stats || {};
+  const topicsCompleted = stats.topicsCompleted || 0;
+  const practiceCount = progress?.practiceScores?.length || 0;
+  const codingCount = progress?.codingSubmissions?.filter(c => c.passed)?.length || 0;
+
   return (
-    <div className="space-y-8">
+    <div className="flex gap-4 h-[calc(100vh-5rem-2.5rem)] -mb-5 md:-mb-6 md:h-[calc(100vh-5rem-3rem)]">
+      {/* Main Content - independent scroll */}
+      <div className="flex-1 min-w-0 overflow-y-auto scrollbar-hidden space-y-6">
+
       {/* Hero */}
       <div className="bg-white rounded-2xl p-8 md:p-10 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
         <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
-          Master Web Development,<br />
-          <span className="text-indigo-500">Step by Step</span>
+          {getGreeting()}, {student?.name?.split(' ').slice(0, 2).join(' ') || 'Student'} <span className="inline-block animate-[wave_1.5s_ease-in-out_infinite] origin-[70%_70%]">&#128075;</span>
         </h1>
         <p className="text-slate-500 text-lg md:text-xl mt-4 max-w-2xl leading-relaxed">
-          Videos, presentations, practice questions, and coding challenges — everything you need to become a full-stack developer.
+          Pick up where you left off, track your progress, and keep building your skills every day.
         </p>
         <div className="flex flex-wrap gap-4 mt-8">
           <Link
@@ -74,21 +98,179 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Features */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { icon: FaYoutube, title: 'Video Tutorials', desc: 'Detailed video explanations for every topic with hands-on demonstrations' },
-          { icon: FaLaptopCode, title: 'Practice & Code', desc: 'Hands-on practice questions and real coding challenges to build skills' },
-          { icon: FaGraduationCap, title: 'Structured Path', desc: 'Clear learning path from beginner to advanced with guided progression' },
-        ].map((f) => (
-          <div key={f.title} className="group bg-white rounded-2xl p-7 shadow-md shadow-slate-200/60 ring-1 ring-slate-100 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-300/50 transition-all duration-300">
-            <div className="w-14 h-14 bg-indigo-50 rounded-xl flex items-center justify-center mb-5 group-hover:bg-indigo-100 transition-colors duration-300">
-              <f.icon className="text-indigo-500 text-xl group-hover:text-indigo-600 transition-colors duration-300" />
-            </div>
-            <h3 className="font-bold text-slate-900 text-xl mb-2">{f.title}</h3>
-            <p className="text-slate-500 text-base leading-relaxed">{f.desc}</p>
+      {/* Progress Overview */}
+      {(() => {
+        const totalTopics = courses.reduce((sum, c) => sum + (c.totalTopics || 0), 0);
+        const completedTopicsCount = courses.reduce((sum, c) => sum + (c.completedTopics || 0), 0);
+        const courseProgress = totalTopics > 0 ? Math.round((completedTopicsCount / totalTopics) * 100) : 0;
+
+        const totalPractice = progress?.practiceScores?.length || 0;
+        const avgPractice = totalPractice > 0
+          ? Math.round(progress.practiceScores.reduce((s, p) => s + p.percentage, 0) / totalPractice)
+          : 0;
+
+        const totalCoding = progress?.codingSubmissions?.length || 0;
+        const passedCoding = progress?.codingSubmissions?.filter(c => c.passed)?.length || 0;
+        const codingPercent = totalCoding > 0 ? Math.round((passedCoding / totalCoding) * 100) : 0;
+
+        const cards = [
+          { label: 'Courses', value: `${completedTopicsCount}/${totalTopics}`, sublabel: 'Topics completed', percent: courseProgress, color: '#6366f1', gradient: 'from-indigo-500 to-indigo-600', bg: 'bg-indigo-50', iconBg: 'bg-indigo-100', icon: FaBook, delay: '0s' },
+          { label: 'Practice', value: `${avgPractice}%`, sublabel: `${totalPractice} quizzes taken`, percent: avgPractice, color: '#10b981', gradient: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50', iconBg: 'bg-emerald-100', icon: FaChartLine, delay: '0.1s' },
+          { label: 'Coding', value: `${passedCoding}/${totalCoding}`, sublabel: 'Challenges solved', percent: codingPercent, color: '#f59e0b', gradient: 'from-amber-500 to-amber-600', bg: 'bg-amber-50', iconBg: 'bg-amber-100', icon: FaLaptopCode, delay: '0.2s' },
+        ];
+
+        const r = 42;
+        const circ = 2 * Math.PI * r;
+
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {cards.map((card) => {
+              const Icon = card.icon;
+              const dash = (card.percent / 100) * circ;
+              return (
+                <div
+                  key={card.label}
+                  className="group bg-white rounded-2xl p-6 shadow-md shadow-slate-200/60 ring-1 ring-slate-100 hover:shadow-xl hover:shadow-slate-200/80 hover:-translate-y-1 transition-all duration-300"
+                  style={{ animation: `cardSlideUp 0.5s ease-out ${card.delay} both` }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className={`w-8 h-8 ${card.iconBg} rounded-lg flex items-center justify-center`}>
+                          <Icon className="text-sm" style={{ color: card.color }} />
+                        </div>
+                        <h3 className="text-sm font-bold text-slate-700">{card.label}</h3>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1">{loading ? '...' : card.sublabel}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-5">
+                    {/* Circular ring */}
+                    <div className="relative w-[5.5rem] h-[5.5rem] flex-shrink-0" style={{ '--glow-color': `${card.color}40` }}>
+                      <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r={r} fill="none" stroke="#f1f5f9" strokeWidth="8" />
+                        <circle
+                          cx="50" cy="50" r={r} fill="none"
+                          stroke={`url(#grad-${card.label})`}
+                          strokeWidth="8"
+                          strokeLinecap="round"
+                          strokeDasharray={`${dash} ${circ}`}
+                          style={{ animation: loading ? 'none' : `ringFill 1.2s ease-out ${card.delay} both` }}
+                          className="group-hover:animate-[pulseGlow_2s_ease-in-out_infinite]"
+                        />
+                        <defs>
+                          <linearGradient id={`grad-${card.label}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor={card.color} />
+                            <stop offset="100%" stopColor={card.color} stopOpacity="0.6" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div
+                        className="absolute inset-0 flex flex-col items-center justify-center"
+                        style={{ animation: loading ? 'none' : `countUp 0.6s ease-out ${card.delay} both` }}
+                      >
+                        <span className="text-lg font-extrabold text-slate-900">{loading ? '–' : card.value}</span>
+                      </div>
+                    </div>
+
+                    {/* Progress bar + percent */}
+                    <div className="flex-1">
+                      <div className="flex items-end justify-between mb-2">
+                        <span className="text-3xl font-extrabold text-slate-900" style={{ animation: loading ? 'none' : `countUp 0.8s ease-out ${card.delay} both` }}>
+                          {loading ? '–' : `${card.percent}%`}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full bg-gradient-to-r ${card.gradient}`}
+                          style={{
+                            width: loading ? '0%' : `${card.percent}%`,
+                            transition: `width 1.2s ease-out`,
+                            transitionDelay: card.delay,
+                          }}
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1.5 font-medium">Progress</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        ))}
+        );
+      })()}
+
+      {/* My Courses */}
+      <div className="bg-white rounded-2xl p-7 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xl font-bold text-slate-900">My Courses</h2>
+          <Link to="/courses" className="inline-flex items-center gap-1.5 text-indigo-500 text-sm font-semibold hover:text-indigo-600 transition-colors">
+            View all <FaArrowRight className="text-xs" />
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 animate-pulse">
+                <div className="w-11 h-11 rounded-xl bg-slate-200" />
+                <div className="flex-1">
+                  <div className="h-4 bg-slate-200 rounded w-32 mb-2" />
+                  <div className="h-2 bg-slate-200 rounded w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : courses.length > 0 ? (
+          <div className="space-y-2.5">
+            {courses.map((course) => {
+              const prog = course.progress || 0;
+              const isComplete = prog === 100 && course.totalTopics > 0;
+              return (
+                <Link
+                  key={course._id}
+                  to={`/course/${course._id}`}
+                  className="group flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all duration-200"
+                >
+                  <div
+                    className="flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
+                    style={{ backgroundColor: `${course.color || '#6366f1'}15` }}
+                  >
+                    {isComplete ? (
+                      <FaCheckCircle className="text-base text-emerald-500" />
+                    ) : (
+                      <FaBook className="text-base" style={{ color: course.color || '#6366f1' }} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="font-semibold text-slate-800 group-hover:text-slate-900 truncate text-sm">{course.name}</p>
+                      <span className="text-xs text-slate-400 font-medium ml-2 flex-shrink-0">
+                        {course.completedTopics || 0}/{course.totalTopics || 0}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${isComplete ? 'bg-emerald-500' : 'bg-indigo-500'}`}
+                        style={{ width: `${prog}%` }}
+                      />
+                    </div>
+                  </div>
+                  <FaArrowRight className="text-[10px] text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all flex-shrink-0 ml-1" />
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-10">
+            <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <FaBook className="text-xl text-slate-300" />
+            </div>
+            <p className="text-slate-500 font-medium">No courses enrolled yet</p>
+            <p className="text-sm text-slate-400 mt-1">Contact your admin to get enrolled</p>
+          </div>
+        )}
       </div>
 
       {/* Learning Path - Timeline */}
@@ -187,26 +369,11 @@ const Dashboard = () => {
         })()}
       </div>
 
-      {/* Playground CTA */}
-      <div className="bg-white rounded-2xl p-7 md:p-8 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-indigo-50 rounded-xl flex items-center justify-center">
-              <FaCode className="text-indigo-500 text-xl" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-900 text-xl">Code Playground</h3>
-              <p className="text-slate-500 text-base mt-0.5">Practice HTML, CSS, JavaScript, Python & SQL in your browser</p>
-            </div>
-          </div>
-          <Link
-            to="/playground"
-            className="inline-flex items-center gap-2.5 bg-indigo-500 text-white px-8 py-3.5 rounded-xl hover:bg-indigo-600 transition-colors font-semibold text-base whitespace-nowrap"
-          >
-            <FaCode />
-            Open Playground
-          </Link>
-        </div>
+      </div>
+
+      {/* Right Sidebar - independent scroll */}
+      <div className="hidden lg:block w-80 xl:w-[22rem] flex-shrink-0 overflow-y-auto scrollbar-hidden">
+        <DashboardSidebar />
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import {
   FaCheck, FaCopy, FaImage, FaExpand, FaLink, FaHtml5, FaCss3Alt, FaJs,
   FaPython, FaDatabase, FaDownload, FaSun, FaMoon, FaCompress, FaCode, FaTerminal, FaFileAlt
 } from 'react-icons/fa';
-import { BACKEND_URL, getFileUrl, scoreAPI } from '../../services/api';
+import { BACKEND_URL, getFileUrl } from '../../services/api';
 
 // Language configurations
 const LANGUAGE_CONFIG = {
@@ -109,26 +109,9 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fetch existing submission on mount
+  // No backend submission - skip loading
   useEffect(() => {
-    if (!topicId) {
-      setLoadingSubmission(false);
-      return;
-    }
-    const fetchSubmission = async () => {
-      try {
-        const { data } = await scoreAPI.getCodingSubmission(topicId);
-        if (data.submission) {
-          setPreviousSubmission(data.submission);
-          setSubmitStatus(data.submission.passed ? 'pass' : 'fail');
-        }
-      } catch {
-        // No previous submission
-      } finally {
-        setLoadingSubmission(false);
-      }
-    };
-    fetchSubmission();
+    setLoadingSubmission(false);
   }, [topicId]);
 
   // Initialize code from previous submission or starter code
@@ -325,9 +308,8 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
     setHasRun(true);
   };
 
-  // Submit coding challenge (server-side validated)
+  // Run and show results locally (no backend submission)
   const handleSubmitCode = async () => {
-    if (!topicId) return;
     setSubmitting(true);
     setSubmitDetails(null);
     setShowResults(false);
@@ -352,36 +334,35 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
             }
           }, 100);
         });
-      } else if (isWebPlayground && !hasRun) {
+
+        // Evaluate results locally from test script
+        const results = testResultsRef.current || [];
+        const passed = results.length > 0 && results.every(r => r === 'PASS' || r.startsWith?.('PASS'));
+        setSubmitStatus(passed ? 'pass' : 'fail');
+        setSubmitDetails(results);
+      } else if (isWebPlayground) {
         // Web without testScript: just run to show preview
         setConsoleOutput([]);
         setWebPreview(getWebPreview());
         setHasRun(true);
+        setSubmitStatus('pass');
+        setSubmitDetails([]);
+      } else if (langConfig.type === 'piston') {
+        // Non-web: run code and compare output
+        const result = await executePistonCode(code, langConfig.pistonLang, langConfig.pistonVersion);
+        setOutput(result.output);
+        setHasRun(true);
+
+        const expected = codingPractice?.expectedOutput?.trim();
+        const actual = result.output?.trim();
+        const passed = expected ? actual === expected : result.success;
+        setSubmitStatus(passed ? 'pass' : 'fail');
+        setSubmitDetails(expected ? [passed ? 'PASS: Output matches expected' : `FAIL: Expected "${expected}" but got "${actual}"`] : []);
       }
 
-      const payload = {
-        topicId,
-        code: isWebPlayground ? `<!-- HTML -->\n${html}\n\n<style>\n${css}\n</style>\n\n<script>\n${webJs}\n</script>` : code,
-        language,
-      };
-
-      // Include test results if available
-      if (isWebPlayground && (testResultsRef.current || testResults)) {
-        payload.testResults = testResultsRef.current || testResults;
-      }
-
-      const { data } = await scoreAPI.submitCodingChallenge(payload);
-      const passed = data.passed;
-
-      setSubmitStatus(passed ? 'pass' : 'fail');
-      setSubmitDetails(data.results || []);
       setShowResults(true);
-
-      if (passed && onComplete) {
-        onComplete();
-      }
     } catch (err) {
-      console.error('Failed to submit coding challenge:', err);
+      console.error('Failed to run code:', err);
       setSubmitStatus('fail');
       setShowResults(true);
     } finally {

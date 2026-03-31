@@ -17,31 +17,6 @@ const api = axios.create({
   timeout: 30000
 });
 
-// Attach student token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('studentToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Handle response errors — auto-logout on 401
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('studentToken');
-      localStorage.removeItem('studentInfo');
-      window.location.href = '/auth';
-    }
-    return Promise.reject(error);
-  }
-);
-
 // Helper to extract data from paginated responses
 const extractData = (response) => {
   const data = response.data;
@@ -61,28 +36,6 @@ export const courseAPI = {
 // Topic APIs
 export const topicAPI = {
   getById: (id, signal) => api.get(`/topics/${id}`, { signal })
-};
-
-// Student Auth APIs
-export const studentAuthAPI = {
-  register: (data) => api.post('/student-auth/register', data),
-  login: (data) => api.post('/student-auth/login', data),
-  getProfile: () => api.get('/student-auth/profile')
-};
-
-// Score APIs
-export const scoreAPI = {
-  submitPractice: (data) => api.post('/scores/practice', data),
-  submitPracticeAttempt: (data) => api.post('/scores/practice-attempt', data),
-  getPracticeAttempts: (topicId, signal) => api.get(`/scores/practice-attempts/${topicId}`, { signal }),
-  getPracticeAttemptDetail: (attemptId, signal) => api.get(`/scores/practice-attempt/${attemptId}`, { signal }),
-  submitCoding: (data) => api.post('/scores/coding', data),
-  submitCodingChallenge: (data) => api.post('/scores/coding-submit', data),
-  getCodingSubmission: (topicId, signal) => api.get(`/scores/coding-submission/${topicId}`, { signal }),
-  markComplete: (data) => api.post('/scores/complete', data),
-  getCompletions: (courseId, signal) => api.get('/scores/completions', { params: { courseId }, signal }),
-  getMyProgress: (signal) => api.get('/scores/my-progress', { signal }),
-  getLeaderboard: (signal) => api.get('/scores/leaderboard', { signal }),
 };
 
 // Job APIs

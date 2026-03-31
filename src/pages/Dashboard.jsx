@@ -73,26 +73,26 @@ const Dashboard = () => {
       <div className="flex-1 min-w-0 overflow-y-auto scrollbar-hidden space-y-6">
 
       {/* Hero */}
-      <div className="bg-white rounded-2xl p-8 md:p-10 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+      <div className="bg-white rounded-2xl p-6 md:p-7 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 leading-tight">
           {getGreeting()}, {student?.name?.split(' ').slice(0, 2).join(' ') || 'Student'} <span className="inline-block animate-[wave_1.5s_ease-in-out_infinite] origin-[70%_70%]">&#128075;</span>
         </h1>
-        <p className="text-slate-500 text-lg md:text-xl mt-4 max-w-2xl leading-relaxed">
+        <p className="text-slate-500 text-sm md:text-base mt-3 max-w-2xl leading-relaxed">
           Pick up where you left off, track your progress, and keep building your skills every day.
         </p>
-        <div className="flex flex-wrap gap-4 mt-8">
+        <div className="flex flex-wrap gap-3 mt-6">
           <Link
             to="/courses"
-            className="inline-flex items-center gap-2.5 bg-indigo-500 text-white px-8 py-3.5 rounded-xl hover:bg-indigo-600 transition-colors font-semibold text-base"
+            className="inline-flex items-center gap-2 bg-indigo-500 text-white px-6 py-2.5 rounded-xl hover:bg-indigo-600 transition-colors font-semibold text-sm"
           >
-            <FaPlay className="text-sm" />
+            <FaPlay className="text-xs" />
             Start Learning
           </Link>
           <Link
             to="/playground"
-            className="inline-flex items-center gap-2.5 bg-white text-slate-700 px-8 py-3.5 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-base border border-slate-200 shadow-sm"
+            className="inline-flex items-center gap-2 bg-white text-slate-700 px-6 py-2.5 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-sm border border-slate-200 shadow-sm"
           >
-            <FaCode className="text-base" />
+            <FaCode className="text-sm" />
             Code Playground
           </Link>
         </div>
@@ -130,24 +130,24 @@ const Dashboard = () => {
               return (
                 <div
                   key={card.label}
-                  className="group bg-white rounded-2xl p-6 shadow-md shadow-slate-200/60 ring-1 ring-slate-100 hover:shadow-xl hover:shadow-slate-200/80 hover:-translate-y-1 transition-all duration-300"
+                  className="group bg-white rounded-2xl p-5 shadow-md shadow-slate-200/60 ring-1 ring-slate-100 hover:shadow-xl hover:shadow-slate-200/80 hover:-translate-y-1 transition-all duration-300"
                   style={{ animation: `cardSlideUp 0.5s ease-out ${card.delay} both` }}
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <div className={`w-8 h-8 ${card.iconBg} rounded-lg flex items-center justify-center`}>
-                          <Icon className="text-sm" style={{ color: card.color }} />
+                        <div className={`w-7 h-7 ${card.iconBg} rounded-lg flex items-center justify-center`}>
+                          <Icon className="text-xs" style={{ color: card.color }} />
                         </div>
-                        <h3 className="text-sm font-bold text-slate-700">{card.label}</h3>
+                        <h3 className="text-xs font-bold text-slate-700">{card.label}</h3>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">{loading ? '...' : card.sublabel}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">{loading ? '...' : card.sublabel}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-5">
+                  <div className="flex items-center gap-4">
                     {/* Circular ring */}
-                    <div className="relative w-[5.5rem] h-[5.5rem] flex-shrink-0" style={{ '--glow-color': `${card.color}40` }}>
+                    <div className="relative w-[4.5rem] h-[4.5rem] flex-shrink-0" style={{ '--glow-color': `${card.color}40` }}>
                       <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r={r} fill="none" stroke="#f1f5f9" strokeWidth="8" />
                         <circle
@@ -170,18 +170,18 @@ const Dashboard = () => {
                         className="absolute inset-0 flex flex-col items-center justify-center"
                         style={{ animation: loading ? 'none' : `countUp 0.6s ease-out ${card.delay} both` }}
                       >
-                        <span className="text-lg font-extrabold text-slate-900">{loading ? '–' : card.value}</span>
+                        <span className="text-sm font-extrabold text-slate-900">{loading ? '–' : card.value}</span>
                       </div>
                     </div>
 
                     {/* Progress bar + percent */}
                     <div className="flex-1">
-                      <div className="flex items-end justify-between mb-2">
-                        <span className="text-3xl font-extrabold text-slate-900" style={{ animation: loading ? 'none' : `countUp 0.8s ease-out ${card.delay} both` }}>
+                      <div className="flex items-end justify-between mb-1.5">
+                        <span className="text-2xl font-extrabold text-slate-900" style={{ animation: loading ? 'none' : `countUp 0.8s ease-out ${card.delay} both` }}>
                           {loading ? '–' : `${card.percent}%`}
                         </span>
                       </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full bg-gradient-to-r ${card.gradient}`}
                           style={{
@@ -191,7 +191,7 @@ const Dashboard = () => {
                           }}
                         />
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1.5 font-medium">Progress</p>
+                      <p className="text-[10px] text-slate-400 mt-1 font-medium">Progress</p>
                     </div>
                   </div>
                 </div>
@@ -202,22 +202,22 @@ const Dashboard = () => {
       })()}
 
       {/* My Courses */}
-      <div className="bg-white rounded-2xl p-7 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold text-slate-900">My Courses</h2>
-          <Link to="/courses" className="inline-flex items-center gap-1.5 text-indigo-500 text-sm font-semibold hover:text-indigo-600 transition-colors">
-            View all <FaArrowRight className="text-xs" />
+      <div className="bg-white rounded-2xl p-5 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-slate-900">My Courses</h2>
+          <Link to="/courses" className="inline-flex items-center gap-1.5 text-indigo-500 text-xs font-semibold hover:text-indigo-600 transition-colors">
+            View all <FaArrowRight className="text-[10px]" />
           </Link>
         </div>
 
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 animate-pulse">
-                <div className="w-11 h-11 rounded-xl bg-slate-200" />
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 animate-pulse">
+                <div className="w-9 h-9 rounded-xl bg-slate-200" />
                 <div className="flex-1">
-                  <div className="h-4 bg-slate-200 rounded w-32 mb-2" />
-                  <div className="h-2 bg-slate-200 rounded w-full" />
+                  <div className="h-3 bg-slate-200 rounded w-28 mb-2" />
+                  <div className="h-1.5 bg-slate-200 rounded w-full" />
                 </div>
               </div>
             ))}
@@ -231,26 +231,26 @@ const Dashboard = () => {
                 <Link
                   key={course._id}
                   to={`/course/${course._id}`}
-                  className="group flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all duration-200"
+                  className="group flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all duration-200"
                 >
                   <div
-                    className="flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
+                    className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
                     style={{ backgroundColor: `${course.color || '#6366f1'}15` }}
                   >
                     {isComplete ? (
-                      <FaCheckCircle className="text-base text-emerald-500" />
+                      <FaCheckCircle className="text-sm text-emerald-500" />
                     ) : (
-                      <FaBook className="text-base" style={{ color: course.color || '#6366f1' }} />
+                      <FaBook className="text-sm" style={{ color: course.color || '#6366f1' }} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="font-semibold text-slate-800 group-hover:text-slate-900 truncate text-sm">{course.name}</p>
-                      <span className="text-xs text-slate-400 font-medium ml-2 flex-shrink-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="font-semibold text-slate-800 group-hover:text-slate-900 truncate text-xs">{course.name}</p>
+                      <span className="text-[11px] text-slate-400 font-medium ml-2 flex-shrink-0">
                         {course.completedTopics || 0}/{course.totalTopics || 0}
                       </span>
                     </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${isComplete ? 'bg-emerald-500' : 'bg-indigo-500'}`}
                         style={{ width: `${prog}%` }}
@@ -263,25 +263,25 @@ const Dashboard = () => {
             })}
           </div>
         ) : (
-          <div className="text-center py-10">
-            <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <FaBook className="text-xl text-slate-300" />
+          <div className="text-center py-8">
+            <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <FaBook className="text-base text-slate-300" />
             </div>
-            <p className="text-slate-500 font-medium">No courses enrolled yet</p>
-            <p className="text-sm text-slate-400 mt-1">Contact your admin to get enrolled</p>
+            <p className="text-slate-500 font-medium text-sm">No courses enrolled yet</p>
+            <p className="text-xs text-slate-400 mt-1">Contact your admin to get enrolled</p>
           </div>
         )}
       </div>
 
       {/* Learning Path - Timeline */}
-      <div className="bg-white rounded-2xl p-7 md:p-8 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
-        <div className="flex items-center justify-between mb-8">
+      <div className="bg-white rounded-2xl p-5 md:p-6 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Your Learning Journey</h2>
-            <p className="text-slate-500 text-base mt-1">From zero to Full Stack Developer</p>
+            <h2 className="text-base font-bold text-slate-900">Your Learning Journey</h2>
+            <p className="text-slate-500 text-xs mt-1">From zero to Full Stack Developer</p>
           </div>
-          <Link to="/courses" className="inline-flex items-center gap-2 text-indigo-500 text-base font-semibold hover:text-indigo-600 transition-colors">
-            View all <FaArrowRight className="text-sm" />
+          <Link to="/courses" className="inline-flex items-center gap-1.5 text-indigo-500 text-xs font-semibold hover:text-indigo-600 transition-colors">
+            View all <FaArrowRight className="text-[10px]" />
           </Link>
         </div>
 
@@ -320,7 +320,7 @@ const Dashboard = () => {
                       onMouseLeave={handleStepLeave}
                     >
                       {/* Node */}
-                      <div className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${
+                      <div className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
                         isActive
                           ? isGoal
                             ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-110'
@@ -346,14 +346,14 @@ const Dashboard = () => {
                       </div>
 
                       {/* Label */}
-                      <p className={`text-sm font-bold mt-3 transition-colors duration-300 ${
+                      <p className={`text-xs font-bold mt-2 transition-colors duration-300 ${
                         isActive
                           ? isGoal ? 'text-amber-600' : isStart ? 'text-emerald-600' : 'text-indigo-600'
                           : isPast ? 'text-emerald-600' : 'text-slate-500'
                       }`}>
                         {step.label}
                       </p>
-                      <p className={`text-xs mt-0.5 transition-colors duration-300 ${
+                      <p className={`text-[10px] mt-0.5 transition-colors duration-300 ${
                         isActive
                           ? isGoal ? 'text-amber-400' : isStart ? 'text-emerald-400' : 'text-indigo-400'
                           : isPast ? 'text-emerald-400' : 'text-slate-400'

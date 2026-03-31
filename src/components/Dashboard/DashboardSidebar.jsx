@@ -96,7 +96,7 @@ const DashboardSidebar = () => {
   }, [calendarMonth, canGoNext]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <ScoreCard stats={data?.stats} isLoading={loading} />
       <StreakCard streak={data?.streak} isLoading={loading} />
       <ConsistencyCalendar

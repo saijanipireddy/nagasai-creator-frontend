@@ -13,14 +13,14 @@ const getLevelConfig = (tier) => {
 const ScoreCard = ({ stats, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-5">
-        <div className="h-4 bg-slate-100 rounded animate-pulse w-20 mb-3" />
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
+        <div className="h-3 bg-slate-100 rounded animate-pulse w-20 mb-2.5" />
         <div className="flex items-center justify-between">
-          <div className="h-8 bg-slate-100 rounded animate-pulse w-28" />
-          <div className="h-7 bg-slate-100 rounded-full animate-pulse w-24" />
+          <div className="h-6 bg-slate-100 rounded animate-pulse w-24" />
+          <div className="h-5 bg-slate-100 rounded-full animate-pulse w-20" />
         </div>
-        <div className="mt-3">
-          <div className="h-1.5 bg-slate-100 rounded animate-pulse" />
+        <div className="mt-2.5">
+          <div className="h-1 bg-slate-100 rounded animate-pulse" />
         </div>
       </div>
     );
@@ -40,28 +40,28 @@ const ScoreCard = ({ stats, isLoading }) => {
     : 100;
 
   return (
-    <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-5">
-      <p className="text-sm font-medium text-slate-500 mb-1">Your Score</p>
+    <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
+      <p className="text-xs font-medium text-slate-500 mb-1">Your Score</p>
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <FaBolt className="text-amber-500" />
-          <span className="text-2xl font-extrabold text-slate-900">{stats.totalPoints.toLocaleString()}</span>
-          <span className="text-sm text-slate-400 font-medium">pts</span>
+        <div className="flex items-center gap-1.5">
+          <FaBolt className="text-amber-500 text-sm" />
+          <span className="text-xl font-extrabold text-slate-900">{stats.totalPoints.toLocaleString()}</span>
+          <span className="text-xs text-slate-400 font-medium">pts</span>
         </div>
-        <div className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${levelConfig.bg}`}>
-          <LevelIcon className="text-[10px]" />
+        <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${levelConfig.bg}`}>
+          <LevelIcon className="text-[9px]" />
           {stats.level}
         </div>
       </div>
 
       {/* Level progress */}
       {stats.nextLevelAt && (
-        <div className="mt-3">
-          <div className="flex justify-between text-xs text-slate-400 mb-1">
+        <div className="mt-2.5">
+          <div className="flex justify-between text-[10px] text-slate-400 mb-1">
             <span>{stats.level}</span>
             <span>{stats.pointsToNextLevel} pts to next</span>
           </div>
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full bg-gradient-to-r ${levelConfig.color} transition-all duration-700`}
               style={{ width: `${progressPercent}%` }}

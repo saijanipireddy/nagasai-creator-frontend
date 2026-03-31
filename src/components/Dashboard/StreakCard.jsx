@@ -11,19 +11,19 @@ const FireIcon = () => (
 const StreakCard = ({ streak, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-5">
-        <div className="h-4 bg-slate-100 rounded animate-pulse w-36 mb-1" />
-        <div className="h-3 bg-slate-100 rounded animate-pulse w-48 mb-4" />
-        <div className="flex gap-4">
-          <div className="flex-1 flex flex-col items-center py-2">
-            <div className="h-3 bg-slate-100 rounded animate-pulse w-20 mb-2" />
-            <div className="h-8 bg-slate-100 rounded animate-pulse w-16 mb-2" />
-            <div className="h-3 bg-slate-100 rounded animate-pulse w-16" />
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
+        <div className="h-3.5 bg-slate-100 rounded animate-pulse w-32 mb-1" />
+        <div className="h-2.5 bg-slate-100 rounded animate-pulse w-40 mb-3" />
+        <div className="flex gap-3">
+          <div className="flex-1 flex flex-col items-center py-1.5">
+            <div className="h-2.5 bg-slate-100 rounded animate-pulse w-16 mb-1.5" />
+            <div className="h-6 bg-slate-100 rounded animate-pulse w-12 mb-1.5" />
+            <div className="h-2.5 bg-slate-100 rounded animate-pulse w-14" />
           </div>
           <div className="w-px bg-slate-100" />
-          <div className="flex-1 flex flex-col items-center py-2">
-            <div className="h-3 bg-slate-100 rounded animate-pulse w-24 mb-2" />
-            <div className="h-8 bg-slate-100 rounded animate-pulse w-16" />
+          <div className="flex-1 flex flex-col items-center py-1.5">
+            <div className="h-2.5 bg-slate-100 rounded animate-pulse w-20 mb-1.5" />
+            <div className="h-6 bg-slate-100 rounded animate-pulse w-12" />
           </div>
         </div>
       </div>
@@ -33,30 +33,30 @@ const StreakCard = ({ streak, isLoading }) => {
   if (!streak) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-5">
-      <h3 className="text-base font-bold text-slate-900 mb-0.5">Learning Consistency</h3>
-      <p className="text-xs text-slate-400 mb-4">Track your learning progress and consistency.</p>
+    <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
+      <h3 className="text-sm font-bold text-slate-900 mb-0.5">Learning Consistency</h3>
+      <p className="text-[10px] text-slate-400 mb-3">Track your learning progress and consistency.</p>
 
       <div className="flex">
         {/* Current Streak */}
-        <div className="flex-1 flex flex-col items-center py-2">
-          <p className="text-xs font-medium text-slate-500 mb-2">Current Streak</p>
-          <div className="flex items-center gap-2 mb-2">
+        <div className="flex-1 flex flex-col items-center py-1.5">
+          <p className="text-[10px] font-medium text-slate-500 mb-1.5">Current Streak</p>
+          <div className="flex items-center gap-1.5 mb-1.5">
             <FireIcon />
-            <span className="text-2xl font-extrabold text-slate-900">{streak.currentStreak}</span>
+            <span className="text-xl font-extrabold text-slate-900">{streak.currentStreak}</span>
           </div>
-          <p className="text-xs text-slate-400">My Best: {streak.bestStreak}</p>
+          <p className="text-[10px] text-slate-400">My Best: {streak.bestStreak}</p>
         </div>
 
         {/* Divider */}
-        <div className="w-px bg-slate-200 mx-3" />
+        <div className="w-px bg-slate-200 mx-2" />
 
         {/* Consistency Score */}
-        <div className="flex-1 flex flex-col items-center py-2">
-          <p className="text-xs font-medium text-slate-500 mb-2">Consistency Score</p>
-          <div className="flex items-center gap-2">
-            <FaTrophy className="text-indigo-500 text-xl" />
-            <span className="text-2xl font-extrabold text-slate-900">{streak.consistencyScore}</span>
+        <div className="flex-1 flex flex-col items-center py-1.5">
+          <p className="text-[10px] font-medium text-slate-500 mb-1.5">Consistency Score</p>
+          <div className="flex items-center gap-1.5">
+            <FaTrophy className="text-indigo-500 text-base" />
+            <span className="text-xl font-extrabold text-slate-900">{streak.consistencyScore}</span>
           </div>
         </div>
       </div>

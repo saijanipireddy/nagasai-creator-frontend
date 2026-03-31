@@ -372,7 +372,7 @@ const Dashboard = () => {
       </div>
 
       {/* Right Sidebar - independent scroll */}
-      <div className="hidden lg:block w-80 xl:w-[22rem] flex-shrink-0 overflow-y-auto scrollbar-hidden">
+      <div className="hidden lg:block w-72 xl:w-80 flex-shrink-0 overflow-y-auto scrollbar-hidden">
         <DashboardSidebar />
       </div>
     </div>

@@ -22,7 +22,7 @@ const Layout = () => {
       />
       <main
         className={`mt-[72px] h-[calc(100vh-72px)] overflow-hidden relative transition-all duration-300
-          ${sidebarCollapsed ? 'lg:ml-[80px]' : 'lg:ml-72'}`}
+          ${sidebarCollapsed ? 'lg:ml-[80px]' : 'lg:ml-60'}`}
       >
         <div className="h-full overflow-y-auto p-5 md:p-6">
           <Outlet context={{ setSidebarCollapsed, sidebarCollapsed }} />

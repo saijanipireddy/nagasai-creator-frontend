@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaArrowLeft, FaArrowRight, FaCheck, FaClock, FaFlag, FaTimes, FaChevronRight, FaPaperPlane } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaCheck, FaClock, FaFlag, FaTimes, FaChevronRight, FaPaperPlane, FaSpinner } from 'react-icons/fa';
+import { practiceAPI } from '../../services/api';
 
 const PracticeQuiz = ({ topic, onComplete, onBack, onReview }) => {
   const questions = topic.practice || [];
   const totalQuestions = questions.length;
+  const topicId = topic._id || topic.id;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [flagged, setFlagged] = useState(new Set());
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [result, setResult] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const timerRef = useRef(null);
 
@@ -24,22 +27,62 @@ const PracticeQuiz = ({ topic, onComplete, onBack, onReview }) => {
   const answeredCount = Object.keys(answers).length;
   const unansweredCount = totalQuestions - answeredCount;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setShowSubmitModal(false);
     clearInterval(timerRef.current);
-    const arr = questions.map((q, idx) => ({ questionIndex: idx, question: q.question, options: q.options, selectedOption: answers[idx] !== undefined ? answers[idx] : -1, correctOption: q.answer }));
+    setSubmitting(true);
+
+    const arr = questions.map((q, idx) => ({
+      questionIndex: idx,
+      question: q.question,
+      options: q.options,
+      selectedOption: answers[idx] !== undefined ? answers[idx] : -1,
+      correctOption: q.answer,
+    }));
     const correct = arr.filter(a => a.selectedOption === a.correctOption).length;
     const pct = Math.round((correct / totalQuestions) * 100);
-    setResult({ score: correct, total: totalQuestions, percentage: pct, passed: pct >= 80, timeTakenSeconds: elapsedSeconds, answers: arr });
+    const localResult = { score: correct, total: totalQuestions, percentage: pct, passed: pct >= 80, timeTakenSeconds: elapsedSeconds, answers: arr };
+
+    // Submit to backend
+    try {
+      const { data } = await practiceAPI.submitAttempt({
+        topicId,
+        answers: arr,
+        timeTakenSeconds: elapsedSeconds,
+      });
+      // Use backend response for authoritative result
+      localResult.attemptNumber = data.attemptNumber;
+      localResult.percentage = data.percentage;
+      localResult.passed = data.passed;
+      localResult.score = data.score;
+      localResult.total = data.total;
+    } catch {
+      // If backend fails, still show local result
+    }
+
+    setResult(localResult);
+    setSubmitting(false);
   };
 
   const currentQ = questions[currentIndex];
   const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-  // ── Results Screen ──
+  // Submitting screen
+  if (submitting) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <FaSpinner className="text-3xl text-indigo-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-500 font-medium">Submitting your answers...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Results Screen
   if (result) {
-    const wrongCount = Object.keys(answers).filter(i => answers[i] !== questions[i]?.answer).length;
-    const skippedCount = totalQuestions - Object.keys(answers).length;
+    const wrongCount = result.answers.filter(a => a.selectedOption !== -1 && a.selectedOption !== a.correctOption).length;
+    const skippedCount = result.answers.filter(a => a.selectedOption === -1).length;
     const circ = 2 * Math.PI * 50;
     const off = circ - (result.percentage / 100) * circ;
 
@@ -72,6 +115,10 @@ const PracticeQuiz = ({ topic, onComplete, onBack, onReview }) => {
                 {result.passed ? <FaCheck className="text-xs" /> : <FaTimes className="text-xs" />}
                 {result.passed ? 'PASSED' : 'FAILED'}
               </div>
+
+              {result.attemptNumber && (
+                <p className="text-slate-400 text-xs mt-2 font-medium">Attempt #{result.attemptNumber}</p>
+              )}
             </div>
 
             <div className="px-8 pb-8">
@@ -121,7 +168,7 @@ const PracticeQuiz = ({ topic, onComplete, onBack, onReview }) => {
     );
   }
 
-  // ── Quiz Screen ──
+  // Quiz Screen
   return (
     <div className="h-full flex flex-col bg-slate-50 rounded-xl overflow-hidden">
       {/* Top bar */}

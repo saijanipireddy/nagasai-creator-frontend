@@ -6,7 +6,7 @@ import {
   FaCheck, FaCopy, FaImage, FaExpand, FaLink, FaHtml5, FaCss3Alt, FaJs,
   FaPython, FaDatabase, FaDownload, FaSun, FaMoon, FaCompress, FaCode, FaTerminal, FaFileAlt
 } from 'react-icons/fa';
-import { BACKEND_URL, getFileUrl } from '../../services/api';
+import api, { BACKEND_URL, getFileUrl } from '../../services/api';
 
 // Language configurations
 const LANGUAGE_CONFIG = {
@@ -109,9 +109,18 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // No backend submission - skip loading
+  // Load previous submission from backend
   useEffect(() => {
-    setLoadingSubmission(false);
+    if (!topicId) { setLoadingSubmission(false); return; }
+    const controller = new AbortController();
+    setLoadingSubmission(true);
+    api.get(`/scores/coding-submission/${topicId}`, { signal: controller.signal })
+      .then(({ data }) => {
+        if (data.submission) setPreviousSubmission(data.submission);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingSubmission(false));
+    return () => controller.abort();
   }, [topicId]);
 
   // Initialize code from previous submission or starter code
@@ -308,7 +317,17 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
     setHasRun(true);
   };
 
-  // Run and show results locally (no backend submission)
+  // Submit to backend (fire-and-forget, don't block UI)
+  const submitToBackend = (codeStr, testResultsArr) => {
+    api.post('/scores/coding-submit', {
+      topicId,
+      code: codeStr,
+      language: language,
+      testResults: testResultsArr,
+    }).catch(() => {}); // silent fail - local results already shown
+  };
+
+  // Run, evaluate locally, then submit to backend
   const handleSubmitCode = async () => {
     setSubmitting(true);
     setSubmitDetails(null);
@@ -339,14 +358,18 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
         const results = testResultsRef.current || [];
         const passed = results.length > 0 && results.every(r => r === 'PASS' || r.startsWith?.('PASS'));
         setSubmitStatus(passed ? 'pass' : 'fail');
+        if (passed) onComplete?.();
         setSubmitDetails(results);
+        submitToBackend(isWebPlayground ? `<!-- HTML -->\n${html}\n/* CSS */\n${css}\n// JS\n${webJs}` : code, results);
       } else if (isWebPlayground) {
         // Web without testScript: just run to show preview
         setConsoleOutput([]);
         setWebPreview(getWebPreview());
         setHasRun(true);
         setSubmitStatus('pass');
+        onComplete?.();
         setSubmitDetails([]);
+        submitToBackend(`<!-- HTML -->\n${html}\n/* CSS */\n${css}\n// JS\n${webJs}`, ['PASS']);
       } else if (langConfig.type === 'piston') {
         // Non-web: run code and compare output
         const result = await executePistonCode(code, langConfig.pistonLang, langConfig.pistonVersion);
@@ -357,7 +380,9 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
         const actual = result.output?.trim();
         const passed = expected ? actual === expected : result.success;
         setSubmitStatus(passed ? 'pass' : 'fail');
+        if (passed) onComplete?.();
         setSubmitDetails(expected ? [passed ? 'PASS: Output matches expected' : `FAIL: Expected "${expected}" but got "${actual}"`] : []);
+        submitToBackend(code, passed ? ['PASS'] : ['FAIL']);
       }
 
       setShowResults(true);

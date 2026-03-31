@@ -17,6 +17,30 @@ const api = axios.create({
   timeout: 30000
 });
 
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('studentToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle response errors - redirect to login on 401
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('studentToken');
+      localStorage.removeItem('studentInfo');
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Helper to extract data from paginated responses
 const extractData = (response) => {
   const data = response.data;
@@ -42,6 +66,37 @@ export const topicAPI = {
 export const jobAPI = {
   getAll: (signal) => api.get('/jobs', { signal }).then(res => ({ ...res, data: res.data.jobs })),
   getById: (id, signal) => api.get(`/jobs/${id}`, { signal }),
+};
+
+// Enrollment APIs (student-facing)
+export const enrollmentAPI = {
+  getMyCourses: (signal) => api.get('/batches/student/my-courses', { signal }).then(res => ({
+    ...res,
+    data: res.data.courses,
+    batches: res.data.batches || [],
+  })),
+  checkAccess: (courseId, signal) => api.get(`/batches/student/check-access/${courseId}`, { signal }),
+};
+
+// Practice/Score APIs
+export const practiceAPI = {
+  submitAttempt: (data) => api.post('/scores/practice-attempt', data),
+  getAttempts: (topicId, signal) => api.get(`/scores/practice-attempts/${topicId}`, { signal }),
+  getAttemptDetail: (attemptId, signal) => api.get(`/scores/practice-attempt/${attemptId}`, { signal }),
+};
+
+// Completion tracking APIs
+export const completionAPI = {
+  markComplete: (topicId, itemType) => api.post('/scores/complete', { topicId, itemType }),
+  getCompletions: (courseId, signal) => api.get(`/scores/completions?courseId=${courseId}`, { signal }).then(res => res.data.completions),
+};
+
+// Leaderboard API
+export const leaderboardAPI = {
+  get: (batchId, signal) => {
+    const url = batchId ? `/scores/leaderboard?batchId=${batchId}` : '/scores/leaderboard';
+    return api.get(url, { signal });
+  },
 };
 
 export default api;

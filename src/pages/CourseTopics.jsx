@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useOutletContext, Link } from 'react-router-dom';
 import {
-  FaPlay, FaFileAlt, FaQuestion, FaBars, FaBook, FaLaptopCode,
+  FaPlay, FaFileAlt, FaQuestion, FaBars, FaBook, FaLaptopCode, FaCheckCircle,
 } from 'react-icons/fa';
 import TopicSidebar from '../components/Courses/TopicSidebar';
 import CodingPlayground from '../components/Courses/CodingPlayground';
 import PracticeLanding from '../components/Courses/PracticeLanding';
 import PracticeQuiz from '../components/Courses/PracticeQuiz';
 import ReviewMistakes from '../components/Courses/ReviewMistakes';
-import { courseAPI, topicAPI, BACKEND_URL, getFileUrl } from '../services/api';
+import { courseAPI, topicAPI, enrollmentAPI, completionAPI, BACKEND_URL, getFileUrl } from '../services/api';
 import {
   CourseTopicsSkeleton,
   VideoPlayerSkeleton,
@@ -61,10 +61,14 @@ const CourseTopics = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showCodingPlayground, setShowCodingPlayground] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   // Practice state machine: 'landing' | 'quiz' | 'review'
   const [practiceView, setPracticeView] = useState('landing');
   const [reviewAnswers, setReviewAnswers] = useState(null);
+
+  // Completion tracking
+  const [completions, setCompletions] = useState({});
 
   // Content loading states for tab switching
   const [contentLoading, setContentLoading] = useState(false);
@@ -89,6 +93,14 @@ const CourseTopics = () => {
 
     const fetchCourseData = async () => {
       try {
+        // Check enrollment access first
+        const accessRes = await enrollmentAPI.checkAccess(courseId, controller.signal);
+        if (!cancelled && !accessRes.data.hasAccess) {
+          setAccessDenied(true);
+          setLoading(false);
+          return;
+        }
+
         const [courseRes, topicsRes] = await Promise.all([
           courseAPI.getById(courseId, controller.signal),
           courseAPI.getTopicsSummary(courseId, controller.signal),
@@ -109,6 +121,31 @@ const CourseTopics = () => {
     fetchCourseData();
     return () => { cancelled = true; controller.abort(); };
   }, [courseId]);
+
+  // Fetch completions for this course
+  useEffect(() => {
+    if (!courseId) return;
+    const controller = new AbortController();
+    completionAPI.getCompletions(courseId, controller.signal)
+      .then((data) => setCompletions(data || {}))
+      .catch(() => {});
+    return () => controller.abort();
+  }, [courseId]);
+
+  // Auto-mark item as complete when viewing
+  const markAsComplete = (topicId, itemType) => {
+    if (!topicId || !itemType) return;
+    // Skip if already marked
+    if (completions[topicId]?.includes(itemType)) return;
+    completionAPI.markComplete(topicId, itemType)
+      .then(() => {
+        setCompletions((prev) => ({
+          ...prev,
+          [topicId]: [...(prev[topicId] || []), itemType],
+        }));
+      })
+      .catch(() => {});
+  };
 
   // Fetch full topic data on-demand when a topic is selected
   useEffect(() => {
@@ -175,6 +212,19 @@ const CourseTopics = () => {
     return <CourseTopicsSkeleton />;
   }
 
+  if (accessDenied) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+        <div className="text-center">
+          <FaBook className="text-6xl text-slate-400 mx-auto mb-4" />
+          <h2 className="text-xl font-medium mb-2">Access Denied</h2>
+          <p className="text-slate-500 mb-4">You are not enrolled in this course. Contact your admin for access.</p>
+          <Link to="/courses" className="text-indigo-500 hover:text-indigo-600 font-medium">Back to My Courses</Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!course) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
@@ -196,6 +246,7 @@ const CourseTopics = () => {
         codingPractice={selectedTopic.codingPractice}
         topicId={selectedTopic._id}
         onClose={handleCloseCodingPlayground}
+        onComplete={() => markAsComplete(selectedTopic._id, 'codingPractice')}
       />
     );
   }
@@ -239,6 +290,7 @@ const CourseTopics = () => {
             courseName={course.name}
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            completions={completions}
           />
         </div>
 
@@ -262,6 +314,23 @@ const CourseTopics = () => {
                       title={selectedTopic.title}
                       onLoad={() => setVideoLoaded(true)}
                     />
+                    {/* Mark as Complete - bottom-right overlay */}
+                    <div className="absolute bottom-0 right-0 z-10 p-3">
+                      {completions[selectedTopic._id]?.includes('video') ? (
+                        <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 rounded-xl">
+                          <FaCheckCircle className="text-white text-sm" />
+                          <span className="text-sm font-semibold text-white">Completed</span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => markAsComplete(selectedTopic._id, 'video')}
+                          className="flex items-center gap-2.5 px-4 py-2.5 bg-white/95 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white transition-all group shadow-lg"
+                        >
+                          <div className="w-4.5 h-4.5 rounded-full border-2 border-slate-400 group-hover:border-indigo-500 transition-colors" />
+                          <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">Mark as Complete</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white rounded-xl">
@@ -298,6 +367,23 @@ const CourseTopics = () => {
                       title={selectedTopic.title}
                       onLoad={() => setPdfLoaded(true)}
                     />
+                    {/* Mark as Complete - bottom-right overlay */}
+                    <div className="absolute bottom-0 right-0 z-10 p-3">
+                      {completions[selectedTopic._id]?.includes('ppt') ? (
+                        <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 rounded-xl">
+                          <FaCheckCircle className="text-white text-sm" />
+                          <span className="text-sm font-semibold text-white">Completed</span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => markAsComplete(selectedTopic._id, 'ppt')}
+                          className="flex items-center gap-2.5 px-4 py-2.5 bg-white/95 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white transition-all group shadow-lg"
+                        >
+                          <div className="w-4.5 h-4.5 rounded-full border-2 border-slate-400 group-hover:border-indigo-500 transition-colors" />
+                          <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">Mark as Complete</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white rounded-xl">
@@ -331,6 +417,7 @@ const CourseTopics = () => {
                         onReview={(answersData) => {
                           setReviewAnswers(answersData);
                           setPracticeView('review');
+                          markAsComplete(selectedTopic._id, 'practice');
                         }}
                       />
                     )}

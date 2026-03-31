@@ -1,7 +1,10 @@
-import { FaBars, FaBell } from 'react-icons/fa';
+import { FaBars, FaBell, FaSignOutAlt } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = ({ onToggleSidebar }) => {
+  const { student, logout } = useAuth();
+
   return (
     <nav className="fixed top-0 left-0 right-0 h-20 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 z-50 shadow-lg shadow-slate-900/30">
       <div className="flex items-center justify-between h-full px-4 lg:px-6">
@@ -38,11 +41,23 @@ const Navbar = ({ onToggleSidebar }) => {
 
           <div className="w-px h-9 bg-white/10 mx-1 hidden sm:block" />
 
-          <button className="flex items-center gap-3 pl-1.5 pr-3.5 py-1.5 rounded-xl hover:bg-white/10 transition-all duration-200">
+          <div className="flex items-center gap-3 pl-1.5 pr-3.5 py-1.5 rounded-xl">
             <div className="w-9 h-9 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-sm font-bold">S</span>
+              <span className="text-white text-sm font-bold">
+                {student?.name?.charAt(0)?.toUpperCase() || 'S'}
+              </span>
             </div>
-            <span className="text-slate-300 text-sm font-medium hidden sm:block">Student</span>
+            <span className="text-slate-300 text-sm font-medium hidden sm:block">
+              {student?.name || 'Student'}
+            </span>
+          </div>
+
+          <button
+            onClick={logout}
+            className="p-2.5 rounded-xl hover:bg-red-500/20 transition-all duration-200 text-slate-400 hover:text-red-400"
+            title="Logout"
+          >
+            <FaSignOutAlt className="text-lg" />
           </button>
         </div>
       </div>

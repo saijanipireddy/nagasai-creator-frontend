@@ -1,12 +1,14 @@
 import { NavLink } from 'react-router-dom';
-import { FaHome, FaBook, FaCode, FaBriefcase, FaTimes, FaChevronLeft, FaQuestionCircle } from 'react-icons/fa';
+import { FaHome, FaBook, FaCode, FaBriefcase, FaTimes, FaChevronLeft, FaQuestionCircle, FaUser, FaTrophy } from 'react-icons/fa';
 
 const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
   const navItems = [
     { path: '/', icon: FaHome, label: 'Dashboard', color: 'from-indigo-500 to-indigo-600' },
     { path: '/courses', icon: FaBook, label: 'Courses', color: 'from-indigo-400 to-indigo-500' },
     { path: '/playground', icon: FaCode, label: 'Playground', color: 'from-indigo-500 to-indigo-600' },
-    { path: '/jobs', icon: FaBriefcase, label: 'Jobs Board', color: 'from-emerald-500 to-emerald-600' }
+    { path: '/leaderboard', icon: FaTrophy, label: 'Leaderboard', color: 'from-amber-500 to-amber-600' },
+    { path: '/jobs', icon: FaBriefcase, label: 'Jobs Board', color: 'from-emerald-500 to-emerald-600' },
+    { path: '/profile', icon: FaUser, label: 'My Profile', color: 'from-slate-500 to-slate-600' }
   ];
 
   return (

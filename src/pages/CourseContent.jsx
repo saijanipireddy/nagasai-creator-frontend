@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaSearch, FaBook } from 'react-icons/fa';
+import { FaSearch, FaBook, FaLock } from 'react-icons/fa';
 import CourseCard from '../components/Courses/CourseCard';
-import { courseAPI } from '../services/api';
+import { enrollmentAPI } from '../services/api';
 
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -24,7 +24,7 @@ const CourseContent = () => {
 
     const fetchCourses = async () => {
       try {
-        const { data } = await courseAPI.getAll(controller.signal);
+        const { data } = await enrollmentAPI.getMyCourses(controller.signal);
         if (!cancelled) {
           setCourses(data);
           setLoading(false);
@@ -63,21 +63,25 @@ const CourseContent = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Explore Courses</h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">My Courses</h1>
           <p className="text-slate-500 text-base mt-1">
-            {courses.length} courses to master full stack development
+            {courses.length > 0
+              ? `${courses.length} course${courses.length > 1 ? 's' : ''} enrolled`
+              : 'No courses enrolled yet'}
           </p>
         </div>
-        <div className="relative w-full sm:w-80">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
-          <input
-            type="text"
-            placeholder="Search courses..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-5 py-3 bg-white border border-slate-200 rounded-xl text-base text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-all placeholder-slate-400 shadow-sm"
-          />
-        </div>
+        {courses.length > 0 && (
+          <div className="relative w-full sm:w-80">
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+            <input
+              type="text"
+              placeholder="Search courses..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-5 py-3 bg-white border border-slate-200 rounded-xl text-base text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-all placeholder-slate-400 shadow-sm"
+            />
+          </div>
+        )}
       </div>
 
       {/* Grid */}
@@ -90,10 +94,10 @@ const CourseContent = () => {
       ) : courses.length === 0 ? (
         <div className="text-center py-24 bg-white rounded-2xl">
           <div className="w-16 h-16 rounded-xl bg-slate-900 flex items-center justify-center mx-auto mb-4">
-            <FaBook className="text-xl text-indigo-400" />
+            <FaLock className="text-xl text-indigo-400" />
           </div>
-          <p className="text-slate-900 text-lg font-bold">No courses available yet</p>
-          <p className="text-slate-500 text-sm mt-1">Check back soon for new content</p>
+          <p className="text-slate-900 text-lg font-bold">No courses available</p>
+          <p className="text-slate-500 text-sm mt-1">You haven't been enrolled in any courses yet. Contact your admin for access.</p>
         </div>
       ) : (
         <div className="text-center py-20">

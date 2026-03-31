@@ -11,18 +11,28 @@ const iconMap = {
 const CourseCard = ({ course, index = 0 }) => {
   const Icon = iconMap[course.icon] || FaBook;
   const courseId = course._id || course.id;
+  const progress = course.progress || 0;
+  const completedTopics = course.completedTopics || 0;
+  const totalTopics = course.totalTopics || 0;
+  const isComplete = progress === 100 && totalTopics > 0;
 
   return (
     <Link
       to={`/course/${courseId}`}
       className="group bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 shadow-md shadow-slate-200/60 hover:shadow-xl hover:shadow-slate-300/50 ring-1 ring-slate-100"
     >
-      {/* Top section - icon left, decorative pattern right */}
+      {/* Top section */}
       <div className="flex items-start justify-between p-6 pb-4">
         <div className="w-14 h-14 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-all duration-300 shrink-0">
           <Icon className="text-2xl text-indigo-500 group-hover:text-indigo-600 transition-colors duration-300" />
         </div>
-        <FaCheckCircle className="text-xl text-emerald-500" />
+        {isComplete ? (
+          <FaCheckCircle className="text-xl text-emerald-500" />
+        ) : progress > 0 ? (
+          <span className="text-xs font-bold text-indigo-500 bg-indigo-50 px-2.5 py-1 rounded-lg">
+            {progress}%
+          </span>
+        ) : null}
       </div>
 
       {/* Content */}
@@ -35,13 +45,27 @@ const CourseCard = ({ course, index = 0 }) => {
           {course.description}
         </p>
 
+        {/* Progress bar */}
+        {totalTopics > 0 && (
+          <div className="mb-4">
+            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  isComplete ? 'bg-emerald-500' : 'bg-indigo-500'
+                }`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-100">
           <span className="text-xs font-semibold text-slate-500">
-            {course.totalTopics || 0} topics
+            {completedTopics}/{totalTopics} topics
           </span>
           <span className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
-            Start Learning
+            {progress > 0 ? 'Continue' : 'Start Learning'}
             <FaArrowRight className="text-[10px]" />
           </span>
         </div>

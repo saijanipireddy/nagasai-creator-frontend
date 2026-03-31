@@ -39,18 +39,18 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
         </button>
 
         {/* Navigation */}
-        <nav className="px-3 pt-8 flex-1 overflow-y-auto scrollbar-hidden" aria-label="Main navigation">
+        <nav className="px-2.5 pt-6 flex-1 overflow-y-auto scrollbar-hidden" aria-label="Main navigation">
           {!isCollapsed && (
-            <p className="px-3 mb-4 text-[11px] font-semibold text-gray-500 uppercase tracking-widest">Menu</p>
+            <p className="px-2.5 mb-3 text-[9px] font-semibold text-gray-500 uppercase tracking-widest">Menu</p>
           )}
-          <ul className="space-y-1.5">
+          <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
                   end={item.path === '/'}
                   className={({ isActive }) => `
-                    relative flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group
+                    relative flex items-center gap-3 px-2.5 py-2.5 rounded-lg transition-all duration-200 group
                     ${isActive
                       ? 'bg-amber-500/15 text-white'
                       : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'}
@@ -62,21 +62,21 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                     <>
                       {/* Active indicator bar */}
                       {isActive && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-7 bg-amber-500 rounded-r-full" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-amber-500 rounded-r-full" />
                       )}
 
                       {/* Icon with background */}
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
                         isActive
-                          ? `bg-gradient-to-br ${item.color} shadow-lg shadow-amber-500/15`
+                          ? `bg-gradient-to-br ${item.color} shadow-md shadow-amber-500/15`
                           : 'bg-gray-700/60 group-hover:bg-gray-700'
                       }`}>
-                        <item.icon className={`text-base ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`} />
+                        <item.icon className={`text-xs ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`} />
                       </div>
 
                       {/* Label */}
                       <div className={`${isCollapsed ? 'lg:hidden' : ''}`}>
-                        <span className="text-sm font-semibold">{item.label}</span>
+                        <span className="text-xs font-semibold">{item.label}</span>
                       </div>
                     </>
                   )}
@@ -87,11 +87,11 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
         </nav>
 
         {/* Bottom section */}
-        <div className={`px-3 pb-6 ${isCollapsed ? 'lg:px-3' : ''}`}>
-          <div className={`border-t border-gray-700/50 pt-5 ${isCollapsed ? 'lg:flex lg:justify-center' : ''}`}>
-            <button className={`flex items-center gap-4 px-3 py-3 rounded-xl text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-all duration-200 w-full ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
-              <FaQuestionCircle className="text-base flex-shrink-0" />
-              <span className={`text-sm font-medium ${isCollapsed ? 'lg:hidden' : ''}`}>Help & Support</span>
+        <div className={`px-2.5 pb-4 ${isCollapsed ? 'lg:px-2.5' : ''}`}>
+          <div className={`border-t border-gray-700/50 pt-4 ${isCollapsed ? 'lg:flex lg:justify-center' : ''}`}>
+            <button className={`flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-all duration-200 w-full ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
+              <FaQuestionCircle className="text-xs flex-shrink-0" />
+              <span className={`text-xs font-medium ${isCollapsed ? 'lg:hidden' : ''}`}>Help & Support</span>
             </button>
           </div>
         </div>

@@ -46,25 +46,25 @@ const TopicSidebar = ({
   }).length;
 
   return (
-    <div className="w-[320px] bg-[#0c1017] h-full overflow-hidden flex flex-col border-r border-slate-800/60">
+    <div className="w-[270px] bg-[#0c1017] h-full overflow-hidden flex flex-col border-r border-slate-800/60">
 
       {/* Header */}
-      <div className="px-6 pt-6 pb-5">
+      <div className="px-4 pt-4 pb-3">
         <Link
           to="/courses"
-          className="inline-flex items-center gap-2.5 text-slate-500 hover:text-white text-sm font-medium mb-5 transition-colors group"
+          className="inline-flex items-center gap-2 text-slate-500 hover:text-white text-xs font-medium mb-3 transition-colors group"
         >
-          <FaArrowLeft className="text-xs group-hover:-translate-x-1 transition-transform duration-200" />
+          <FaArrowLeft className="text-[10px] group-hover:-translate-x-1 transition-transform duration-200" />
           All Courses
         </Link>
 
-        <h2 className="text-lg font-bold text-white leading-snug">
+        <h2 className="text-sm font-bold text-white leading-snug">
           {courseName}
         </h2>
-        <div className="flex items-center gap-3 mt-2">
-          <span className="text-xs text-slate-500">{completedCount}/{topics.length} topics</span>
+        <div className="flex items-center gap-2.5 mt-1.5">
+          <span className="text-[10px] text-slate-500">{completedCount}/{topics.length} topics</span>
           {topics.length > 0 && (
-            <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
+            <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden max-w-[100px]">
               <div
                 className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                 style={{ width: `${(completedCount / topics.length) * 100}%` }}
@@ -74,17 +74,17 @@ const TopicSidebar = ({
         </div>
       </div>
 
-      <div className="h-px bg-slate-800/80 mx-6" />
+      <div className="h-px bg-slate-800/80 mx-4" />
 
       {/* Section Label */}
-      <div className="px-6 pt-5 pb-2">
-        <span className="text-xs font-semibold text-slate-600 uppercase tracking-widest">
+      <div className="px-4 pt-3 pb-1.5">
+        <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest">
           Course Content
         </span>
       </div>
 
       {/* Topics List */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-3 pb-3 custom-scrollbar">
         {topics.map((topic, index) => {
           const topicId = topic._id || topic.id;
           const selectedId = selectedTopic?._id || selectedTopic?.id;
@@ -103,43 +103,43 @@ const TopicSidebar = ({
           });
 
           return (
-            <div key={topicId} className="mb-1.5">
+            <div key={topicId} className="mb-1">
               {/* Topic Row */}
               <button
                 onClick={() => handleTopicClick(topic)}
-                className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-left transition-all duration-200 group
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all duration-200 group
                   ${isSelected
                     ? 'bg-indigo-500/10 ring-1 ring-indigo-500/20'
                     : 'hover:bg-slate-800/50'
                   }`}
               >
                 {/* Number / Check */}
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-bold transition-all duration-200
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold transition-all duration-200
                   ${hasAnyCompletion
-                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
                     : isSelected
-                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                      ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30'
                       : 'bg-slate-800 text-slate-500 group-hover:bg-slate-700 group-hover:text-slate-300'
                   }`}
                 >
-                  {hasAnyCompletion ? <FaCheck className="text-xs" /> : index + 1}
+                  {hasAnyCompletion ? <FaCheck className="text-[9px]" /> : index + 1}
                 </div>
 
                 {/* Title */}
                 <div className="flex-1 min-w-0">
-                  <span className={`block text-sm font-semibold leading-snug transition-colors
+                  <span className={`block text-xs font-semibold leading-snug transition-colors
                     ${isSelected ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}
                   >
                     {topic.title}
                   </span>
                   {hasAnyCompletion && (
-                    <span className="text-[11px] text-emerald-500 font-medium">{topicCompletions.length}/{availableItems.length} done</span>
+                    <span className="text-[9px] text-emerald-500 font-medium">{topicCompletions.length}/{availableItems.length} done</span>
                   )}
                 </div>
 
                 {/* Chevron */}
                 <FaChevronDown
-                  className={`text-xs text-slate-600 flex-shrink-0 transition-transform duration-300 ease-out
+                  className={`text-[10px] text-slate-600 flex-shrink-0 transition-transform duration-300 ease-out
                     ${isExpanded ? 'rotate-0' : '-rotate-90'}`}
                 />
               </button>
@@ -149,7 +149,7 @@ const TopicSidebar = ({
                 className={`overflow-hidden transition-all duration-300 ease-out
                   ${isExpanded ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}
               >
-                <div className="py-2 pl-10 pr-3">
+                <div className="py-1.5 pl-8 pr-2">
                   {availableItems.map((item, itemIdx) => {
                     const isActiveTab = activeTab === item.id && isSelected;
                     const isItemComplete = topicCompletions.includes(item.id);
@@ -160,47 +160,47 @@ const TopicSidebar = ({
                       <div key={item.id} className="relative">
                         {/* Vertical line connecting to next item */}
                         {!isLastItem && (
-                          <div className={`absolute left-[11px] top-[40px] w-0.5 h-[calc(100%-16px)] ${
+                          <div className={`absolute left-[9px] top-[32px] w-0.5 h-[calc(100%-12px)] ${
                             isItemComplete ? 'bg-emerald-500/50' : 'bg-slate-700/50'
                           }`} />
                         )}
 
                         <button
                           onClick={() => handleSubItemClick(topic, item.id)}
-                          className={`w-full flex items-center gap-3.5 py-2.5 text-left transition-all duration-200 relative
+                          className={`w-full flex items-center gap-2.5 py-2 text-left transition-all duration-200 relative
                             ${isActiveTab
                               ? 'text-white'
                               : 'text-slate-400 hover:text-white'
                             }`}
                         >
                           {/* Circle indicator (left side) */}
-                          <div className={`w-[22px] h-[22px] rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                          <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
                             isItemComplete
                               ? 'bg-emerald-500'
                               : isActiveTab
                                 ? 'bg-indigo-500 ring-2 ring-indigo-500/30'
                                 : 'border-2 border-slate-600 bg-transparent'
                           }`}>
-                            {isItemComplete && <FaCheck className="text-[8px] text-white" />}
-                            {!isItemComplete && isActiveTab && <div className="w-2 h-2 rounded-full bg-white" />}
+                            {isItemComplete && <FaCheck className="text-[6px] text-white" />}
+                            {!isItemComplete && isActiveTab && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                           </div>
 
                           {/* Icon + Label */}
-                          <div className={`flex items-center gap-3 flex-1 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                          <div className={`flex items-center gap-2.5 flex-1 px-2.5 py-2 rounded-lg transition-all duration-200 ${
                             isActiveTab
-                              ? `${item.activeBg} shadow-lg ${item.activeShadow}`
+                              ? `${item.activeBg} shadow-md ${item.activeShadow}`
                               : 'hover:bg-slate-800/60'
                           }`}>
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${
                               isActiveTab ? 'bg-white/20' : item.lightColor
                             }`}>
-                              <IconComponent className={`text-xs ${
+                              <IconComponent className={`text-[10px] ${
                                 isActiveTab ? 'text-white' : item.textColor
                               }`} />
                             </div>
-                            <span className="flex-1 text-sm font-medium">{item.label}</span>
+                            <span className="flex-1 text-xs font-medium">{item.label}</span>
                             {isItemComplete && !isActiveTab && (
-                              <span className="text-[10px] text-emerald-500 font-semibold">Done</span>
+                              <span className="text-[8px] text-emerald-500 font-semibold">Done</span>
                             )}
                           </div>
                         </button>
@@ -216,10 +216,10 @@ const TopicSidebar = ({
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-slate-800/60">
-        <div className="flex items-center gap-3">
-          <div className={`w-2.5 h-2.5 rounded-full ${completedCount === topics.length && topics.length > 0 ? 'bg-emerald-500' : 'bg-indigo-500'}`} />
-          <span className="text-sm text-slate-500 font-medium">
+      <div className="px-4 py-3 border-t border-slate-800/60">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${completedCount === topics.length && topics.length > 0 ? 'bg-emerald-500' : 'bg-indigo-500'}`} />
+          <span className="text-xs text-slate-500 font-medium">
             {completedCount === topics.length && topics.length > 0
               ? 'Course Complete!'
               : `${completedCount}/${topics.length} Completed`}

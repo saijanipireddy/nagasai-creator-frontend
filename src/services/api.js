@@ -9,37 +9,57 @@ export const getFileUrl = (filePath) => {
   return filePath;
 };
 
+/* ------------------------------------------------------------------ */
+/*  IN-MEMORY TOKEN STORE                                             */
+/*  Tokens live only in this closure — never in localStorage.         */
+/*  Cleared automatically when the tab closes.                        */
+/* ------------------------------------------------------------------ */
+let accessToken = null;
+let refreshTokenValue = null;
+
+export const setTokens = (access, refresh) => {
+  accessToken = access || null;
+  refreshTokenValue = refresh || null;
+};
+
+export const clearTokens = () => {
+  accessToken = null;
+  refreshTokenValue = null;
+};
+
+export const getAccessToken = () => accessToken;
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Send cookies with every request
+  withCredentials: true,
   timeout: 30000,
 });
 
 /* ------------------------------------------------------------------ */
-/*  CSRF: read csrf_token cookie and send as X-CSRF-Token header      */
+/*  REQUEST INTERCEPTOR: attach Authorization header + CSRF           */
 /* ------------------------------------------------------------------ */
-const getCsrfToken = () => {
-  const match = document.cookie
-    .split('; ')
-    .find((row) => row.startsWith('csrf_token='));
-  return match ? match.split('=')[1] : null;
-};
-
 api.interceptors.request.use((config) => {
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+
   if (!['get', 'head', 'options'].includes(config.method)) {
-    const csrfToken = getCsrfToken();
-    if (csrfToken) {
-      config.headers['X-CSRF-Token'] = csrfToken;
+    const csrfMatch = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('csrf_token='));
+    if (csrfMatch) {
+      config.headers['X-CSRF-Token'] = csrfMatch.split('=')[1];
     }
   }
+
   return config;
 });
 
 /* ------------------------------------------------------------------ */
-/*  AUTO-REFRESH: on 401, try to refresh the access token once        */
+/*  RESPONSE INTERCEPTOR: auto-refresh on 401                         */
 /* ------------------------------------------------------------------ */
 let isRefreshing = false;
 let failedQueue = [];
@@ -73,11 +93,21 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post('/student-auth/refresh');
+        const refreshConfig = {};
+        if (refreshTokenValue) {
+          refreshConfig.headers = { Authorization: `Bearer ${refreshTokenValue}` };
+        }
+        const { data } = await api.post('/student-auth/refresh', {}, refreshConfig);
+
+        if (data.accessToken) {
+          setTokens(data.accessToken, data.refreshToken);
+        }
+
         processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError);
+        clearTokens();
         if (!window.location.pathname.includes('/login')) {
           window.location.href = '/login';
         }

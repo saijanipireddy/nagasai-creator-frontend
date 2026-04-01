@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { studentAuthAPI } from '../services/api';
+import { studentAuthAPI, setTokens, clearTokens, getAccessToken } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -9,17 +9,31 @@ export const AuthProvider = ({ children }) => {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount: verify session by calling the profile endpoint.
-  // If access token expired, the axios interceptor auto-refreshes it.
-  // If refresh also fails, user is not authenticated.
+  // On mount: if we have an access token in memory, verify it.
+  // If not, try the refresh endpoint (which uses cookies if available).
   useEffect(() => {
     let cancelled = false;
 
     const checkAuth = async () => {
       try {
-        const { data } = await studentAuthAPI.getProfile();
-        if (!cancelled) setStudent(data);
+        if (getAccessToken()) {
+          const { data } = await studentAuthAPI.getProfile();
+          if (!cancelled) setStudent(data);
+          return;
+        }
+
+        // No token in memory — try refresh (uses cookie if browser stored it)
+        try {
+          const { data } = await studentAuthAPI.refresh();
+          if (data.accessToken) {
+            setTokens(data.accessToken, data.refreshToken);
+          }
+          if (!cancelled) setStudent({ _id: data._id, name: data.name, email: data.email });
+        } catch {
+          if (!cancelled) setStudent(null);
+        }
       } catch {
+        clearTokens();
         if (!cancelled) setStudent(null);
       } finally {
         if (!cancelled) setLoading(false);
@@ -32,6 +46,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const { data } = await studentAuthAPI.login({ email, password });
+    if (data.accessToken) {
+      setTokens(data.accessToken, data.refreshToken);
+    }
     setStudent({ _id: data._id, name: data.name, email: data.email });
     return data;
   };
@@ -40,8 +57,9 @@ export const AuthProvider = ({ children }) => {
     try {
       await studentAuthAPI.logout();
     } catch {
-      // Ignore errors — clear local state regardless
+      // Ignore
     }
+    clearTokens();
     setStudent(null);
   };
 

@@ -18,7 +18,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
       )}
 
       <aside
-        className={`fixed top-[72px] left-0 h-[calc(100vh-72px)] bg-gray-800 z-40 transition-all duration-300 flex flex-col
+        className={`fixed top-[60px] sm:top-[72px] left-0 h-[calc(100vh-60px)] sm:h-[calc(100vh-72px)] bg-gray-800 z-40 transition-all duration-300 flex flex-col
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isCollapsed ? 'lg:w-[80px]' : 'w-60'}`}
       >

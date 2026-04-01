@@ -161,13 +161,13 @@ const Jobs = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Header */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="px-4 md:px-5 py-4">
+        <div className="px-3 sm:px-4 md:px-5 py-3 sm:py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight">Jobs Board</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Jobs Board</h1>
               <p className="text-slate-500 text-xs mt-0.5">
                 {jobs.length} {jobs.length === 1 ? 'opportunity' : 'opportunities'} available
               </p>
@@ -186,7 +186,7 @@ const Jobs = () => {
         </div>
 
         {/* Filter Chips */}
-        <div className="px-4 md:px-5 py-2.5 bg-slate-50/50 border-t border-slate-100 flex flex-wrap gap-1.5">
+        <div className="px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 bg-slate-50/50 border-t border-slate-100 flex flex-nowrap sm:flex-wrap gap-1.5 overflow-x-auto scrollbar-hidden">
           <FilterChip active={filterType === 'all'} onClick={() => setFilterType('all')}>
             All Jobs
           </FilterChip>

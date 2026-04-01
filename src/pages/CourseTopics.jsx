@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useOutletContext, Link } from 'react-router-dom';
 import {
   FaPlay, FaFileAlt, FaQuestion, FaBars, FaBook, FaLaptopCode, FaCheckCircle,
@@ -51,7 +52,7 @@ const getYouTubeEmbedUrl = (url) => {
 
 const CourseTopics = () => {
   const { courseId } = useParams();
-  const { setSidebarCollapsed } = useOutletContext();
+  const { setSidebarCollapsed, setFullBleed } = useOutletContext();
   const [course, setCourse] = useState(null);
   const [topics, setTopics] = useState([]);
   const [selectedTopic, setSelectedTopic] = useState(null);
@@ -76,11 +77,15 @@ const CourseTopics = () => {
   const [pdfLoaded, setPdfLoaded] = useState(false);
 
 
-  // Auto-collapse main sidebar when entering course view
+  // Auto-collapse main sidebar and enable full-bleed mode when entering course view
   useEffect(() => {
     setSidebarCollapsed(true);
-    return () => setSidebarCollapsed(false);
-  }, [setSidebarCollapsed]);
+    setFullBleed(true);
+    return () => {
+      setSidebarCollapsed(false);
+      setFullBleed(false);
+    };
+  }, [setSidebarCollapsed, setFullBleed]);
 
   // Load summary data for sidebar + course info
   useEffect(() => {
@@ -251,35 +256,66 @@ const CourseTopics = () => {
     );
   }
 
-  return (
-    <div className="absolute inset-0 z-10">
-      <div className="flex h-full overflow-hidden">
-        {/* Mobile Sidebar Toggle */}
+  // Mobile sidebar + FAB rendered via portal into document.body to escape overflow/iframe clipping
+  const mobileControls = createPortal(
+    <>
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[100] lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Mobile Topics Sidebar */}
+      <div
+        className={`
+          fixed top-[60px] sm:top-[72px] left-0 z-[101] h-[calc(100vh-60px)] sm:h-[calc(100vh-72px)] shadow-2xl
+          lg:hidden
+          transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        <TopicSidebar
+          topics={topics}
+          selectedTopic={selectedTopic}
+          onSelectTopic={(topic) => {
+            setSelectedTopic(topic);
+            setSidebarOpen(false);
+          }}
+          courseName={course.name}
+          activeTab={activeTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            setSidebarOpen(false);
+          }}
+          completions={completions}
+          onClose={() => setSidebarOpen(false)}
+        />
+      </div>
+
+      {/* Mobile Sidebar Toggle FAB - in portal so iframes can't block it */}
+      {!sidebarOpen && (
         <button
           onClick={() => setSidebarOpen(true)}
-          className="lg:hidden fixed bottom-4 right-4 z-50 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 text-white"
+          className="lg:hidden fixed bottom-6 right-4 z-[99] w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 text-white active:scale-95 transition-transform"
         >
           <FaBars />
         </button>
+      )}
+    </>,
+    document.body
+  );
 
-        {/* Mobile Sidebar Overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+  return (
+    <>
+      {mobileControls}
 
-        {/* Topics Sidebar */}
-        <div
-          className={`
-            fixed top-20 left-0 z-50 h-[calc(100vh-5rem)] shadow-xl
-            lg:static lg:z-auto lg:h-full
-            transition-transform duration-300
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            lg:translate-x-0 lg:block
-          `}
-        >
+    <div className="h-full">
+      <div className="flex h-full overflow-hidden">
+
+        {/* Topics Sidebar - Desktop only (static in flow) */}
+        <div className="hidden lg:block h-full">
           <TopicSidebar
             topics={topics}
             selectedTopic={selectedTopic}
@@ -295,7 +331,7 @@ const CourseTopics = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 h-full overflow-hidden p-2 md:p-4">
+        <div className="flex-1 h-full overflow-hidden p-1.5 sm:p-2 md:p-3">
         {selectedTopic ? (
           <div className="h-full flex flex-col overflow-hidden">
             {/* Video Content */}
@@ -315,19 +351,19 @@ const CourseTopics = () => {
                       onLoad={() => setVideoLoaded(true)}
                     />
                     {/* Mark as Complete - bottom-right overlay */}
-                    <div className="absolute bottom-0 right-0 z-10 p-3">
+                    <div className="absolute bottom-0 right-0 z-10 p-2 sm:p-3">
                       {completions[selectedTopic._id]?.includes('video') ? (
-                        <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 rounded-xl">
-                          <FaCheckCircle className="text-white text-sm" />
-                          <span className="text-sm font-semibold text-white">Completed</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-emerald-500 rounded-lg sm:rounded-xl">
+                          <FaCheckCircle className="text-white text-xs sm:text-sm" />
+                          <span className="text-xs sm:text-sm font-semibold text-white">Completed</span>
                         </div>
                       ) : (
                         <button
                           onClick={() => markAsComplete(selectedTopic._id, 'video')}
-                          className="flex items-center gap-2.5 px-4 py-2.5 bg-white/95 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white transition-all group shadow-lg"
+                          className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl border border-white/20 hover:bg-white transition-all group shadow-lg"
                         >
-                          <div className="w-4.5 h-4.5 rounded-full border-2 border-slate-400 group-hover:border-indigo-500 transition-colors" />
-                          <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">Mark as Complete</span>
+                          <div className="w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full border-2 border-slate-400 group-hover:border-indigo-500 transition-colors" />
+                          <span className="text-xs sm:text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">Mark Complete</span>
                         </button>
                       )}
                     </div>
@@ -349,38 +385,40 @@ const CourseTopics = () => {
                 {contentLoading ? (
                   <PDFViewerSkeleton />
                 ) : selectedTopic.pdfUrl ? (
-                  <div className="h-full relative rounded-xl overflow-hidden bg-white">
+                  <div className="h-full relative rounded-lg overflow-hidden bg-white">
                     {!pdfLoaded && (
                       <div className="absolute inset-0 z-10">
                         <PDFViewerSkeleton />
                       </div>
                     )}
                     <iframe
-                      src={`${getFileUrl(selectedTopic.pdfUrl)}#toolbar=0`}
-                      className={`w-full h-full hidden sm:block transition-opacity duration-300 ${pdfLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      src={`${getFileUrl(selectedTopic.pdfUrl)}#toolbar=0&view=FitH`}
+                      className={`w-full h-full border-none hidden sm:block transition-opacity duration-300 ${pdfLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      style={{ minHeight: '100%' }}
                       title={selectedTopic.title}
                       onLoad={() => setPdfLoaded(true)}
                     />
                     <iframe
                       src={`https://docs.google.com/viewer?url=${encodeURIComponent(getFileUrl(selectedTopic.pdfUrl))}&embedded=true`}
-                      className="w-full h-full sm:hidden"
+                      className="w-full h-full border-none sm:hidden"
+                      style={{ minHeight: '100%' }}
                       title={selectedTopic.title}
                       onLoad={() => setPdfLoaded(true)}
                     />
                     {/* Mark as Complete - bottom-right overlay */}
-                    <div className="absolute bottom-0 right-0 z-10 p-3">
+                    <div className="absolute bottom-0 right-0 z-10 p-2 sm:p-3">
                       {completions[selectedTopic._id]?.includes('ppt') ? (
-                        <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 rounded-xl">
-                          <FaCheckCircle className="text-white text-sm" />
-                          <span className="text-sm font-semibold text-white">Completed</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-emerald-500 rounded-lg sm:rounded-xl">
+                          <FaCheckCircle className="text-white text-xs sm:text-sm" />
+                          <span className="text-xs sm:text-sm font-semibold text-white">Completed</span>
                         </div>
                       ) : (
                         <button
                           onClick={() => markAsComplete(selectedTopic._id, 'ppt')}
-                          className="flex items-center gap-2.5 px-4 py-2.5 bg-white/95 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white transition-all group shadow-lg"
+                          className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl border border-white/20 hover:bg-white transition-all group shadow-lg"
                         >
-                          <div className="w-4.5 h-4.5 rounded-full border-2 border-slate-400 group-hover:border-indigo-500 transition-colors" />
-                          <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">Mark as Complete</span>
+                          <div className="w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full border-2 border-slate-400 group-hover:border-indigo-500 transition-colors" />
+                          <span className="text-xs sm:text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">Mark Complete</span>
                         </button>
                       )}
                     </div>
@@ -466,6 +504,7 @@ const CourseTopics = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

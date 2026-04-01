@@ -22,8 +22,8 @@ const CourseCard = ({ course, index = 0 }) => {
       className="group bg-white rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-lg hover:shadow-slate-200/60 ring-1 ring-slate-100"
     >
       {/* Top section */}
-      <div className="flex items-start justify-between p-4 pb-3">
-        <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-all duration-300 shrink-0">
+      <div className="flex items-start justify-between p-3 sm:p-4 pb-2 sm:pb-3">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-all duration-300 shrink-0">
           <Icon className="text-lg text-indigo-500 group-hover:text-indigo-600 transition-colors duration-300" />
         </div>
         {isComplete ? (
@@ -36,7 +36,7 @@ const CourseCard = ({ course, index = 0 }) => {
       </div>
 
       {/* Content */}
-      <div className="px-4 pb-4">
+      <div className="px-3 sm:px-4 pb-3 sm:pb-4">
         <p className="text-[9px] font-semibold text-indigo-500 uppercase tracking-wider mb-1">COURSE</p>
         <h3 className="font-bold text-slate-900 text-sm mb-1.5 group-hover:text-indigo-600 transition-colors leading-tight">
           {course.name}

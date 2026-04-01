@@ -68,29 +68,29 @@ const Dashboard = () => {
   const codingCount = progress?.codingSubmissions?.filter(c => c.passed)?.length || 0;
 
   return (
-    <div className="flex gap-4 h-[calc(100vh-5rem-2.5rem)] -mb-5 md:-mb-6 md:h-[calc(100vh-5rem-3rem)]">
+    <div className="flex gap-4 h-auto sm:h-[calc(100vh-5rem-2.5rem)] -mb-3 sm:-mb-5 md:-mb-6 md:h-[calc(100vh-5rem-3rem)]">
       {/* Main Content - independent scroll */}
       <div className="flex-1 min-w-0 overflow-y-auto scrollbar-hidden space-y-6">
 
       {/* Hero */}
-      <div className="bg-white rounded-2xl p-6 md:p-7 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 leading-tight">
+      <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-7 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 leading-tight">
           {getGreeting()}, {student?.name?.split(' ').slice(0, 2).join(' ') || 'Student'} <span className="inline-block animate-[wave_1.5s_ease-in-out_infinite] origin-[70%_70%]">&#128075;</span>
         </h1>
-        <p className="text-slate-500 text-sm md:text-base mt-3 max-w-2xl leading-relaxed">
+        <p className="text-slate-500 text-xs sm:text-sm md:text-base mt-2 sm:mt-3 max-w-2xl leading-relaxed">
           Pick up where you left off, track your progress, and keep building your skills every day.
         </p>
-        <div className="flex flex-wrap gap-3 mt-6">
+        <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-6">
           <Link
             to="/courses"
-            className="inline-flex items-center gap-2 bg-indigo-500 text-white px-6 py-2.5 rounded-xl hover:bg-indigo-600 transition-colors font-semibold text-sm"
+            className="inline-flex items-center gap-2 bg-indigo-500 text-white px-4 sm:px-6 py-2.5 rounded-xl hover:bg-indigo-600 transition-colors font-semibold text-xs sm:text-sm"
           >
             <FaPlay className="text-xs" />
             Start Learning
           </Link>
           <Link
             to="/playground"
-            className="inline-flex items-center gap-2 bg-white text-slate-700 px-6 py-2.5 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-sm border border-slate-200 shadow-sm"
+            className="inline-flex items-center gap-2 bg-white text-slate-700 px-4 sm:px-6 py-2.5 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-xs sm:text-sm border border-slate-200 shadow-sm"
           >
             <FaCode className="text-sm" />
             Code Playground
@@ -123,14 +123,14 @@ const Dashboard = () => {
         const circ = 2 * Math.PI * r;
 
         return (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
             {cards.map((card) => {
               const Icon = card.icon;
               const dash = (card.percent / 100) * circ;
               return (
                 <div
                   key={card.label}
-                  className="group bg-white rounded-2xl p-5 shadow-md shadow-slate-200/60 ring-1 ring-slate-100 hover:shadow-xl hover:shadow-slate-200/80 hover:-translate-y-1 transition-all duration-300"
+                  className="group bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md shadow-slate-200/60 ring-1 ring-slate-100 hover:shadow-xl hover:shadow-slate-200/80 hover:-translate-y-1 transition-all duration-300"
                   style={{ animation: `cardSlideUp 0.5s ease-out ${card.delay} both` }}
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -202,9 +202,9 @@ const Dashboard = () => {
       })()}
 
       {/* My Courses */}
-      <div className="bg-white rounded-2xl p-5 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-slate-900">My Courses</h2>
+      <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 className="text-sm sm:text-base font-bold text-slate-900">My Courses</h2>
           <Link to="/courses" className="inline-flex items-center gap-1.5 text-indigo-500 text-xs font-semibold hover:text-indigo-600 transition-colors">
             View all <FaArrowRight className="text-[10px]" />
           </Link>
@@ -274,11 +274,11 @@ const Dashboard = () => {
       </div>
 
       {/* Learning Path - Timeline */}
-      <div className="bg-white rounded-2xl p-5 md:p-6 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
-        <div className="flex items-center justify-between mb-5">
+      <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-md shadow-slate-200/60 ring-1 ring-slate-100">
+        <div className="flex items-center justify-between mb-4 sm:mb-5">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Your Learning Journey</h2>
-            <p className="text-slate-500 text-xs mt-1">From zero to Full Stack Developer</p>
+            <h2 className="text-sm sm:text-base font-bold text-slate-900">Your Learning Journey</h2>
+            <p className="text-slate-500 text-[10px] sm:text-xs mt-1">From zero to Full Stack Developer</p>
           </div>
           <Link to="/courses" className="inline-flex items-center gap-1.5 text-indigo-500 text-xs font-semibold hover:text-indigo-600 transition-colors">
             View all <FaArrowRight className="text-[10px]" />
@@ -305,7 +305,7 @@ const Dashboard = () => {
                 style={{ width: `${(activeStep / (steps.length - 1)) * 88}%` }}
               />
 
-              <div className="relative z-10 grid" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}>
+              <div className="relative z-10 grid min-w-[500px] sm:min-w-0" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}>
                 {steps.map((step, index) => {
                   const isActive = index === activeStep;
                   const isPast = index < activeStep;

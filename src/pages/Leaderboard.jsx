@@ -55,17 +55,17 @@ const Leaderboard = () => {
     : ['from-amber-400 to-amber-500'];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-6 md:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center">
-              <FaTrophy className="text-xl text-amber-500" />
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-50 flex items-center justify-center">
+              <FaTrophy className="text-lg sm:text-xl text-amber-500" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900">Leaderboard</h1>
-              <p className="text-sm text-slate-500 mt-0.5">See where you stand among your peers</p>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">Leaderboard</h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">See where you stand among your peers</p>
             </div>
           </div>
           {batches.length > 0 && (
@@ -85,26 +85,26 @@ const Leaderboard = () => {
 
       {/* Podium (top 3) */}
       {top3.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-6 md:p-8">
-          <div className="flex items-end justify-center gap-4 md:gap-6 mb-2">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4 sm:p-6 md:p-8">
+          <div className="flex items-end justify-center gap-2 sm:gap-4 md:gap-6 mb-2">
             {podiumOrder.map((entry, i) => {
               if (!entry) return null;
               const isMe = entry._id === student?._id;
               return (
                 <div key={entry._id} className="flex flex-col items-center">
                   {/* Avatar */}
-                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-xl font-extrabold mb-2 ${
+                  <div className={`w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-xl font-extrabold mb-1.5 sm:mb-2 ${
                     isMe ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'
                   }`}>
                     {entry.name?.charAt(0)?.toUpperCase() || '?'}
                   </div>
-                  <p className={`text-sm font-semibold truncate max-w-[100px] ${isMe ? 'text-slate-900' : 'text-slate-700'}`}>
+                  <p className={`text-xs sm:text-sm font-semibold truncate max-w-[80px] sm:max-w-[100px] ${isMe ? 'text-slate-900' : 'text-slate-700'}`}>
                     {entry.name}{isMe ? ' (You)' : ''}
                   </p>
-                  <p className="text-xs text-slate-400 font-medium">{entry.totalPoints?.toLocaleString() || 0} pts</p>
+                  <p className="text-[10px] sm:text-xs text-slate-400 font-medium">{entry.totalPoints?.toLocaleString() || 0} pts</p>
                   {/* Podium bar */}
-                  <div className={`w-20 md:w-24 ${podiumHeights[i]} bg-gradient-to-t ${podiumColors[i]} rounded-t-xl mt-3 flex items-start justify-center pt-3`}>
-                    <span className="text-white text-sm font-bold">{podiumLabels[i]}</span>
+                  <div className={`w-16 sm:w-20 md:w-24 ${podiumHeights[i]} bg-gradient-to-t ${podiumColors[i]} rounded-t-xl mt-2 sm:mt-3 flex items-start justify-center pt-2 sm:pt-3`}>
+                    <span className="text-white text-xs sm:text-sm font-bold">{podiumLabels[i]}</span>
                   </div>
                 </div>
               );
@@ -114,7 +114,7 @@ const Leaderboard = () => {
       )}
 
       {/* Full rankings table */}
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-6 md:p-7">
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-3 sm:p-6 md:p-7">
         {leaderboard.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">

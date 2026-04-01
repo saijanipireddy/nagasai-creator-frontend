@@ -32,7 +32,7 @@ const PracticeLanding = ({ topic, onStartQuiz }) => {
   const hasPassed = attempts.some((a) => a.passed);
 
   return (
-    <div className="h-full overflow-y-auto p-4 md:p-6 flex items-start justify-center">
+    <div className="h-full overflow-y-auto p-2 sm:p-4 md:p-6 flex items-start justify-center">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           {/* Header */}
@@ -46,8 +46,8 @@ const PracticeLanding = ({ topic, onStartQuiz }) => {
 
           <div className="px-5 pb-5">
             {/* Stats row */}
-            <div className="flex justify-center gap-3 mb-4">
-              <div className="bg-slate-50 rounded-xl px-4 py-3 text-center flex-1">
+            <div className="flex justify-center gap-2 sm:gap-3 mb-4">
+              <div className="bg-slate-50 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-center flex-1">
                 <p className="text-lg font-bold text-slate-900">{questionCount}</p>
                 <p className="text-[10px] text-slate-500 mt-0.5 font-medium">Questions</p>
               </div>

@@ -6,6 +6,7 @@ import Sidebar from './Sidebar';
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [fullBleed, setFullBleed] = useState(false);
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen(prev => !prev), []);
   const handleCloseSidebar = useCallback(() => setSidebarOpen(false), []);
@@ -21,11 +22,11 @@ const Layout = () => {
         onToggleCollapse={handleToggleCollapse}
       />
       <main
-        className={`mt-[72px] h-[calc(100vh-72px)] overflow-hidden relative transition-all duration-300
+        className={`mt-[60px] sm:mt-[72px] h-[calc(100vh-60px)] sm:h-[calc(100vh-72px)] overflow-hidden relative transition-all duration-300
           ${sidebarCollapsed ? 'lg:ml-[80px]' : 'lg:ml-60'}`}
       >
-        <div className="h-full overflow-y-auto p-5 md:p-6">
-          <Outlet context={{ setSidebarCollapsed, sidebarCollapsed }} />
+        <div className={`h-full overflow-y-auto ${fullBleed ? 'p-0' : 'p-3 sm:p-5 md:p-6'}`}>
+          <Outlet context={{ setSidebarCollapsed, sidebarCollapsed, setFullBleed }} />
         </div>
       </main>
     </div>

@@ -133,7 +133,7 @@ const JobDetail = () => {
             {/* Info */}
             <div className="flex-1 min-w-0">
               <p className="text-indigo-600 font-semibold text-xs tracking-wide">{job.companyName}</p>
-              <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight mt-0.5 leading-tight">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight mt-0.5 leading-tight">
                 {job.designation}
               </h1>
 
@@ -183,7 +183,7 @@ const JobDetail = () => {
       </div>
 
       {/* Quick Info Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-3 sm:mb-4">
         <QuickCard icon={<FaBriefcase />} iconBg="bg-indigo-50 text-indigo-500" label="Job Type" value={typeConfig.label} />
         <QuickCard icon={<FaMapMarkerAlt />} iconBg="bg-rose-50 text-rose-500" label="Location" value={job.location || 'Not specified'} />
         <QuickCard icon={<FaCalendarAlt />} iconBg="bg-amber-50 text-amber-500" label="Posted On" value={formatDate(job.createdAt)} />
@@ -354,7 +354,7 @@ const JobDetail = () => {
       </div>
 
       {/* Mobile Sticky Apply Bar */}
-      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 p-3 z-50">
+      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 p-3 z-50 mobile-safe-bottom">
         <div className="flex items-center gap-2">
           <a
             href={job.applyLink}

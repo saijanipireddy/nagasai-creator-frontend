@@ -30,8 +30,8 @@ const Navbar = ({ onToggleSidebar }) => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 h-[72px] bg-white z-50 border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center justify-between h-full px-4 lg:px-6">
+      <nav className="fixed top-0 left-0 right-0 h-[60px] sm:h-[72px] bg-white z-50 border-b border-gray-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center justify-between h-full px-3 sm:px-4 lg:px-6">
           {/* Left */}
           <div className="flex items-center gap-4">
             <button
@@ -44,8 +44,8 @@ const Navbar = ({ onToggleSidebar }) => {
 
             <Link to="/" className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-11 h-11 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shadow-md shadow-amber-500/20">
-                  <span className="text-white font-extrabold text-lg">L</span>
+                <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shadow-md shadow-amber-500/20">
+                  <span className="text-white font-extrabold text-base sm:text-lg">L</span>
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
               </div>
@@ -65,8 +65,8 @@ const Navbar = ({ onToggleSidebar }) => {
 
             <div className="w-px h-8 bg-gray-200 mx-1.5 hidden sm:block" />
 
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer">
-              <div className="w-9 h-9 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg flex items-center justify-center">
+            <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm font-bold">
                   {student?.name?.charAt(0)?.toUpperCase() || 'S'}
                 </span>

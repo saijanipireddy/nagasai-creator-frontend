@@ -61,9 +61,9 @@ const CourseContent = () => {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">My Courses</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">My Courses</h1>
           <p className="text-slate-500 text-xs mt-0.5">
             {courses.length > 0
               ? `${courses.length} course${courses.length > 1 ? 's' : ''} enrolled`
@@ -110,17 +110,17 @@ const CourseContent = () => {
 
       {/* Learning Path */}
       {courses.length > 0 && (
-        <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm ring-1 ring-slate-100">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-xl p-3 sm:p-4 md:p-5 shadow-sm ring-1 ring-slate-100">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <div>
-              <h2 className="text-sm font-bold text-slate-900">Learning Path</h2>
-              <p className="text-slate-500 text-[10px] mt-0.5">Follow this recommended order to become a Full Stack Developer</p>
+              <h2 className="text-xs sm:text-sm font-bold text-slate-900">Learning Path</h2>
+              <p className="text-slate-500 text-[10px] mt-0.5 hidden sm:block">Follow this recommended order to become a Full Stack Developer</p>
             </div>
             <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-full shrink-0">
               {courses.length} steps
             </span>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-nowrap sm:flex-wrap items-center gap-2 overflow-x-auto scrollbar-hidden pb-1">
             {courses.map((course, index) => (
               <div key={course._id} className="flex items-center gap-2">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 transition-colors duration-200 cursor-default">

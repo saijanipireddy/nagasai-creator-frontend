@@ -14,29 +14,79 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000
+  withCredentials: true, // Send cookies with every request
+  timeout: 30000,
 });
 
-// Add auth token to requests
+/* ------------------------------------------------------------------ */
+/*  CSRF: read csrf_token cookie and send as X-CSRF-Token header      */
+/* ------------------------------------------------------------------ */
+const getCsrfToken = () => {
+  const match = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith('csrf_token='));
+  return match ? match.split('=')[1] : null;
+};
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('studentToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (!['get', 'head', 'options'].includes(config.method)) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      config.headers['X-CSRF-Token'] = csrfToken;
+    }
   }
   return config;
 });
 
-// Handle response errors - redirect to login on 401
+/* ------------------------------------------------------------------ */
+/*  AUTO-REFRESH: on 401, try to refresh the access token once        */
+/* ------------------------------------------------------------------ */
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve();
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('studentToken');
-      localStorage.removeItem('studentInfo');
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/student-auth/refresh') &&
+      !originalRequest.url?.includes('/student-auth/login')
+    ) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(() => api(originalRequest));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        await api.post('/student-auth/refresh');
+        processQueue(null);
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError);
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   }
 );
@@ -47,6 +97,15 @@ const extractData = (response) => {
   if (data && data.courses) return { ...response, data: data.courses, pagination: data.pagination };
   if (data && data.topics) return { ...response, data: data.topics, pagination: data.pagination };
   return response;
+};
+
+// Auth APIs
+export const studentAuthAPI = {
+  login: (credentials) => api.post('/student-auth/login', credentials),
+  register: (data) => api.post('/student-auth/register', data),
+  getProfile: () => api.get('/student-auth/profile'),
+  refresh: () => api.post('/student-auth/refresh'),
+  logout: () => api.post('/student-auth/logout'),
 };
 
 // Course APIs

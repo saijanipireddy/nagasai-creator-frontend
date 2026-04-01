@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import { studentAuthAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -9,39 +9,39 @@ export const AuthProvider = ({ children }) => {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // On mount: verify session by calling the profile endpoint.
+  // If access token expired, the axios interceptor auto-refreshes it.
+  // If refresh also fails, user is not authenticated.
   useEffect(() => {
-    const token = localStorage.getItem('studentToken');
-    const info = localStorage.getItem('studentInfo');
+    let cancelled = false;
 
-    if (token && info) {
+    const checkAuth = async () => {
       try {
-        // Check if token is expired
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.exp * 1000 > Date.now()) {
-          setStudent(JSON.parse(info));
-        } else {
-          localStorage.removeItem('studentToken');
-          localStorage.removeItem('studentInfo');
-        }
+        const { data } = await studentAuthAPI.getProfile();
+        if (!cancelled) setStudent(data);
       } catch {
-        localStorage.removeItem('studentToken');
-        localStorage.removeItem('studentInfo');
+        if (!cancelled) setStudent(null);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    checkAuth();
+    return () => { cancelled = true; };
   }, []);
 
   const login = async (email, password) => {
-    const { data } = await api.post('/student-auth/login', { email, password });
-    localStorage.setItem('studentToken', data.token);
-    localStorage.setItem('studentInfo', JSON.stringify({ _id: data._id, name: data.name, email: data.email }));
+    const { data } = await studentAuthAPI.login({ email, password });
     setStudent({ _id: data._id, name: data.name, email: data.email });
     return data;
   };
 
-  const logout = () => {
-    localStorage.removeItem('studentToken');
-    localStorage.removeItem('studentInfo');
+  const logout = async () => {
+    try {
+      await studentAuthAPI.logout();
+    } catch {
+      // Ignore errors — clear local state regardless
+    }
     setStudent(null);
   };
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import Split from 'react-split';
+import api from '../services/api';
 import {
   FaPlay, FaHtml5, FaCss3Alt, FaJs, FaPython, FaDatabase,
   FaDownload, FaRedo, FaSun, FaMoon, FaExpand, FaCompress,
@@ -492,18 +493,14 @@ ${jsCode}`;
     else if (activeLanguage === 'java') code = javaCode;
 
     try {
-      const response = await fetch(import.meta.env.VITE_PISTON_API_URL || 'https://emkc.org/api/v2/piston/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          language: lang.pistonLang,
-          version: lang.pistonVersion,
-          files: [{ content: code }],
-          stdin: pistonInput || '',
-        }),
+      const response = await api.post('/scores/run-code', {
+        language: lang.pistonLang,
+        version: lang.pistonVersion,
+        files: [{ content: code }],
+        stdin: pistonInput || '',
       });
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.run) {
         const output = (data.run.stdout || '') + (data.run.stderr || '');

@@ -270,21 +270,16 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
 </html>`;
   }, [html, css, webJs, codingPractice?.testScript]);
 
-  // Execute code using Piston API
+  // Execute code via backend proxy (avoids CORS issues in production)
   const executePistonCode = async (sourceCode, lang, version) => {
     try {
-      const response = await fetch(import.meta.env.VITE_PISTON_API_URL || 'https://emkc.org/api/v2/piston/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          language: lang,
-          version: version,
-          files: [{ content: sourceCode }]
-        })
+      const response = await api.post('/scores/run-code', {
+        language: lang,
+        version: version,
+        files: [{ content: sourceCode }]
       });
 
-      if (!response.ok) throw new Error('Failed to execute code');
-      const data = await response.json();
+      const data = response.data;
 
       if (data.run) {
         const output = data.run.output || data.run.stdout || '';

@@ -41,8 +41,8 @@ const ScoreCard = ({ stats, isLoading }) => {
 
   return (
     <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
-      <p className="text-xs font-medium text-slate-500 mb-1">Your Score</p>
-      <div className="flex items-center justify-between">
+      <p className="text-xs font-bold text-black mb-1">Your Score</p>
+      <div className="flex items-center justify-between pt-2">
         <div className="flex items-center gap-1.5">
           <FaBolt className="text-amber-500 text-sm" />
           <span className="text-xl font-extrabold text-slate-900">{stats.totalPoints.toLocaleString()}</span>
@@ -55,18 +55,31 @@ const ScoreCard = ({ stats, isLoading }) => {
       </div>
 
       {/* Level progress */}
+
       {stats.nextLevelAt && (
-        <div className="mt-2.5">
-          <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-            <span>{stats.level}</span>
-            <span>{stats.pointsToNextLevel} pts to next</span>
+        <div className="mt-3">
+
+          {/* Header */}
+          <div className="flex justify-between text-[11px] mb-1">
+            <span className="font-semibold text-gray-800">
+              {stats.level}
+            </span>
+            <span className="text-black-600">
+              {stats.pointsToNextLevel} pts to next
+            </span>
           </div>
-          <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+
+          {/* Progress Bar */}
+          <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full bg-gradient-to-r ${levelConfig.color} transition-all duration-700`}
-              style={{ width: `${progressPercent}%` }}
+              className="h-full rounded-full transition-all duration-700 shadow-sm"
+              style={{
+                width: `${progressPercent}%`,
+                background: "linear-gradient(to right, #8C3E2D, #E76F51, #FC8B73)"
+              }}
             />
           </div>
+
         </div>
       )}
     </div>

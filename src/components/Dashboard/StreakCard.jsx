@@ -40,12 +40,12 @@ const StreakCard = ({ streak, isLoading }) => {
       <div className="flex">
         {/* Current Streak */}
         <div className="flex-1 flex flex-col items-center py-1.5">
-          <p className="text-[10px] font-medium text-slate-500 mb-1.5">Current Streak</p>
+          <p className="text-[12px] font-medium text-black mb-1.5">Current Streak</p>
           <div className="flex items-center gap-1.5 mb-1.5">
             <FireIcon />
             <span className="text-xl font-extrabold text-slate-900">{streak.currentStreak}</span>
           </div>
-          <p className="text-[10px] text-slate-400">My Best: {streak.bestStreak}</p>
+          <p className="text-[10px] text-black">My Best: {streak.bestStreak}</p>
         </div>
 
         {/* Divider */}
@@ -53,7 +53,7 @@ const StreakCard = ({ streak, isLoading }) => {
 
         {/* Consistency Score */}
         <div className="flex-1 flex flex-col items-center py-1.5">
-          <p className="text-[10px] font-medium text-slate-500 mb-1.5">Consistency Score</p>
+          <p className="text-[12px] font-medium text-black mb-1.5">Consistency Score</p>
           <div className="flex items-center gap-1.5">
             <FaTrophy className="text-indigo-500 text-base" />
             <span className="text-xl font-extrabold text-slate-900">{streak.consistencyScore}</span>

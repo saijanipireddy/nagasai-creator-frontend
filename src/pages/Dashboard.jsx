@@ -139,7 +139,7 @@ const Dashboard = () => {
                         <div className={`w-7 h-7 ${card.iconBg} rounded-lg flex items-center justify-center`}>
                           <Icon className="text-xs" style={{ color: card.color }} />
                         </div>
-                        <h3 className="text-xs font-bold text-slate-700">{card.label}</h3>
+                        <h3 className="text-xs font-bold text-black">{card.label}</h3>
                       </div>
                       <p className="text-[11px] text-slate-400 mt-0.5">{loading ? '...' : card.sublabel}</p>
                     </div>
@@ -191,7 +191,7 @@ const Dashboard = () => {
                           }}
                         />
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-1 font-medium">Progress</p>
+                      <p className="text-[10px] text-black mt-1 font-medium">Progress</p>
                     </div>
                   </div>
                 </div>

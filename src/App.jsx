@@ -13,6 +13,7 @@ import JobDetail from './pages/JobDetail';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Leaderboard from './pages/Leaderboard';
+import ResumeCreator from './pages/ResumeCreator';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -54,6 +55,7 @@ function AppRoutes() {
         <Route path="jobs/:jobId" element={<JobDetail />} />
         <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="resume-creator" element={<ResumeCreator />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

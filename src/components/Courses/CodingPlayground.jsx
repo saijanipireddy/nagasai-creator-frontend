@@ -56,7 +56,7 @@ const renderDescription = (text) => {
   });
 };
 
-const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
+const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOnly = false }) => {
   // Determine language and type
   const language = codingPractice?.language || 'javascript';
   const langConfig = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.javascript;
@@ -191,7 +191,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
     setCurrentHintIndex(0);
     setShowResults(false);
     testResultsRef.current = null;
-  }, [codingPractice, isWebPlayground, language, loadingSubmission]);
+  }, [codingPractice, isWebPlayground, language, loadingSubmission, previousSubmission]);
 
   // Handle console messages from iframe (including test results)
   useEffect(() => {
@@ -371,18 +371,29 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
         setSubmitDetails([]);
         submitToBackend(`<!-- HTML -->\n${html}\n/* CSS */\n${css}\n// JS\n${webJs}`, ['PASS']);
       } else if (langConfig.type === 'piston') {
-        // Non-web: run code and compare output
-        const result = await executePistonCode(code, langConfig.pistonLang, langConfig.pistonVersion);
-        setOutput(result.output);
-        setHasRun(true);
-
-        const expected = codingPractice?.expectedOutput?.trim();
-        const actual = result.output?.trim();
-        const passed = expected ? actual === expected : result.success;
-        setSubmitStatus(passed ? 'pass' : 'fail');
-        if (passed) onComplete?.();
-        setSubmitDetails(expected ? [passed ? 'PASS: Output matches expected' : `FAIL: Expected "${expected}" but got "${actual}"`] : []);
-        submitToBackend(code, passed ? ['PASS'] : ['FAIL']);
+        // Non-web: submit to backend for server-side test case evaluation
+        try {
+          const res = await api.post('/scores/coding-submit', {
+            topicId,
+            code,
+            language,
+            testResults: [],
+          });
+          const data = res.data;
+          const passed = data.passed;
+          setOutput(data.results?.map(r => r.actual).join('\n') || '');
+          setHasRun(true);
+          setSubmitStatus(passed ? 'pass' : 'fail');
+          if (passed) onComplete?.();
+          setSubmitDetails(data.results || []);
+        } catch {
+          // Fallback: run locally if backend fails
+          const result = await executePistonCode(code, langConfig.pistonLang, langConfig.pistonVersion);
+          setOutput(result.output);
+          setHasRun(true);
+          setSubmitStatus(result.success ? 'pass' : 'fail');
+          setSubmitDetails([]);
+        }
       }
 
       setShowResults(true);
@@ -488,7 +499,8 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
     automaticLayout: true,
     tabSize: 2,
     wordWrap: 'on',
-    padding: { top: 10 }
+    padding: { top: 10 },
+    readOnly,
   };
 
   // Get current code and setter for web tabs
@@ -684,7 +696,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
             <span className="text-sm font-medium">{isRunning ? 'Running...' : 'Run'}</span>
           </button>
 
-          {topicId && (
+          {topicId && !readOnly && (
             <button
               onClick={handleSubmitOrShowResults}
               disabled={submitting}
@@ -752,7 +764,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete }) => {
             {isRunning ? '...' : 'Run'}
           </button>
 
-          {topicId && (
+          {topicId && !readOnly && (
             <button
               onClick={handleSubmitOrShowResults}
               disabled={submitting}

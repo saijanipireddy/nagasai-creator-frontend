@@ -7,6 +7,16 @@ export default defineConfig({
   preview: {
     port: 4173,
   },
+  server: {
+    proxy: {
+      // Proxy /piston requests to the self-hosted Piston container (avoids CORS)
+      '/piston': {
+        target: 'http://localhost:2000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/piston/, ''),
+      },
+    },
+  },
   build: {
     assetsDir: 'assets',
     rollupOptions: {

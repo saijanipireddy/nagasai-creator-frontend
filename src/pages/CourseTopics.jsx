@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import TopicSidebar from '../components/Courses/TopicSidebar';
 import CodingPlayground from '../components/Courses/CodingPlayground';
+import CodingPracticeLanding from '../components/Courses/CodingPracticeLanding';
 import PracticeLanding from '../components/Courses/PracticeLanding';
 import PracticeQuiz from '../components/Courses/PracticeQuiz';
 import ReviewMistakes from '../components/Courses/ReviewMistakes';
@@ -62,6 +63,7 @@ const CourseTopics = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showCodingPlayground, setShowCodingPlayground] = useState(false);
+  const [codingSolved, setCodingSolved] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
 
   // Practice state machine: 'landing' | 'quiz' | 'review'
@@ -199,11 +201,9 @@ const CourseTopics = () => {
     }
   }, [selectedTopicId]);
 
-  // Handle coding practice tab
+  // Handle coding practice tab — no longer auto-opens playground
   useEffect(() => {
-    if (activeTab === 'codingPractice' && selectedTopic?.codingPractice?.title) {
-      setShowCodingPlayground(true);
-    } else {
+    if (activeTab !== 'codingPractice') {
       setShowCodingPlayground(false);
     }
   }, [activeTab, selectedTopic]);
@@ -252,6 +252,7 @@ const CourseTopics = () => {
         topicId={selectedTopic._id}
         onClose={handleCloseCodingPlayground}
         onComplete={() => markAsComplete(selectedTopic._id, 'codingPractice')}
+        readOnly={codingSolved}
       />
     );
   }
@@ -473,6 +474,24 @@ const CourseTopics = () => {
                       <p className="text-lg">Practice questions coming soon</p>
                     </div>
                   </div>
+                )}
+              </div>
+            )}
+
+            {/* Coding Practice Content - Landing page */}
+            {activeTab === 'codingPractice' && selectedTopic.codingPractice?.title && (
+              <div className="h-full overflow-y-auto bg-slate-50 rounded-lg">
+                {contentLoading || topicLoading ? (
+                  <CodingPlaygroundSkeleton />
+                ) : (
+                  <CodingPracticeLanding
+                    topic={selectedTopic}
+                    codingPractice={selectedTopic.codingPractice}
+                    onStartCoding={(solved) => {
+                      setCodingSolved(!!solved);
+                      setShowCodingPlayground(true);
+                    }}
+                  />
                 )}
               </div>
             )}

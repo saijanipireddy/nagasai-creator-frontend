@@ -330,12 +330,9 @@ builtins.input = _custom_input
       setCode(initialCode);
     }
 
-    // If previous submission exists, pre-fill output
-    if (previousSubmission?.output) {
-      setOutput(previousSubmission.output);
-    } else {
-      setOutput('');
-    }
+    // Don't restore previous output - it contains all test case results joined together.
+    // Student can click "Run" to see fresh output for their restored code.
+    setOutput('');
 
     setWebPreview('');
     setConsoleOutput([]);

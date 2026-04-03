@@ -13,12 +13,12 @@ const LANGUAGE_CONFIG = {
   html: { name: 'HTML', icon: FaHtml5, color: '#e34c26', type: 'web' },
   css: { name: 'CSS', icon: FaCss3Alt, color: '#264de4', type: 'web' },
   javascript: { name: 'JavaScript', icon: FaJs, color: '#f7df1e', type: 'web' },
-  python: { name: 'Python', icon: FaPython, color: '#3776ab', type: 'piston', pistonLang: 'python', pistonVersion: '3.10.0' },
+  python: { name: 'Python', icon: FaPython, color: '#3776ab', type: 'pyodide' },
   java: { name: 'Java', icon: FaCode, color: '#007396', type: 'piston', pistonLang: 'java', pistonVersion: '15.0.2' },
   cpp: { name: 'C++', icon: FaCode, color: '#00599C', type: 'piston', pistonLang: 'c++', pistonVersion: '10.2.0' },
   c: { name: 'C', icon: FaCode, color: '#A8B9CC', type: 'piston', pistonLang: 'c', pistonVersion: '10.2.0' },
   typescript: { name: 'TypeScript', icon: FaCode, color: '#3178c6', type: 'piston', pistonLang: 'typescript', pistonVersion: '5.0.3' },
-  sql: { name: 'SQL', icon: FaDatabase, color: '#00758f', type: 'none' },
+  sql: { name: 'SQL', icon: FaDatabase, color: '#00758f', type: 'sqljs' },
   php: { name: 'PHP', icon: FaCode, color: '#777BB4', type: 'piston', pistonLang: 'php', pistonVersion: '8.2.3' },
   ruby: { name: 'Ruby', icon: FaCode, color: '#CC342D', type: 'piston', pistonLang: 'ruby', pistonVersion: '3.0.1' },
   go: { name: 'Go', icon: FaCode, color: '#00ADD8', type: 'piston', pistonLang: 'go', pistonVersion: '1.16.2' },
@@ -99,6 +99,156 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
 
   const iframeRef = useRef(null);
   const testResultsRef = useRef(null);
+  const pyodideRef = useRef(null);
+  const [pyodideReady, setPyodideReady] = useState(false);
+  const [pyodideLoading, setPyodideLoading] = useState(false);
+
+  // Load Pyodide for Python execution in browser
+  const loadPyodide = useCallback(async () => {
+    if (pyodideRef.current || pyodideLoading) return;
+    setPyodideLoading(true);
+    try {
+      if (!window.loadPyodide) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js';
+        document.head.appendChild(script);
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+        });
+      }
+      pyodideRef.current = await window.loadPyodide({
+        indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/'
+      });
+      setPyodideReady(true);
+    } catch (error) {
+      console.error('Failed to load Pyodide:', error);
+    } finally {
+      setPyodideLoading(false);
+    }
+  }, [pyodideLoading]);
+
+  // SQL.js state and refs
+  const sqlDbRef = useRef(null);
+  const [sqlReady, setSqlReady] = useState(false);
+  const [sqlLoading, setSqlLoading] = useState(false);
+
+  // Load SQL.js for SQL execution in browser
+  const loadSqlJs = useCallback(async () => {
+    if (sqlDbRef.current || sqlLoading) return;
+    setSqlLoading(true);
+    try {
+      if (!window.initSqlJs) {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js';
+        document.head.appendChild(script);
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+        });
+      }
+      const SQL = await window.initSqlJs({
+        locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
+      });
+      sqlDbRef.current = new SQL.Database();
+      setSqlReady(true);
+    } catch (error) {
+      console.error('Failed to load SQL.js:', error);
+    } finally {
+      setSqlLoading(false);
+    }
+  }, [sqlLoading]);
+
+  // Auto-load Pyodide or SQL.js based on language
+  useEffect(() => {
+    if (langConfig.type === 'pyodide' && !pyodideReady && !pyodideLoading) {
+      loadPyodide();
+    }
+    if (langConfig.type === 'sqljs' && !sqlReady && !sqlLoading) {
+      loadSqlJs();
+    }
+  }, [langConfig.type, pyodideReady, pyodideLoading, loadPyodide, sqlReady, sqlLoading, loadSqlJs]);
+
+  // Execute Python code in browser via Pyodide, returns { success, output }
+  const runPyodideCode = useCallback(async (sourceCode, stdin = '') => {
+    if (!pyodideRef.current) {
+      return { success: false, output: 'Python environment not ready. Please wait...' };
+    }
+    try {
+      pyodideRef.current.runPython(`
+import sys
+from io import StringIO
+sys.stdout = StringIO()
+sys.stderr = StringIO()
+      `);
+
+      if (stdin) {
+        pyodideRef.current.runPython(`
+import builtins
+_input_values = ${JSON.stringify(stdin.split('\n'))}
+_input_index = 0
+def _custom_input(prompt=""):
+    global _input_index
+    if _input_index < len(_input_values):
+        val = _input_values[_input_index]
+        _input_index += 1
+        return val
+    return ""
+builtins.input = _custom_input
+        `);
+      }
+
+      await pyodideRef.current.runPythonAsync(sourceCode);
+      const stdout = pyodideRef.current.runPython('sys.stdout.getvalue()');
+      const stderr = pyodideRef.current.runPython('sys.stderr.getvalue()');
+
+      if (stderr && !stdout) return { success: false, output: stderr };
+      return { success: true, output: stdout || '' };
+    } catch (error) {
+      return { success: false, output: `Error: ${error.message}` };
+    }
+  }, []);
+
+  // Execute SQL code in browser via SQL.js, returns { success, output }
+  // setupSql = optional SQL to run first (CREATE TABLE, INSERT, etc.) before the actual query
+  const runSqlCode = useCallback((sourceCode, setupSql = '') => {
+    if (!sqlDbRef.current) {
+      return { success: false, output: 'SQL environment not ready. Please wait...' };
+    }
+    try {
+      // Create a fresh database for each run to avoid state leakage between test cases
+      const SQL = sqlDbRef.current.constructor;
+      const db = new SQL();
+
+      // Run setup SQL first (create tables, insert data, etc.)
+      if (setupSql && setupSql.trim()) {
+        db.run(setupSql);
+      }
+
+      // Run student's SQL
+      const statements = sourceCode.split(';').filter(s => s.trim());
+      const outputParts = [];
+
+      for (const statement of statements) {
+        if (!statement.trim()) continue;
+        const result = db.exec(statement);
+        if (result.length > 0) {
+          // Format result as table-like output
+          const columns = result[0].columns;
+          const rows = result[0].values;
+          outputParts.push(columns.join('|'));
+          for (const row of rows) {
+            outputParts.push(row.map(v => v === null ? 'NULL' : String(v)).join('|'));
+          }
+        }
+      }
+
+      db.close();
+      return { success: true, output: outputParts.join('\n') };
+    } catch (error) {
+      return { success: false, output: `SQL Error: ${error.message}` };
+    }
+  }, []);
 
   // Handle window resize for mobile detection
   useEffect(() => {
@@ -301,6 +451,13 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
       setConsoleOutput([]);
       setTestResults(null);
       setWebPreview(getWebPreview());
+    } else if (langConfig.type === 'pyodide') {
+      const result = await runPyodideCode(code);
+      setOutput(result.output);
+    } else if (langConfig.type === 'sqljs') {
+      const setupSql = codingPractice?.setupSql || codingPractice?.setup_sql || '';
+      const result = runSqlCode(code, setupSql);
+      setOutput(result.output);
     } else if (langConfig.type === 'piston') {
       const result = await executePistonCode(code, langConfig.pistonLang, langConfig.pistonVersion);
       setOutput(result.output);
@@ -365,6 +522,75 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
         onComplete?.();
         setSubmitDetails([]);
         submitToBackend(`<!-- HTML -->\n${html}\n/* CSS */\n${css}\n// JS\n${webJs}`, ['PASS']);
+      } else if (langConfig.type === 'sqljs') {
+        // SQL: run test cases in browser via SQL.js, then save to backend
+        const testCases = codingPractice?.testCases || codingPractice?.test_cases || [];
+        const setupSql = codingPractice?.setupSql || codingPractice?.setup_sql || '';
+        const results = [];
+
+        if (testCases.length > 0) {
+          for (const tc of testCases) {
+            const tcSetup = tc.setupSql || tc.setup_sql || setupSql;
+            const result = runSqlCode(code, tcSetup);
+            const expected = (tc.expectedOutput || tc.expected_output || '').trim();
+            const actual = (result.output || '').trim();
+            results.push({
+              input: tc.input || tcSetup || '',
+              expected,
+              actual,
+              passed: actual === expected,
+            });
+          }
+        } else {
+          const result = runSqlCode(code, setupSql);
+          const expected = (codingPractice?.expectedOutput || codingPractice?.expected_output || '').trim();
+          const actual = (result.output || '').trim();
+          results.push({ expected, actual, passed: actual === expected });
+        }
+
+        const passedCount = results.filter(r => r.passed).length;
+        const allPassed = passedCount === results.length;
+        setOutput(results.map(r => r.actual).join('\n'));
+        setHasRun(true);
+        setSubmitStatus(allPassed ? 'pass' : 'fail');
+        if (allPassed) onComplete?.();
+        setSubmitDetails(results);
+        submitToBackend(code, results.map(r => r.passed ? 'PASS' : `FAIL: expected "${r.expected}" got "${r.actual}"`));
+      } else if (langConfig.type === 'pyodide') {
+        // Python: run test cases in browser via Pyodide, then save to backend
+        const testCases = codingPractice?.testCases || codingPractice?.test_cases || [];
+        const results = [];
+
+        if (testCases.length > 0) {
+          for (const tc of testCases) {
+            const result = await runPyodideCode(code, tc.input || '');
+            const expected = (tc.expectedOutput || tc.expected_output || '').trim();
+            const actual = (result.output || '').trim();
+            results.push({
+              input: tc.input || '',
+              expected,
+              actual,
+              passed: actual === expected,
+            });
+          }
+        } else {
+          // Fallback: single expected output comparison
+          const result = await runPyodideCode(code);
+          const expected = (codingPractice?.expectedOutput || codingPractice?.expected_output || '').trim();
+          const actual = (result.output || '').trim();
+          results.push({ expected, actual, passed: actual === expected });
+        }
+
+        const passedCount = results.filter(r => r.passed).length;
+        const allPassed = passedCount === results.length;
+        setOutput(results.map(r => r.actual).join('\n'));
+        setHasRun(true);
+        setSubmitStatus(allPassed ? 'pass' : 'fail');
+        if (allPassed) onComplete?.();
+        setSubmitDetails(results);
+
+        // Save result to backend
+        submitToBackend(code, results.map(r => r.passed ? 'PASS' : `FAIL: expected "${r.expected}" got "${r.actual}"`));
       } else if (langConfig.type === 'piston') {
         // Non-web: submit to backend for server-side test case evaluation
         try {
@@ -684,11 +910,11 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
 
           <button
             onClick={runCode}
-            disabled={isRunning}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-colors ${isRunning ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white`}
+            disabled={isRunning || (langConfig.type === 'pyodide' && !pyodideReady) || (langConfig.type === 'sqljs' && !sqlReady)}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-colors ${isRunning || (langConfig.type === 'pyodide' && !pyodideReady) || (langConfig.type === 'sqljs' && !sqlReady) ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white`}
           >
             <FaPlay className={`text-xs ${isRunning ? 'animate-pulse' : ''}`} />
-            <span className="text-sm font-medium">{isRunning ? 'Running...' : 'Run'}</span>
+            <span className="text-sm font-medium">{langConfig.type === 'pyodide' && !pyodideReady ? 'Loading Python...' : langConfig.type === 'sqljs' && !sqlReady ? 'Loading SQL...' : isRunning ? 'Running...' : 'Run'}</span>
           </button>
 
           {topicId && !readOnly && (

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useOutletContext, Link } from 'react-router-dom';
 import {
-  FaPlay, FaFileAlt, FaQuestion, FaBars, FaBook, FaLaptopCode, FaCheckCircle,
+  FaPlay, FaFileAlt, FaQuestion, FaBars, FaBook, FaLaptopCode, FaCheckCircle, FaLock,
 } from 'react-icons/fa';
 import TopicSidebar from '../components/Courses/TopicSidebar';
 import CodingPlayground from '../components/Courses/CodingPlayground';
@@ -73,6 +73,9 @@ const CourseTopics = () => {
   // Completion tracking
   const [completions, setCompletions] = useState({});
 
+  // Topic schedule (per-batch unlock)
+  const [schedule, setSchedule] = useState({});
+
   // Content loading states for tab switching
   const [contentLoading, setContentLoading] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -108,15 +111,22 @@ const CourseTopics = () => {
           return;
         }
 
-        const [courseRes, topicsRes] = await Promise.all([
+        const [courseRes, topicsRes, scheduleData] = await Promise.all([
           courseAPI.getById(courseId, controller.signal),
           courseAPI.getTopicsSummary(courseId, controller.signal),
+          enrollmentAPI.getSchedule(courseId, controller.signal).catch(() => ({})),
         ]);
         if (!cancelled) {
           setCourse(courseRes.data);
           setTopics(topicsRes.data);
+          setSchedule(scheduleData || {});
           if (topicsRes.data.length > 0) {
-            setSelectedTopic(topicsRes.data[0]);
+            // Auto-select first unlocked topic
+            const firstUnlocked = topicsRes.data.find((t) => {
+              const entry = scheduleData?.[t._id || t.id];
+              return !entry || entry.isAccessible;
+            });
+            setSelectedTopic(firstUnlocked || topicsRes.data[0]);
           }
           setLoading(false);
         }
@@ -142,6 +152,9 @@ const CourseTopics = () => {
   // Auto-mark item as complete when viewing
   const markAsComplete = (topicId, itemType) => {
     if (!topicId || !itemType) return;
+    // Skip for locked topics
+    const schedEntry = schedule[topicId];
+    if (schedEntry && !schedEntry.isAccessible) return;
     // Skip if already marked
     if (completions[topicId]?.includes(itemType)) return;
     completionAPI.markComplete(topicId, itemType)
@@ -158,6 +171,10 @@ const CourseTopics = () => {
   useEffect(() => {
     if (!selectedTopic) return;
     const topicId = selectedTopic._id;
+
+    // Don't fetch full data for locked topics (backend will block it anyway)
+    const scheduleEntry = schedule[topicId];
+    if (scheduleEntry && !scheduleEntry.isAccessible) return;
 
     if (fullTopicCache[topicId]) {
       setSelectedTopic(fullTopicCache[topicId]);
@@ -292,6 +309,7 @@ const CourseTopics = () => {
           }}
           completions={completions}
           onClose={() => setSidebarOpen(false)}
+          schedule={schedule}
         />
       </div>
 
@@ -328,12 +346,53 @@ const CourseTopics = () => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             completions={completions}
+            schedule={schedule}
           />
         </div>
 
         {/* Main Content Area */}
         <div className="flex-1 h-full overflow-hidden p-1.5 sm:p-2 md:p-3">
-        {selectedTopic ? (
+        {selectedTopic && (() => {
+          const topicId = selectedTopic._id || selectedTopic.id;
+          const scheduleEntry = schedule[topicId];
+          const isLocked = scheduleEntry && !scheduleEntry.isAccessible;
+          const unlockDate = scheduleEntry?.unlockDate;
+          // 2099-12-31 is a sentinel value for manually locked topics (no real unlock date)
+          const hasRealDate = unlockDate && unlockDate < '2099';
+
+          if (isLocked) {
+            return (
+              <div className="h-full flex items-center justify-center bg-white rounded-xl">
+                <div className="text-center max-w-sm px-6">
+                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                    <FaLock className="text-3xl text-slate-400" />
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-800 mb-2">Topic Locked</h2>
+                  <p className="text-slate-500 mb-1">
+                    <span className="font-semibold text-slate-700">{selectedTopic.title}</span>
+                  </p>
+                  <p className="text-slate-400 text-sm mb-4">
+                    This topic is not yet available. Your instructor will unlock it when it's time.
+                  </p>
+                  {hasRealDate && (
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-medium">
+                      <FaLock className="text-xs" />
+                      Unlocks on {new Date(unlockDate + 'T00:00:00').toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
+        {selectedTopic && (() => {
+          const topicId = selectedTopic._id || selectedTopic.id;
+          const scheduleEntry = schedule[topicId];
+          const isLocked = scheduleEntry && !scheduleEntry.isAccessible;
+          if (isLocked) return null;
+
+          return (
           <div className="h-full flex flex-col overflow-hidden">
             {/* Video Content */}
             {activeTab === 'video' && (
@@ -512,7 +571,9 @@ const CourseTopics = () => {
               </div>
             )}
           </div>
-        ) : (
+          );
+        })()}
+        {!selectedTopic && (
           <div className="flex items-center justify-center h-full text-slate-400">
             <div className="text-center">
               <FaBook className="text-6xl mx-auto mb-4 opacity-50" />

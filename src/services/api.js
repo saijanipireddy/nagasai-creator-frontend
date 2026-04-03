@@ -176,6 +176,7 @@ export const enrollmentAPI = {
     batches: res.data.batches || [],
   })),
   checkAccess: (courseId, signal) => api.get(`/batches/student/check-access/${courseId}`, { signal }),
+  getSchedule: (courseId, signal) => api.get(`/batches/student/schedule/${courseId}`, { signal }).then(res => res.data.schedule),
 };
 
 // Practice/Score APIs

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaPlay, FaFileAlt, FaQuestion, FaChevronDown, FaLaptopCode, FaArrowLeft, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaPlay, FaFileAlt, FaQuestion, FaChevronDown, FaLaptopCode, FaArrowLeft, FaCheck, FaTimes, FaLock } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 const subItems = [
@@ -11,13 +11,31 @@ const subItems = [
 
 const TopicSidebar = ({
   topics, selectedTopic, onSelectTopic, courseName,
-  activeTab, onTabChange, completions = {}, onClose
+  activeTab, onTabChange, completions = {}, onClose, schedule = {}
 }) => {
   const [expandedTopicId, setExpandedTopicId] = useState(null);
 
   useEffect(() => {
     if (selectedTopic) setExpandedTopicId(selectedTopic._id || selectedTopic.id);
   }, [selectedTopic]);
+
+  // Check if a topic is locked based on schedule
+  const isTopicLocked = (topicId) => {
+    const entry = schedule[topicId];
+    if (!entry) return false; // No schedule = accessible
+    return !entry.isAccessible;
+  };
+
+  const getUnlockDate = (topicId) => {
+    const entry = schedule[topicId];
+    return entry?.unlockDate || null;
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+  };
 
   const handleTopicClick = (topic) => {
     const topicId = topic._id || topic.id;
@@ -110,6 +128,8 @@ const TopicSidebar = ({
           const isExpanded = expandedTopicId === topicId;
           const topicCompletions = completions[topicId] || [];
           const hasAnyCompletion = topicCompletions.length > 0;
+          const locked = isTopicLocked(topicId);
+          const unlockDate = getUnlockDate(topicId);
 
           // Filter sub-items that have content for this topic
           const availableItems = subItems.filter((item) => {
@@ -150,9 +170,13 @@ const TopicSidebar = ({
                   >
                     {topic.title}
                   </span>
-                  {hasAnyCompletion && (
+                  {locked && unlockDate && unlockDate < '2099' ? (
+                    <span className="text-[9px] text-yellow-500/80 font-medium">Unlocks {formatDate(unlockDate)}</span>
+                  ) : locked ? (
+                    <span className="text-[9px] text-yellow-500/80 font-medium">Locked</span>
+                  ) : hasAnyCompletion ? (
                     <span className="text-[9px] text-emerald-500 font-medium">{topicCompletions.length}/{availableItems.length} done</span>
-                  )}
+                  ) : null}
                 </div>
 
                 {/* Chevron */}
@@ -170,7 +194,7 @@ const TopicSidebar = ({
                 <div className="py-1 pl-7 pr-1.5 sm:pr-2">
                   {availableItems.map((item, itemIdx) => {
                     const isActiveTab = activeTab === item.id && isSelected;
-                    const isItemComplete = topicCompletions.includes(item.id);
+                    const isItemComplete = !locked && topicCompletions.includes(item.id);
                     const isLastItem = itemIdx === availableItems.length - 1;
                     const IconComponent = item.icon;
 
@@ -217,7 +241,10 @@ const TopicSidebar = ({
                               }`} />
                             </div>
                             <span className="flex-1 text-xs font-medium">{item.label}</span>
-                            {isItemComplete && !isActiveTab && (
+                            {locked && (
+                              <FaLock className="text-[7px] text-slate-500" />
+                            )}
+                            {!locked && isItemComplete && !isActiveTab && (
                               <span className="text-[8px] text-emerald-500 font-semibold">Done</span>
                             )}
                           </div>

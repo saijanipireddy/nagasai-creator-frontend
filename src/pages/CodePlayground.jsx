@@ -226,8 +226,19 @@ const CodePlayground = () => {
       }
 
       pyodideRef.current = await window.loadPyodide({
-        indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/'
+        indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/',
+        stdout: (text) => { },
+        stderr: (text) => { }
       });
+
+      // Redirect all stdio to StringIO immediately to prevent I/O errors
+      pyodideRef.current.runPython(`
+import sys
+from io import StringIO
+sys.stdin = StringIO()
+sys.stdout = StringIO()
+sys.stderr = StringIO()
+      `);
 
       setPyodideReady(true);
       setLoadingMessage('');
@@ -348,27 +359,18 @@ const CodePlayground = () => {
     try {
       pyodideRef.current.runPython(`
 import sys
+import builtins
 from io import StringIO
+sys.stdin = StringIO(${JSON.stringify((pythonInput || '') + '\n')})
 sys.stdout = StringIO()
 sys.stderr = StringIO()
-      `);
-
-      if (pythonInput) {
-        pyodideRef.current.runPython(`
-import builtins
-_input_values = ${JSON.stringify(pythonInput.split('\n'))}
-_input_index = 0
 def _custom_input(prompt=""):
-    global _input_index
-    if _input_index < len(_input_values):
-        val = _input_values[_input_index]
-        _input_index += 1
-        print(prompt + val)
-        return val
-    return ""
+    line = sys.stdin.readline().rstrip('\\n')
+    if prompt:
+        print(prompt + line)
+    return line
 builtins.input = _custom_input
-        `);
-      }
+      `);
 
       await pyodideRef.current.runPythonAsync(pythonCode);
 

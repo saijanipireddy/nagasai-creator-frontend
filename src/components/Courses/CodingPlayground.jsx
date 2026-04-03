@@ -118,8 +118,20 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
         });
       }
       pyodideRef.current = await window.loadPyodide({
-        indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/'
+        indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/',
+        stdout: (text) => { },
+        stderr: (text) => { }
       });
+
+      // Redirect all stdio to StringIO immediately to prevent I/O errors
+      pyodideRef.current.runPython(`
+import sys
+from io import StringIO
+sys.stdin = StringIO()
+sys.stdout = StringIO()
+sys.stderr = StringIO()
+      `);
+
       setPyodideReady(true);
     } catch (error) {
       console.error('Failed to load Pyodide:', error);
@@ -177,26 +189,16 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
     try {
       pyodideRef.current.runPython(`
 import sys
+import builtins
 from io import StringIO
+sys.stdin = StringIO(${JSON.stringify((stdin || '') + '\n')})
 sys.stdout = StringIO()
 sys.stderr = StringIO()
-      `);
-
-      if (stdin) {
-        pyodideRef.current.runPython(`
-import builtins
-_input_values = ${JSON.stringify(stdin.split('\n'))}
-_input_index = 0
 def _custom_input(prompt=""):
-    global _input_index
-    if _input_index < len(_input_values):
-        val = _input_values[_input_index]
-        _input_index += 1
-        return val
-    return ""
+    line = sys.stdin.readline().rstrip('\\n')
+    return line
 builtins.input = _custom_input
-        `);
-      }
+      `);
 
       await pyodideRef.current.runPythonAsync(sourceCode);
       const stdout = pyodideRef.current.runPython('sys.stdout.getvalue()');

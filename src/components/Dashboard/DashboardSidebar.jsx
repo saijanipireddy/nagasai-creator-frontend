@@ -23,7 +23,7 @@ const DashboardSidebar = () => {
         setCalendarDays(res.data?.calendar?.days || []);
       })
       .catch((err) => {
-        if (err.name !== 'CanceledError') console.error('Dashboard widget error:', err);
+        // silently ignore non-cancel errors
       })
       .finally(() => setLoading(false));
     return () => controller.abort();
@@ -45,8 +45,8 @@ const DashboardSidebar = () => {
       .then((res) => {
         setCalendarDays(res.data?.calendar?.days || []);
       })
-      .catch((err) => {
-        if (err.name !== 'CanceledError') console.error('Calendar fetch error:', err);
+      .catch(() => {
+        // silently ignore calendar fetch errors
       })
       .finally(() => setCalendarLoading(false));
     return () => controller.abort();

@@ -1,6 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import Editor from '@monaco-editor/react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import Split from 'react-split';
+
+// Lazy-load Monaco Editor (~4MB) — only loaded when CodePlayground renders
+const LazyEditor = lazy(() => import('@monaco-editor/react'));
+const Editor = (props) => (
+  <Suspense fallback={<div className="flex items-center justify-center h-full bg-[#1e1e1e] text-gray-400 text-sm">Loading editor...</div>}>
+    <LazyEditor {...props} />
+  </Suspense>
+);
 import api from '../services/api';
 import {
   FaPlay, FaHtml5, FaCss3Alt, FaJs, FaPython, FaDatabase,
@@ -243,7 +250,6 @@ sys.stderr = StringIO()
       setPyodideReady(true);
       setLoadingMessage('');
     } catch (error) {
-      console.error('Failed to load Pyodide:', error);
       setLoadingMessage('Failed to load Python environment');
     }
   }, []);
@@ -272,7 +278,6 @@ sys.stderr = StringIO()
       setSqlReady(true);
       setLoadingMessage('');
     } catch (error) {
-      console.error('Failed to load SQL.js:', error);
       setLoadingMessage('Failed to load SQL environment');
     }
   }, []);

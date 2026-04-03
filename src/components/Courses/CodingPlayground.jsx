@@ -1,6 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import Editor from '@monaco-editor/react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import Split from 'react-split';
+
+// Lazy-load Monaco Editor (~4MB) — only loaded when CodingPlayground renders
+const LazyEditor = lazy(() => import('@monaco-editor/react'));
+const Editor = (props) => (
+  <Suspense fallback={<div className="flex items-center justify-center h-full bg-[#1e1e1e] text-gray-400 text-sm">Loading editor...</div>}>
+    <LazyEditor {...props} />
+  </Suspense>
+);
 import {
   FaLightbulb, FaPlay, FaRedo, FaTimes, FaChevronDown, FaChevronUp,
   FaCheck, FaCopy, FaImage, FaExpand, FaLink, FaHtml5, FaCss3Alt, FaJs,
@@ -134,7 +141,7 @@ sys.stderr = StringIO()
 
       setPyodideReady(true);
     } catch (error) {
-      console.error('Failed to load Pyodide:', error);
+      // Pyodide load failed — user will see loading state
     } finally {
       setPyodideLoading(false);
     }
@@ -165,7 +172,7 @@ sys.stderr = StringIO()
       sqlDbRef.current = new SQL.Database();
       setSqlReady(true);
     } catch (error) {
-      console.error('Failed to load SQL.js:', error);
+      // SQL.js load failed — user will see loading state
     } finally {
       setSqlLoading(false);
     }
@@ -618,7 +625,7 @@ builtins.input = _custom_input
 
       setShowResults(true);
     } catch (err) {
-      console.error('Failed to run code:', err);
+      // code execution failed
       setSubmitStatus('fail');
       setShowResults(true);
     } finally {

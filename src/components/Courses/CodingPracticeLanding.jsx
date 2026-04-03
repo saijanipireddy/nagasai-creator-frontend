@@ -147,7 +147,8 @@ const CodingPracticeLanding = ({ topic, codingPractice, onStartCoding }) => {
                 <>
 
                   <p className="text-lg font-bold text-violet-600 tabular-nums leading-tight mt-0.5">
-                    {earnedScore}<span className="text-xs font-normal text-black">/{maxScore}</span>
+                    {earnedScore}<span className="text-xs font-normal text-black
+                    ">/{maxScore}</span>
                   </p>
                 </>
               ) : (

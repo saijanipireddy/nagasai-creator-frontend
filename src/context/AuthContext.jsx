@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { studentAuthAPI, setTokens, clearTokens, getAccessToken } from '../services/api';
+import { studentAuthAPI, setTokens, clearTokens, getAccessToken, getRefreshToken } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -22,14 +22,20 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        // No token in memory — try refresh (uses cookie if browser stored it)
+        // No access token in memory — try refresh using stored refresh token
+        const storedRefresh = getRefreshToken();
+        if (!storedRefresh) {
+          if (!cancelled) setStudent(null);
+          return;
+        }
         try {
-          const { data } = await studentAuthAPI.refresh();
+          const { data } = await studentAuthAPI.refresh(storedRefresh);
           if (data.accessToken) {
             setTokens(data.accessToken, data.refreshToken);
           }
           if (!cancelled) setStudent({ _id: data._id, name: data.name, email: data.email });
         } catch {
+          clearTokens();
           if (!cancelled) setStudent(null);
         }
       } catch {

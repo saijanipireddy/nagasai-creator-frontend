@@ -1,12 +1,21 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaBars, FaBell, FaSignOutAlt, FaExclamationTriangle } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { announcementAPI } from '../../services/api';
 
 const Navbar = ({ onToggleSidebar }) => {
   const { student, logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const modalRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    announcementAPI.getStudentAnnouncements()
+      .then(res => setUnreadCount(res.data.unreadCount || 0))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!showLogoutModal) return;
@@ -58,9 +67,17 @@ const Navbar = ({ onToggleSidebar }) => {
 
           {/* Right */}
           <div className="flex items-center gap-2">
-            <button className="relative p-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-500 hover:text-gray-700">
+            <button
+              onClick={() => navigate('/announcements')}
+              className="relative p-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-500 hover:text-gray-700"
+              title="Announcements"
+            >
               <FaBell className="text-lg" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white px-1">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
 
             <div className="w-px h-8 bg-gray-200 mx-1.5 hidden sm:block" />

@@ -141,7 +141,7 @@ const Profile = () => {
         const firstBatch = coursesRes.batches?.[0];
         if (firstBatch) setSelectedBatchId(firstBatch._id);
       } catch (error) {
-        if (error.name !== 'CanceledError') console.error('Failed to load profile data');
+        // silently ignore non-cancel errors
       } finally {
         setLoading(false);
       }

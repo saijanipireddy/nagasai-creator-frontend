@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+if (!import.meta.env.VITE_BACKEND_URL && import.meta.env.PROD) {
+  throw new Error('VITE_BACKEND_URL environment variable is required in production');
+}
 export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 const API_URL = `${BACKEND_URL}/api`;
 
@@ -10,24 +13,26 @@ export const getFileUrl = (filePath) => {
 };
 
 /* ------------------------------------------------------------------ */
-/*  IN-MEMORY TOKEN STORE                                             */
-/*  Tokens live only in this closure — never in localStorage.         */
-/*  Cleared automatically when the tab closes.                        */
+/*  TOKEN STORE                                                       */
+/*  Access token: in-memory (short-lived, 15min)                      */
+/*  Refresh token: localStorage (survives page refresh, 7-day TTL)    */
 /* ------------------------------------------------------------------ */
 let accessToken = null;
-let refreshTokenValue = null;
 
 export const setTokens = (access, refresh) => {
   accessToken = access || null;
-  refreshTokenValue = refresh || null;
+  if (refresh) {
+    localStorage.setItem('refresh_token', refresh);
+  }
 };
 
 export const clearTokens = () => {
   accessToken = null;
-  refreshTokenValue = null;
+  localStorage.removeItem('refresh_token');
 };
 
 export const getAccessToken = () => accessToken;
+export const getRefreshToken = () => localStorage.getItem('refresh_token');
 
 const api = axios.create({
   baseURL: API_URL,
@@ -94,8 +99,9 @@ api.interceptors.response.use(
 
       try {
         const refreshConfig = {};
-        if (refreshTokenValue) {
-          refreshConfig.headers = { Authorization: `Bearer ${refreshTokenValue}` };
+        const storedRefresh = getRefreshToken();
+        if (storedRefresh) {
+          refreshConfig.headers = { Authorization: `Bearer ${storedRefresh}` };
         }
         const { data } = await api.post('/student-auth/refresh', {}, refreshConfig);
 
@@ -134,7 +140,12 @@ export const studentAuthAPI = {
   login: (credentials) => api.post('/student-auth/login', credentials),
   register: (data) => api.post('/student-auth/register', data),
   getProfile: () => api.get('/student-auth/profile'),
-  refresh: () => api.post('/student-auth/refresh'),
+  refresh: (refreshToken) => {
+    const config = {};
+    const token = refreshToken || getRefreshToken();
+    if (token) config.headers = { Authorization: `Bearer ${token}` };
+    return api.post('/student-auth/refresh', {}, config);
+  },
   logout: () => api.post('/student-auth/logout'),
 };
 
@@ -196,6 +207,12 @@ export const dashboardWidgetAPI = {
     if (year) params.set('year', year);
     return api.get(`/scores/dashboard-widget?${params.toString()}`, { signal });
   },
+};
+
+// Announcement APIs
+export const announcementAPI = {
+  getStudentAnnouncements: () => api.get('/announcements/student'),
+  markRead: (id) => api.post(`/announcements/${id}/read`),
 };
 
 export default api;

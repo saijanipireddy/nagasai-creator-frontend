@@ -41,10 +41,14 @@ const CodingPracticeLanding = ({ topic, codingPractice, onStartCoding }) => {
 
   const isSolved = submission?.passed === true;
   const hasAttempted = !!submission;
-  const testsPassed = isSolved ? testCasesCount : 0;
-  const totalTests = testCasesCount;
-  const earnedScore = isSolved ? maxScore : 0;
-  const scorePercent = maxScore > 0 ? (earnedScore / maxScore) * 100 : 0;
+
+  // Use summary from submission if available (new format), fallback to old logic
+  const summary = submission?.summary;
+  const totalTests = summary?.totalTests || testCasesCount || 0;
+  const testsPassed = hasAttempted ? (summary?.passedTests ?? (isSolved ? totalTests : 0)) : 0;
+  const earnedScorePercent = hasAttempted ? (summary?.scorePercent ?? (isSolved ? 100 : 0)) : 0;
+  const earnedScore = Math.round((earnedScorePercent / 100) * maxScore);
+  const scorePercent = earnedScorePercent;
   const testPercent = totalTests > 0 ? (testsPassed / totalTests) * 100 : 0;
 
   return (
@@ -87,13 +91,13 @@ const CodingPracticeLanding = ({ topic, codingPractice, onStartCoding }) => {
             {/* XP */}
             <div className="text-center">
               <p className="text-base font-bold text-violet-600 tabular-nums">
-                {hasAttempted ? earnedScore : maxScore}
+                {hasAttempted ? earnedScore : 0}
                 <span className="text-[11px] font-normal text-black">/{maxScore}</span>
               </p>
               <div className="h-1 bg-gray-100 rounded-full mt-2 mx-auto w-12 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gray-900 transition-all duration-500"
-                  style={{ width: hasAttempted ? `${scorePercent}%` : '0%' }}
+                  style={{ width: `${hasAttempted ? scorePercent : 0}%` }}
                 />
               </div>
             </div>

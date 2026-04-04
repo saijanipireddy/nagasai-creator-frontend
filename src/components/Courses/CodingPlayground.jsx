@@ -17,9 +17,10 @@ import api, { BACKEND_URL, getFileUrl } from '../../services/api';
 
 // Language configurations
 const LANGUAGE_CONFIG = {
-  html: { name: 'HTML', icon: FaHtml5, color: '#e34c26', type: 'web' },
-  css: { name: 'CSS', icon: FaCss3Alt, color: '#264de4', type: 'web' },
-  javascript: { name: 'JavaScript', icon: FaJs, color: '#f7df1e', type: 'web' },
+  web: { name: 'Web', icon: FaHtml5, color: '#e34c26', type: 'web' },
+  html: { name: 'HTML', icon: FaHtml5, color: '#e34c26', type: 'web' },  // legacy alias
+  css: { name: 'CSS', icon: FaCss3Alt, color: '#264de4', type: 'web' },  // legacy alias
+  javascript: { name: 'JavaScript', icon: FaJs, color: '#f7df1e', type: 'piston', pistonLang: 'javascript', pistonVersion: '18.15.0' },
   python: { name: 'Python', icon: FaPython, color: '#3776ab', type: 'pyodide' },
   java: { name: 'Java', icon: FaCode, color: '#007396', type: 'piston', pistonLang: 'java', pistonVersion: '15.0.2' },
   cpp: { name: 'C++', icon: FaCode, color: '#00599C', type: 'piston', pistonLang: 'c++', pistonVersion: '10.2.0' },
@@ -67,7 +68,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
   // Determine language and type
   const language = codingPractice?.language || 'javascript';
   const langConfig = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.javascript;
-  const isWebPlayground = ['html', 'css', 'javascript'].includes(language);
+  const isWebPlayground = ['html', 'css', 'web'].includes(language);
   const isStackBlitz = langConfig.type === 'stackblitz';
 
   // Web editor states
@@ -103,6 +104,7 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
   const [previousSubmission, setPreviousSubmission] = useState(null); // Loaded from DB
   const [loadingSubmission, setLoadingSubmission] = useState(true);
   const [showResults, setShowResults] = useState(false);
+  const alreadySolved = previousSubmission?.passed === true;
 
   const iframeRef = useRef(null);
   const testResultsRef = useRef(null);
@@ -292,7 +294,21 @@ builtins.input = _custom_input
     const initialCode = savedCode || starterCode;
 
     if (isWebPlayground) {
-      if (initialCode.includes('<style>') || initialCode.includes('<script>')) {
+      // Try to parse code that has <!-- HTML --> / /* CSS */ / // JS markers (old submit format)
+      if (initialCode.includes('<!-- HTML -->') && initialCode.includes('/* CSS */')) {
+        const parts = initialCode.split(/\/\*\s*CSS\s*\*\//);
+        let htmlPart = (parts[0] || '').replace('<!-- HTML -->', '').trim();
+        const rest = parts[1] || '';
+        const jsSplit = rest.split(/\/\/\s*JS/);
+        let cssPart = (jsSplit[0] || '').trim();
+        let jsPart = (jsSplit[1] || '').trim();
+
+        if (!htmlPart || !htmlPart.includes('<')) htmlPart = DEFAULT_HTML;
+        setHtml(htmlPart);
+        setCss(cssPart);
+        setWebJs(jsPart);
+      } else if (initialCode.includes('<style>') || initialCode.includes('<style ') || initialCode.includes('<script>') || initialCode.includes('<script ')) {
+        // Parse <style> and <script> tags
         let extractedHtml = initialCode;
         let extractedCss = '';
         let extractedJs = '';
@@ -310,7 +326,7 @@ builtins.input = _custom_input
         }
 
         extractedHtml = extractedHtml.trim();
-        if (!extractedHtml.includes('<!DOCTYPE')) {
+        if (!extractedHtml || !extractedHtml.includes('<')) {
           extractedHtml = DEFAULT_HTML;
         }
 
@@ -318,21 +334,12 @@ builtins.input = _custom_input
         setCss(extractedCss);
         setWebJs(extractedJs);
       } else {
-        if (language === 'html') {
-          setHtml(initialCode || DEFAULT_HTML);
-          setCss('');
-          setWebJs('');
-        } else if (language === 'css') {
-          setHtml(DEFAULT_HTML);
-          setCss(initialCode || '');
-          setWebJs('');
-        } else {
-          setHtml(DEFAULT_HTML);
-          setCss('');
-          setWebJs(initialCode || '');
-        }
+        // Plain code — put in HTML
+        setHtml(initialCode || DEFAULT_HTML);
+        setCss('');
+        setWebJs('');
       }
-      setActiveWebTab(language === 'css' ? 'css' : language === 'javascript' ? 'js' : 'html');
+      setActiveWebTab('html');
     } else {
       setCode(initialCode);
     }
@@ -415,7 +422,13 @@ builtins.input = _custom_input
     ${codingPractice?.testScript ? `
     setTimeout(() => {
       try {
+        window.testResults = window.testResults || [];
         ${codingPractice.testScript}
+        // Auto-send results back to parent
+        // Supports both window.testResults pattern and explicit console.log pattern
+        if (window.testResults && window.testResults.length > 0) {
+          console.log('TEST_RESULTS:' + JSON.stringify(window.testResults));
+        }
       } catch(e) {
         console.log('TEST_RESULTS:' + JSON.stringify(['FAIL: Test script error: ' + e.message]));
       }
@@ -500,25 +513,37 @@ builtins.input = _custom_input
         setWebPreview(getWebPreview());
         setHasRun(true);
 
-        // Wait for test results from iframe (max 3 seconds)
+        // Wait for test results from iframe (max 5 seconds)
+        // Check both postMessage results AND direct iframe access
         await new Promise((resolve) => {
           let elapsed = 0;
           const interval = setInterval(() => {
-            elapsed += 100;
-            if (testResultsRef.current || elapsed >= 3000) {
+            elapsed += 200;
+            // Try reading directly from iframe as fallback
+            if (!testResultsRef.current && iframeRef.current) {
+              try {
+                const iframeResults = iframeRef.current.contentWindow?.testResults;
+                if (iframeResults && Array.isArray(iframeResults) && iframeResults.length > 0) {
+                  testResultsRef.current = iframeResults;
+                  setTestResults(iframeResults);
+                }
+              } catch (e) { /* cross-origin - ignore */ }
+            }
+            if (testResultsRef.current || elapsed >= 5000) {
               clearInterval(interval);
               resolve();
             }
-          }, 100);
+          }, 200);
         });
 
         // Evaluate results locally from test script
         const results = testResultsRef.current || [];
         const passed = results.length > 0 && results.every(r => r === 'PASS' || r.startsWith?.('PASS'));
         setSubmitStatus(passed ? 'pass' : 'fail');
-        if (passed) onComplete?.();
+        // Mark as complete on any submission (for calendar/streak tracking)
+        onComplete?.();
         setSubmitDetails(results);
-        submitToBackend(isWebPlayground ? `<!-- HTML -->\n${html}\n/* CSS */\n${css}\n// JS\n${webJs}` : code, results);
+        submitToBackend(isWebPlayground ? `${html}\n<style>\n${css}\n</style>\n<script>\n${webJs}\n</script>` : code, results);
       } else if (isWebPlayground) {
         // Web without testScript: just run to show preview
         setConsoleOutput([]);
@@ -527,7 +552,7 @@ builtins.input = _custom_input
         setSubmitStatus('pass');
         onComplete?.();
         setSubmitDetails([]);
-        submitToBackend(`<!-- HTML -->\n${html}\n/* CSS */\n${css}\n// JS\n${webJs}`, ['PASS']);
+        submitToBackend(`${html}\n<style>\n${css}\n</style>\n<script>\n${webJs}\n</script>`, ['PASS']);
       } else if (langConfig.type === 'sqljs') {
         // SQL: run test cases in browser via SQL.js, then save to backend
         const testCases = codingPractice?.testCases || codingPractice?.test_cases || [];
@@ -559,7 +584,7 @@ builtins.input = _custom_input
         setOutput(results.map(r => r.actual).join('\n'));
         setHasRun(true);
         setSubmitStatus(allPassed ? 'pass' : 'fail');
-        if (allPassed) onComplete?.();
+        onComplete?.();
         setSubmitDetails(results);
         submitToBackend(code, results.map(r => r.passed ? 'PASS' : `FAIL: expected "${r.expected}" got "${r.actual}"`));
       } else if (langConfig.type === 'pyodide') {
@@ -592,7 +617,7 @@ builtins.input = _custom_input
         setOutput(results.map(r => r.actual).join('\n'));
         setHasRun(true);
         setSubmitStatus(allPassed ? 'pass' : 'fail');
-        if (allPassed) onComplete?.();
+        onComplete?.();
         setSubmitDetails(results);
 
         // Save result to backend
@@ -611,7 +636,7 @@ builtins.input = _custom_input
           setOutput(data.results?.map(r => r.actual).join('\n') || '');
           setHasRun(true);
           setSubmitStatus(passed ? 'pass' : 'fail');
-          if (passed) onComplete?.();
+          onComplete?.();
           setSubmitDetails(data.results || []);
         } catch {
           // Fallback: run locally if backend fails
@@ -924,20 +949,26 @@ builtins.input = _custom_input
           </button>
 
           {topicId && !readOnly && (
-            <button
-              onClick={handleSubmitOrShowResults}
-              disabled={submitting}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-colors text-white text-sm font-medium ${
-                submitStatus === 'pass' ? 'bg-green-600 hover:bg-green-700' :
-                submitStatus === 'fail' ? 'bg-orange-500 hover:bg-orange-600' :
-                submitting ? 'bg-gray-500 cursor-not-allowed' :
-                'bg-blue-500 hover:bg-blue-600'
-              }`}
-            >
-              {submitStatus === 'pass' ? <><FaCheck className="text-xs" /> Passed</> :
-               submitStatus === 'fail' ? <><FaTimes className="text-xs" /> Results</> :
-               submitting ? 'Submitting...' : 'Submit'}
-            </button>
+            alreadySolved && !submitStatus ? (
+              <span className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-green-600 text-white text-sm font-medium cursor-default">
+                <FaCheck className="text-xs" /> Solved
+              </span>
+            ) : (
+              <button
+                onClick={handleSubmitOrShowResults}
+                disabled={submitting}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-colors text-white text-sm font-medium ${
+                  submitStatus === 'pass' ? 'bg-green-600 hover:bg-green-700' :
+                  submitStatus === 'fail' ? 'bg-orange-500 hover:bg-orange-600' :
+                  submitting ? 'bg-gray-500 cursor-not-allowed' :
+                  'bg-blue-500 hover:bg-blue-600'
+                }`}
+              >
+                {submitStatus === 'pass' ? <><FaCheck className="text-xs" /> Passed</> :
+                 submitStatus === 'fail' ? <><FaTimes className="text-xs" /> Results</> :
+                 submitting ? 'Submitting...' : 'Submit'}
+              </button>
+            )
           )}
 
           <button
@@ -992,20 +1023,26 @@ builtins.input = _custom_input
           </button>
 
           {topicId && !readOnly && (
-            <button
-              onClick={handleSubmitOrShowResults}
-              disabled={submitting}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors text-xs text-white ${
-                submitStatus === 'pass' ? 'bg-green-600' :
-                submitStatus === 'fail' ? 'bg-orange-500' :
-                submitting ? 'bg-gray-500' :
-                'bg-blue-500 hover:bg-blue-600'
-              }`}
-            >
-              {submitStatus === 'pass' ? 'Passed' :
-               submitStatus === 'fail' ? 'Results' :
-               submitting ? '...' : 'Submit'}
-            </button>
+            alreadySolved && !submitStatus ? (
+              <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-600 text-white text-xs cursor-default">
+                <FaCheck className="text-[10px]" /> Solved
+              </span>
+            ) : (
+              <button
+                onClick={handleSubmitOrShowResults}
+                disabled={submitting}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors text-xs text-white ${
+                  submitStatus === 'pass' ? 'bg-green-600' :
+                  submitStatus === 'fail' ? 'bg-orange-500' :
+                  submitting ? 'bg-gray-500' :
+                  'bg-blue-500 hover:bg-blue-600'
+                }`}
+              >
+                {submitStatus === 'pass' ? 'Passed' :
+                 submitStatus === 'fail' ? 'Results' :
+                 submitting ? '...' : 'Submit'}
+              </button>
+            )
           )}
 
           <button
@@ -1272,7 +1309,7 @@ builtins.input = _custom_input
                       >
                         <div className="min-h-0 bg-white">
                           {webPreview ? (
-                            <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals" />
+                            <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals allow-same-origin" />
                           ) : (
                             <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400">
                               Click "Run" to see preview
@@ -1296,7 +1333,7 @@ builtins.input = _custom_input
                     ) : (
                       <div className="h-full bg-white">
                         {webPreview ? (
-                          <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals" />
+                          <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals allow-same-origin" />
                         ) : (
                           <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400">
                             Click "Run" to see preview
@@ -1438,7 +1475,7 @@ builtins.input = _custom_input
               {isWebPlayground ? (
                 <div className="h-full bg-white">
                   {webPreview ? (
-                    <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals" />
+                    <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals allow-same-origin" />
                   ) : (
                     <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400 text-sm">
                       Click "Run" to see preview
@@ -1484,20 +1521,19 @@ builtins.input = _custom_input
                   : <FaTimes className="text-3xl text-red-400" />}
               </div>
 
-              {/* Title */}
-              <h3 className={`text-2xl font-extrabold ${submitStatus === 'pass' ? 'text-green-400' : 'text-red-400'}`}>
-                {submitStatus === 'pass' ? 'All Tests Passed!' : 'Tests Failed'}
-              </h3>
-
-              {/* Score Summary */}
+              {/* Title & Score Summary */}
               {(() => {
                 const details = submitDetails || [];
                 let totalTests, passedTests;
 
-                if (isWebPlayground && details[0] && details[0].total !== undefined) {
+                if (isWebPlayground && testResults && testResults.length > 0) {
+                  // Web: testResults is array of 'PASS' / 'FAIL:...' strings
+                  totalTests = testResults.length;
+                  passedTests = testResults.filter(r => r === 'PASS').length;
+                } else if (isWebPlayground && details[0] && details[0].total !== undefined) {
                   totalTests = details[0].total;
                   passedTests = details[0].passed;
-                } else if (!isWebPlayground && details.length > 0) {
+                } else if (!isWebPlayground && details.length > 0 && !details[0]?.visual) {
                   totalTests = details.length;
                   passedTests = details.filter(d => d.passed).length;
                 } else {
@@ -1508,24 +1544,28 @@ builtins.input = _custom_input
                 const scorePercent = totalTests > 0
                   ? Math.round((passedTests / totalTests) * 100)
                   : (submitStatus === 'pass' ? 100 : 0);
+                const allPassed = totalTests > 0 && passedTests === totalTests;
 
                 return (
                   <>
+                    <h3 className={`text-2xl font-extrabold ${allPassed ? 'text-green-400' : 'text-red-400'}`}>
+                      {allPassed ? 'All Tests Passed!' : `${passedTests}/${totalTests} Tests Passed`}
+                    </h3>
                     <p className={`mt-2 text-base ${isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
-                      {totalTests > 0 ? `${passedTests}/${totalTests} tests passed` : 'Submission recorded'}
+                      {allPassed ? 'Great job! All tests passed successfully.' : `${totalTests - passedTests} test${totalTests - passedTests > 1 ? 's' : ''} failed. Check the details below.`}
                     </p>
 
                     {totalTests > 0 && (
                       <div className="mt-4 px-4">
                         <div className="flex justify-between text-sm mb-1.5">
                           <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}>Score</span>
-                          <span className={`font-bold ${submitStatus === 'pass' ? 'text-green-400' : 'text-red-400'}`}>
+                          <span className={`font-bold ${allPassed ? 'text-green-400' : scorePercent >= 50 ? 'text-orange-400' : 'text-red-400'}`}>
                             {scorePercent}%
                           </span>
                         </div>
                         <div className={`h-3 rounded-full overflow-hidden ${isDarkMode ? 'bg-[#0f3460]/30' : 'bg-gray-200'}`}>
                           <div
-                            className={`h-full rounded-full transition-all duration-700 ${submitStatus === 'pass' ? 'bg-green-500' : 'bg-red-500'}`}
+                            className={`h-full rounded-full transition-all duration-700 ${allPassed ? 'bg-green-500' : scorePercent >= 50 ? 'bg-orange-500' : 'bg-red-500'}`}
                             style={{ width: `${scorePercent}%` }}
                           />
                         </div>

@@ -13,7 +13,7 @@ const getLevelConfig = (tier) => {
 const ScoreCard = ({ stats, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
+      <div className="bg-stone-50 rounded-2xl shadow-md shadow-stone-200/60 ring-1 ring-stone-100 p-4">
         <div className="h-3 bg-slate-100 rounded animate-pulse w-20 mb-2.5" />
         <div className="flex items-center justify-between">
           <div className="h-6 bg-slate-100 rounded animate-pulse w-24" />
@@ -40,7 +40,7 @@ const ScoreCard = ({ stats, isLoading }) => {
     : 100;
 
   return (
-    <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
+    <div className="bg-stone-50 rounded-2xl shadow-md shadow-stone-200/60 ring-1 ring-stone-100 p-4">
       <p className="text-xs font-bold text-black mb-1">Your Score</p>
       <div className="flex items-center justify-between pt-2">
         <div className="flex items-center gap-1.5">

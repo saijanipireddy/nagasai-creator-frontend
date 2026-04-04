@@ -71,7 +71,7 @@ const ConsistencyCalendar = ({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
+      <div className="bg-stone-50 rounded-2xl shadow-md shadow-stone-200/60 ring-1 ring-stone-100 p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="h-4 bg-slate-100 rounded animate-pulse w-24" />
           <div className="flex gap-2">
@@ -89,7 +89,7 @@ const ConsistencyCalendar = ({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
+    <div className="bg-stone-50 rounded-2xl shadow-md shadow-stone-200/60 ring-1 ring-stone-100 p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-700">

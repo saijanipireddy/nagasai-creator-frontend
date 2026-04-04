@@ -11,7 +11,7 @@ const FireIcon = () => (
 const StreakCard = ({ streak, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
+      <div className="bg-stone-50 rounded-2xl shadow-md shadow-stone-200/60 ring-1 ring-stone-100 p-4">
         <div className="h-3.5 bg-slate-100 rounded animate-pulse w-32 mb-1" />
         <div className="h-2.5 bg-slate-100 rounded animate-pulse w-40 mb-3" />
         <div className="flex gap-3">
@@ -33,7 +33,7 @@ const StreakCard = ({ streak, isLoading }) => {
   if (!streak) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-md shadow-slate-200/60 ring-1 ring-slate-100 p-4">
+    <div className="bg-stone-50 rounded-2xl shadow-md shadow-stone-200/60 ring-1 ring-stone-100 p-4">
       <h3 className="text-sm font-bold text-slate-900 mb-0.5">Learning Consistency</h3>
       <p className="text-[10px] text-slate-400 mb-3">Track your learning progress and consistency.</p>
 

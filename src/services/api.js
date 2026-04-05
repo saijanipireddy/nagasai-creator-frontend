@@ -210,6 +210,25 @@ export const dashboardWidgetAPI = {
   },
 };
 
+// Interview APIs
+export const interviewAPI = {
+  getMyAccess: (signal) => api.get('/interviews/my-access', { signal }),
+  startInterview: (accessId) => api.post(`/interviews/start/${accessId}`),
+  sendMessage: (interviewId, message) => api.post(`/interviews/message/${interviewId}`, { message }),
+  sendVoice: (interviewId, audioBlob, elapsedSeconds) => {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    if (elapsedSeconds != null) formData.append('elapsedSeconds', String(elapsedSeconds));
+    return api.post(`/interviews/voice/${interviewId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
+    });
+  },
+  getInterview: (interviewId, signal) => api.get(`/interviews/${interviewId}`, { signal }),
+  sendProctoring: (interviewId, proctoringData) => api.post(`/interviews/proctoring/${interviewId}`, { proctoringData }),
+  completeInterview: (interviewId, proctoringData) => api.post(`/interviews/complete/${interviewId}`, { proctoringData }),
+};
+
 // Announcement APIs
 export const announcementAPI = {
   getStudentAnnouncements: () => api.get('/announcements/student'),

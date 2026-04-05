@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { FaHome, FaBook, FaCode, FaBriefcase, FaTimes, FaChevronLeft, FaQuestionCircle, FaUser, FaTrophy, FaFileAlt, FaBullhorn } from 'react-icons/fa';
+import { FaHome, FaBook, FaCode, FaBriefcase, FaTimes, FaChevronLeft, FaQuestionCircle, FaUser, FaTrophy, FaFileAlt, FaBullhorn, FaRobot } from 'react-icons/fa';
 
 const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
   const navItems = [
@@ -9,6 +9,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
     { path: '/jobs', icon: FaBriefcase, label: 'Jobs Board', color: 'from-emerald-500 to-emerald-600' },
     { path: '/resume-creator', icon: FaFileAlt, label: 'AI Resume', color: 'from-violet-500 to-purple-500' },
     { path: '/announcements', icon: FaBullhorn, label: 'Announcements', color: 'from-rose-500 to-pink-500' },
+    { path: '/ai-interview', icon: FaRobot, label: 'AI Interview', color: 'from-indigo-500 to-purple-600' },
     { path: '/playground', icon: FaCode, label: 'Playground', color: 'from-orange-500 to-orange-600' },
     { path: '/profile', icon: FaUser, label: 'My Profile', color: 'from-gray-500 to-gray-600' }
   ];

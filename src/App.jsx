@@ -18,6 +18,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const ResumeCreator = lazy(() => import('./pages/ResumeCreator'));
 const Announcements = lazy(() => import('./pages/Announcements'));
+const AIInterview = lazy(() => import('./pages/AIInterview'));
 
 const PageSpinner = () => (
   <div className="min-h-[50vh] flex items-center justify-center">
@@ -67,6 +68,7 @@ function AppRoutes() {
         <Route path="profile" element={<Suspense fallback={<PageSpinner />}><Profile /></Suspense>} />
         <Route path="resume-creator" element={<Suspense fallback={<PageSpinner />}><ResumeCreator /></Suspense>} />
         <Route path="announcements" element={<Suspense fallback={<PageSpinner />}><Announcements /></Suspense>} />
+        <Route path="ai-interview" element={<Suspense fallback={<PageSpinner />}><AIInterview /></Suspense>} />
       </Route>
       <Route path="*" element={<Suspense fallback={<PageSpinner />}><NotFound /></Suspense>} />
     </Routes>

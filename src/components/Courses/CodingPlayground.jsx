@@ -11,7 +11,8 @@ const Editor = (props) => (
 import {
   FaLightbulb, FaPlay, FaRedo, FaTimes, FaChevronDown, FaChevronUp,
   FaCheck, FaCopy, FaImage, FaExpand, FaLink, FaHtml5, FaCss3Alt, FaJs,
-  FaPython, FaDatabase, FaDownload, FaSun, FaMoon, FaCompress, FaCode, FaTerminal, FaFileAlt
+  FaPython, FaDatabase, FaDownload, FaSun, FaMoon, FaCompress, FaCode, FaTerminal, FaFileAlt,
+  FaChevronLeft, FaHistory, FaCloudUploadAlt, FaCircle, FaListUl, FaPlus, FaBookOpen
 } from 'react-icons/fa';
 import api, { BACKEND_URL, getFileUrl } from '../../services/api';
 
@@ -94,7 +95,6 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
   const [imageExpanded, setImageExpanded] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showProblem, setShowProblem] = useState(true);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activePanel, setActivePanel] = useState('editor'); // 'problem', 'editor', 'output' for mobile
   const [submitStatus, setSubmitStatus] = useState(null); // null | 'pass' | 'fail'
   const [submitting, setSubmitting] = useState(false);
@@ -104,6 +104,9 @@ const CodingPlayground = ({ codingPractice, topicId, onClose, onComplete, readOn
   const [previousSubmission, setPreviousSubmission] = useState(null); // Loaded from DB
   const [loadingSubmission, setLoadingSubmission] = useState(true);
   const [showResults, setShowResults] = useState(false);
+  const [leftTab, setLeftTab] = useState('description'); // 'description' | 'hints' | 'submissions'
+  const [bottomTab, setBottomTab] = useState('testcase'); // 'testcase' | 'result' | 'console'
+  const [activeTestCaseIndex, setActiveTestCaseIndex] = useState(0);
   const alreadySolved = previousSubmission?.passed === true;
 
   const iframeRef = useRef(null);
@@ -259,15 +262,6 @@ builtins.input = _custom_input
     } catch (error) {
       return { success: false, output: `SQL Error: ${error.message}` };
     }
-  }, []);
-
-  // Handle window resize for mobile detection
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Load previous submission from backend
@@ -662,9 +656,16 @@ builtins.input = _custom_input
   const handleSubmitOrShowResults = () => {
     if (submitStatus && submitDetails) {
       setShowResults(true);
+      setBottomTab('result');
     } else {
-      handleSubmitCode();
+      handleSubmitCode().then(() => setBottomTab('result'));
     }
+  };
+
+  // Run code and switch to console / result view
+  const handleRunCode = async () => {
+    await runCode();
+    setBottomTab(isWebPlayground ? 'console' : 'result');
   };
 
   // Reset code
@@ -779,7 +780,6 @@ builtins.input = _custom_input
   };
 
   const theme = isDarkMode ? 'vs-dark' : 'light';
-  const hasConsole = isWebPlayground && consoleOutput.length > 0;
 
   if (loadingSubmission) {
     return (
@@ -915,319 +915,400 @@ builtins.input = _custom_input
   }
 
   return (
-    <div className={`fixed inset-0 z-50 flex flex-col ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-gray-100'}`}>
-      {/* Header - Desktop */}
-      <div className={`hidden md:flex items-center justify-between px-4 py-2 border-b shrink-0 ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
-        <div className="flex items-center gap-3">
+    <div className={`fixed inset-0 z-50 flex flex-col ${isDarkMode ? 'bg-[#1a1a1a] text-gray-200' : 'bg-gray-50 text-gray-800'}`}>
+      {/* LeetCode-style Top Bar */}
+      <header className={`h-12 flex items-center justify-between px-3 sm:px-4 border-b shrink-0 ${isDarkMode ? 'bg-[#262626] border-[#3e3e3e]' : 'bg-white border-gray-200'}`}>
+        {/* Left: Back + Title + Difficulty */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <button
             onClick={onClose}
-            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0] hover:text-white' : 'hover:bg-gray-200 text-gray-600'}`}
+            title="Back"
+            className={`p-1.5 rounded-md transition-colors flex items-center gap-1 ${isDarkMode ? 'hover:bg-[#3e3e3e] text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
           >
-            <FaTimes />
+            <FaChevronLeft className="text-xs" />
+            <span className="hidden sm:inline text-xs font-medium">Problem List</span>
           </button>
-          <h1 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{codingPractice.title}</h1>
-          <span className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded font-medium">
+          <div className={`hidden sm:block w-px h-5 ${isDarkMode ? 'bg-[#3e3e3e]' : 'bg-gray-300'}`} />
+          <h1 className={`text-sm font-semibold truncate ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+            {codingPractice.title}
+          </h1>
+          <span
+            className="px-2 py-0.5 rounded text-[11px] font-semibold capitalize shrink-0"
+            style={{
+              color: codingPractice?.difficulty === 'hard' ? '#ff375f' : codingPractice?.difficulty === 'medium' ? '#ffb800' : '#00b8a3',
+              backgroundColor: codingPractice?.difficulty === 'hard' ? 'rgba(255, 55, 95, 0.1)' : codingPractice?.difficulty === 'medium' ? 'rgba(255, 184, 0, 0.1)' : 'rgba(0, 184, 163, 0.1)',
+            }}
+          >
+            {codingPractice?.difficulty || 'easy'}
+          </span>
+          <span className={`hidden md:inline-flex px-2 py-0.5 rounded text-[11px] font-medium ${isDarkMode ? 'bg-[#3e3e3e] text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
             {isWebPlayground ? 'Web' : langConfig.name}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Center: Run + Submit (LeetCode signature buttons) */}
+        <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={() => setShowProblem(!showProblem)}
-            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${showProblem ? 'bg-[#e94560] text-white' : isDarkMode ? 'bg-[#0f3460] text-[#a0a0a0]' : 'bg-gray-200 text-gray-600'}`}
-          >
-            {showProblem ? 'Hide Problem' : 'Show Problem'}
-          </button>
-
-          <button
-            onClick={runCode}
+            onClick={handleRunCode}
             disabled={isRunning || (langConfig.type === 'pyodide' && !pyodideReady) || (langConfig.type === 'sqljs' && !sqlReady)}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-colors ${isRunning || (langConfig.type === 'pyodide' && !pyodideReady) || (langConfig.type === 'sqljs' && !sqlReady) ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white`}
-          >
-            <FaPlay className={`text-xs ${isRunning ? 'animate-pulse' : ''}`} />
-            <span className="text-sm font-medium">{langConfig.type === 'pyodide' && !pyodideReady ? 'Loading Python...' : langConfig.type === 'sqljs' && !sqlReady ? 'Loading SQL...' : isRunning ? 'Running...' : 'Run'}</span>
-          </button>
-
-          {topicId && !readOnly && (
-            alreadySolved && !submitStatus ? (
-              <span className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-green-600 text-white text-sm font-medium cursor-default">
-                <FaCheck className="text-xs" /> Solved
-              </span>
-            ) : (
-              <button
-                onClick={handleSubmitOrShowResults}
-                disabled={submitting}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-colors text-white text-sm font-medium ${
-                  submitStatus === 'pass' ? 'bg-green-600 hover:bg-green-700' :
-                  submitStatus === 'fail' ? 'bg-orange-500 hover:bg-orange-600' :
-                  submitting ? 'bg-gray-500 cursor-not-allowed' :
-                  'bg-blue-500 hover:bg-blue-600'
-                }`}
-              >
-                {submitStatus === 'pass' ? <><FaCheck className="text-xs" /> Passed</> :
-                 submitStatus === 'fail' ? <><FaTimes className="text-xs" /> Results</> :
-                 submitting ? 'Submitting...' : 'Submit'}
-              </button>
-            )
-          )}
-
-          <button
-            onClick={resetCode}
-            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
-            title="Reset Code"
-          >
-            <FaRedo className="text-sm" />
-          </button>
-
-          <button
-            onClick={handleCopyCode}
-            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
-            title="Copy Code"
-          >
-            {copied ? <FaCheck className="text-sm text-green-500" /> : <FaCopy className="text-sm" />}
-          </button>
-
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
-            title="Toggle Theme"
-          >
-            {isDarkMode ? <FaSun className="text-sm" /> : <FaMoon className="text-sm" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Header - Mobile */}
-      <div className={`md:hidden flex items-center justify-between px-3 py-2 border-b shrink-0 ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onClose}
-            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
-          >
-            <FaTimes className="text-sm" />
-          </button>
-          <h1 className={`text-sm font-bold truncate max-w-[120px] ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{codingPractice.title}</h1>
-          <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] rounded font-medium">
-            {isWebPlayground ? 'Web' : langConfig.name}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <button
-            onClick={runCode}
-            disabled={isRunning}
-            className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors text-xs ${isRunning ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white`}
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDarkMode ? 'bg-[#3e3e3e] hover:bg-[#4a4a4a] text-gray-100' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
           >
             <FaPlay className={`text-[10px] ${isRunning ? 'animate-pulse' : ''}`} />
-            {isRunning ? '...' : 'Run'}
+            <span>{isRunning ? 'Running' : langConfig.type === 'pyodide' && !pyodideReady ? 'Loading' : langConfig.type === 'sqljs' && !sqlReady ? 'Loading' : 'Run'}</span>
           </button>
 
           {topicId && !readOnly && (
             alreadySolved && !submitStatus ? (
-              <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-600 text-white text-xs cursor-default">
-                <FaCheck className="text-[10px]" /> Solved
+              <span className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-md bg-[#00b8a3] text-white text-xs sm:text-sm font-semibold cursor-default">
+                <FaCheck className="text-[10px]" />
+                <span>Solved</span>
               </span>
             ) : (
               <button
                 onClick={handleSubmitOrShowResults}
                 disabled={submitting}
-                className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors text-xs text-white ${
-                  submitStatus === 'pass' ? 'bg-green-600' :
-                  submitStatus === 'fail' ? 'bg-orange-500' :
-                  submitting ? 'bg-gray-500' :
-                  'bg-blue-500 hover:bg-blue-600'
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed ${
+                  submitStatus === 'pass' ? 'bg-[#00b8a3] hover:bg-[#00a18d]' :
+                  submitStatus === 'fail' ? 'bg-[#ff8d00] hover:bg-[#e67d00]' :
+                  'bg-[#00b8a3] hover:bg-[#00a18d]'
                 }`}
               >
-                {submitStatus === 'pass' ? 'Passed' :
-                 submitStatus === 'fail' ? 'Results' :
-                 submitting ? '...' : 'Submit'}
+                {submitStatus === 'pass' ? <><FaCheck className="text-[10px]" /><span>Accepted</span></> :
+                 submitStatus === 'fail' ? <><FaTimes className="text-[10px]" /><span>Results</span></> :
+                 submitting ? <span>Submitting...</span> : <><FaCloudUploadAlt className="text-[11px]" /><span>Submit</span></>}
               </button>
             )
           )}
+        </div>
 
+        {/* Right: Utility buttons */}
+        <div className="flex items-center gap-1 flex-1 justify-end">
           <button
             onClick={resetCode}
-            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
+            title="Reset Code"
+            className={`p-1.5 rounded-md transition-colors ${isDarkMode ? 'hover:bg-[#3e3e3e] text-gray-400 hover:text-gray-100' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-800'}`}
           >
             <FaRedo className="text-xs" />
           </button>
-
           <button
             onClick={handleCopyCode}
-            className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#0f3460] text-[#a0a0a0]' : 'hover:bg-gray-200 text-gray-600'}`}
+            title="Copy Code"
+            className={`p-1.5 rounded-md transition-colors ${isDarkMode ? 'hover:bg-[#3e3e3e] text-gray-400 hover:text-gray-100' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-800'}`}
           >
-            {copied ? <FaCheck className="text-xs text-green-500" /> : <FaCopy className="text-xs" />}
+            {copied ? <FaCheck className="text-xs text-[#00b8a3]" /> : <FaCopy className="text-xs" />}
+          </button>
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            title="Toggle Theme"
+            className={`hidden sm:inline-flex p-1.5 rounded-md transition-colors ${isDarkMode ? 'hover:bg-[#3e3e3e] text-gray-400 hover:text-gray-100' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-800'}`}
+          >
+            {isDarkMode ? <FaSun className="text-xs" /> : <FaMoon className="text-xs" />}
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Tab Navigation */}
-      <div className={`md:hidden flex border-b shrink-0 ${isDarkMode ? 'bg-[#1a1a2e] border-[#0f3460]' : 'bg-white border-gray-200'}`}>
+      {/* Mobile Section Tabs (shows only on mobile under top bar) */}
+      <div className={`md:hidden flex border-b shrink-0 ${isDarkMode ? 'bg-[#262626] border-[#3e3e3e]' : 'bg-white border-gray-200'}`}>
         {[
-          { id: 'problem', label: 'Problem', icon: FaFileAlt },
-          { id: 'editor', label: 'Editor', icon: FaCode },
-          { id: 'output', label: 'Output', icon: FaTerminal }
+          { id: 'problem', label: 'Description', icon: FaFileAlt },
+          { id: 'editor', label: 'Code', icon: FaCode },
+          { id: 'output', label: 'Result', icon: FaTerminal }
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActivePanel(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors relative active:scale-95
-              ${activePanel === tab.id
-                ? isDarkMode ? 'text-[#e94560]' : 'text-blue-600'
-                : isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors relative active:scale-95 ${
+              activePanel === tab.id
+                ? isDarkMode ? 'text-[#00b8a3]' : 'text-[#00b8a3]'
+                : isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}
           >
-            <tab.icon className="text-sm" />
+            <tab.icon className="text-xs" />
             {tab.label}
             {activePanel === tab.id && (
-              <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-[#e94560]' : 'bg-blue-600'}`} />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00b8a3]" />
             )}
           </button>
         ))}
       </div>
 
-      {/* Main Content - Desktop */}
+      {/* Main Content - Desktop (LeetCode two-pane layout) */}
       <div className="hidden md:block flex-1 min-h-0">
         <Split
           className="split-horizontal h-full"
-          sizes={showProblem ? [30, 70] : [0, 100]}
-          minSize={showProblem ? [250, 400] : [0, 400]}
-          gutterSize={showProblem ? 6 : 0}
+          sizes={[45, 55]}
+          minSize={[280, 400]}
+          gutterSize={6}
           direction="horizontal"
           style={{ display: 'flex', height: '100%' }}
         >
-          {/* Left Panel - Problem Description */}
-          <div className={`h-full overflow-hidden flex flex-col ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'} ${!showProblem ? 'hidden' : ''}`}>
-            <div className="flex-1 overflow-y-auto p-4">
-              <h2 className={`text-base font-semibold mb-3 ${isDarkMode ? 'text-[#e94560]' : 'text-blue-600'}`}>Problem Description</h2>
-              <div className={`text-sm leading-relaxed whitespace-pre-wrap ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {renderDescription(codingPractice.description)}
-              </div>
+          {/* LEFT PANE — Problem (with tabs) */}
+          <div className={`h-full flex flex-col overflow-hidden rounded-md ${isDarkMode ? 'bg-[#262626]' : 'bg-white'}`}>
+            {/* Left Tabs Bar */}
+            <div className={`flex items-center gap-1 px-2 border-b shrink-0 ${isDarkMode ? 'border-[#3e3e3e] bg-[#262626]' : 'border-gray-200 bg-white'}`}>
+              {[
+                { id: 'description', label: 'Description', icon: FaFileAlt, color: '#00b8a3' },
+                { id: 'hints', label: 'Hints', icon: FaLightbulb, color: '#ffb800', count: codingPractice.hints?.length },
+                { id: 'submissions', label: 'Submissions', icon: FaHistory, color: '#7c8ed3' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setLeftTab(tab.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors -mb-px ${
+                    leftTab === tab.id
+                      ? `${isDarkMode ? 'text-gray-100' : 'text-gray-900'} border-[#00b8a3]`
+                      : `${isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-800'} border-transparent`
+                  }`}
+                >
+                  <tab.icon className="text-[11px]" style={{ color: leftTab === tab.id ? tab.color : undefined }} />
+                  <span>{tab.label}</span>
+                  {tab.count > 0 && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isDarkMode ? 'bg-[#3e3e3e] text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
 
-              {/* Image Links */}
-              {codingPractice.imageLinks && codingPractice.imageLinks.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-base font-semibold mb-3 text-cyan-400 flex items-center gap-2">
-                    <FaLink className="text-sm" /> Image Links
-                  </h3>
-                  <div className="space-y-2">
-                    {codingPractice.imageLinks.map((link, index) => (
-                      <div key={index} className={`flex items-center gap-2 p-2 rounded-lg border ${isDarkMode ? 'bg-[#0f0f0f] border-[#0f3460]' : 'bg-gray-50 border-gray-200'}`}>
-                        <span className="text-cyan-400 text-xs font-medium min-w-[80px]">{link.label || `Link ${index + 1}`}:</span>
-                        <input type="text" value={link.url} readOnly className="flex-1 bg-transparent text-xs font-mono text-gray-400 outline-none truncate" />
+            {/* Left Tab Content */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Description Tab */}
+              {leftTab === 'description' && (
+                <div className="p-5">
+                  {/* Title block */}
+                  <div className="mb-4">
+                    <h2 className={`text-lg font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                      {codingPractice.title}
+                    </h2>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className="px-2 py-0.5 rounded text-[11px] font-semibold capitalize"
+                        style={{
+                          color: codingPractice?.difficulty === 'hard' ? '#ff375f' : codingPractice?.difficulty === 'medium' ? '#ffb800' : '#00b8a3',
+                          backgroundColor: codingPractice?.difficulty === 'hard' ? 'rgba(255, 55, 95, 0.1)' : codingPractice?.difficulty === 'medium' ? 'rgba(255, 184, 0, 0.1)' : 'rgba(0, 184, 163, 0.1)',
+                        }}
+                      >
+                        {codingPractice?.difficulty || 'easy'}
+                      </span>
+                      <span className={`text-[11px] px-2 py-0.5 rounded font-medium ${isDarkMode ? 'bg-[#3e3e3e] text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                        {isWebPlayground ? 'Web' : langConfig.name}
+                      </span>
+                      {codingPractice?.maxScore && (
+                        <span className={`text-[11px] flex items-center gap-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <FaCircle className="text-[6px]" />
+                          {codingPractice.maxScore} points
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={`h-px mb-4 ${isDarkMode ? 'bg-[#3e3e3e]' : 'bg-gray-200'}`} />
+
+                  {/* Description text */}
+                  <div className={`text-sm leading-relaxed whitespace-pre-wrap ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {renderDescription(codingPractice.description)}
+                  </div>
+
+                  {/* Image Links */}
+                  {codingPractice.imageLinks && codingPractice.imageLinks.length > 0 && (
+                    <div className="mt-6">
+                      <h3 className={`text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <FaLink className="text-[11px]" /> Image Links
+                      </h3>
+                      <div className="space-y-1.5">
+                        {codingPractice.imageLinks.map((link, index) => (
+                          <div key={index} className={`flex items-center gap-2 p-2 rounded border ${isDarkMode ? 'bg-[#1a1a1a] border-[#3e3e3e]' : 'bg-gray-50 border-gray-200'}`}>
+                            <span className={`text-[11px] font-medium min-w-[70px] ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{link.label || `Link ${index + 1}`}:</span>
+                            <input type="text" value={link.url} readOnly className={`flex-1 bg-transparent text-[11px] font-mono outline-none truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                            <button
+                              onClick={() => copyImageLink(link.url, index)}
+                              className={`px-2 py-1 text-[10px] rounded transition-colors ${copiedLink === index ? 'bg-[#00b8a3] text-white' : isDarkMode ? 'bg-[#3e3e3e] hover:bg-[#4a4a4a] text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+                            >
+                              {copiedLink === index ? 'Copied!' : 'Copy'}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reference Image */}
+                  {codingPractice.referenceImage && (
+                    <div className="mt-6">
+                      <h3 className={`text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <FaImage className="text-[11px]" /> Reference Image
+                      </h3>
+                      <div
+                        className={`relative group rounded overflow-hidden cursor-pointer transition-colors border ${isDarkMode ? 'border-[#3e3e3e] hover:border-[#00b8a3]' : 'border-gray-200 hover:border-[#00b8a3]'}`}
+                        onClick={() => setImageExpanded(true)}
+                      >
+                        <img
+                          src={getFileUrl(codingPractice.referenceImage)}
+                          alt="Reference UI"
+                          className="w-full max-h-[280px] object-contain bg-white"
+                        />
                         <button
-                          onClick={() => copyImageLink(link.url, index)}
-                          className={`px-2 py-1 text-xs rounded transition-colors ${copiedLink === index ? 'bg-green-500 text-white' : isDarkMode ? 'bg-[#0f3460] hover:bg-[#0f3460]/80 text-gray-300' : 'bg-gray-200 text-gray-600'}`}
+                          onClick={(e) => { e.stopPropagation(); setImageExpanded(true); }}
+                          className="absolute top-2 right-2 p-2 bg-black/70 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black"
                         >
-                          {copiedLink === index ? 'Copied!' : 'Copy'}
+                          <FaExpand className="text-xs" />
                         </button>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
+
+                  {/* Examples (test cases as examples) */}
+                  {(codingPractice.testCases || codingPractice.test_cases || []).slice(0, 3).map((tc, i) => {
+                    const input = tc.input || tc.setupSql || tc.setup_sql || '';
+                    const expected = tc.expectedOutput || tc.expected_output || '';
+                    if (!input && !expected) return null;
+                    return (
+                      <div key={i} className="mt-5">
+                        <h3 className={`text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Example {i + 1}:
+                        </h3>
+                        <div className={`p-3 rounded-md font-mono text-xs ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-gray-50'}`}>
+                          {input && (
+                            <div className="mb-2">
+                              <span className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Input: </span>
+                              <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>{input}</span>
+                            </div>
+                          )}
+                          {expected && (
+                            <div>
+                              <span className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Output: </span>
+                              <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>{expected}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Expected Output (if no test cases) */}
+                  {codingPractice.expectedOutput && !(codingPractice.testCases || codingPractice.test_cases || []).length && (
+                    <div className="mt-5">
+                      <h3 className={`text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Expected Output:
+                      </h3>
+                      <pre className={`p-3 rounded-md text-xs overflow-x-auto font-mono ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
+                        {codingPractice.expectedOutput}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Reference Image */}
-              {codingPractice.referenceImage && (
-                <div className="mt-6">
-                  <h3 className="text-base font-semibold mb-3 text-blue-400 flex items-center gap-2">
-                    <FaImage className="text-sm" /> Reference Image
-                  </h3>
-                  <div
-                    className={`relative group rounded-lg p-3 cursor-pointer transition-colors ${isDarkMode ? 'bg-[#0f0f0f] hover:bg-[#0f3460]/50' : 'bg-gray-50 hover:bg-gray-100'}`}
-                    onClick={() => setImageExpanded(true)}
-                    style={{ height: '280px' }}
-                  >
-                    <img
-                      src={getFileUrl(codingPractice.referenceImage)}
-                      alt="Reference UI"
-                      className="rounded-lg border-2 border-[#0f3460] hover:border-blue-400 transition-colors"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setImageExpanded(true); }}
-                      className="absolute top-5 right-5 p-2 bg-[#1a1a2e]/90 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#0f3460]"
-                    >
-                      <FaExpand className="text-sm" />
-                    </button>
-                  </div>
-                  <p className="text-xs text-[#a0a0a0] mt-2 text-center">Click image to enlarge</p>
+              {/* Hints Tab */}
+              {leftTab === 'hints' && (
+                <div className="p-5">
+                  {codingPractice.hints && codingPractice.hints.length > 0 ? (
+                    <div className="space-y-3">
+                      {codingPractice.hints.map((hint, i) => (
+                        <div key={i} className={`rounded-md border p-3 ${isDarkMode ? 'bg-[#1a1a1a] border-[#3e3e3e]' : 'bg-yellow-50 border-yellow-200'}`}>
+                          <div className="flex items-start gap-2">
+                            <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
+                              <FaLightbulb className="text-yellow-500 text-[11px]" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-[11px] font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-700'}`}>
+                                Hint {i + 1}
+                              </p>
+                              <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                {hint}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={`text-center py-12 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      <FaLightbulb className="text-3xl mx-auto mb-2 opacity-30" />
+                      <p className="text-sm">No hints available for this problem</p>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Expected Output */}
-              {codingPractice.expectedOutput && (
-                <div className="mt-6">
-                  <h3 className="text-base font-semibold mb-2 text-green-400 flex items-center gap-2">
-                    <FaCheck className="text-sm" /> Expected Output
-                  </h3>
-                  <pre className={`p-3 rounded-lg text-sm overflow-x-auto font-mono border ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300 border-[#0f3460]' : 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                    {codingPractice.expectedOutput}
-                  </pre>
+              {/* Submissions Tab */}
+              {leftTab === 'submissions' && (
+                <div className="p-5">
+                  {previousSubmission ? (
+                    <div className={`rounded-md border ${isDarkMode ? 'bg-[#1a1a1a] border-[#3e3e3e]' : 'bg-white border-gray-200'}`}>
+                      <div className={`flex items-center justify-between px-4 py-3 border-b ${isDarkMode ? 'border-[#3e3e3e]' : 'border-gray-200'}`}>
+                        <div className="flex items-center gap-2">
+                          {previousSubmission.passed ? (
+                            <>
+                              <div className="w-2 h-2 rounded-full bg-[#00b8a3]" />
+                              <span className="text-sm font-bold text-[#00b8a3]">Accepted</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-2 h-2 rounded-full bg-[#ff375f]" />
+                              <span className="text-sm font-bold text-[#ff375f]">Wrong Answer</span>
+                            </>
+                          )}
+                        </div>
+                        <span className={`text-[11px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {previousSubmission.summary?.passedTests ?? 0}/{previousSubmission.summary?.totalTests ?? 0} testcases
+                        </span>
+                      </div>
+                      <div className="p-4">
+                        <div className={`text-[11px] uppercase tracking-wider mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Submitted Code</div>
+                        <pre className={`p-3 rounded text-xs font-mono overflow-x-auto max-h-[300px] overflow-y-auto ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
+                          {previousSubmission.code || '— no code —'}
+                        </pre>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`text-center py-12 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      <FaHistory className="text-3xl mx-auto mb-2 opacity-30" />
+                      <p className="text-sm">No submissions yet</p>
+                      <p className="text-xs mt-1 opacity-70">Submit your code to see your history</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-
-            {/* Hints */}
-            {codingPractice.hints && codingPractice.hints.length > 0 && (
-              <div className={`border-t ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
-                <button
-                  onClick={() => setShowHints(!showHints)}
-                  className={`w-full flex items-center justify-between p-3 transition-colors ${isDarkMode ? 'hover:bg-[#0f3460]/50' : 'hover:bg-gray-50'}`}
-                >
-                  <span className="flex items-center gap-2 text-yellow-500 font-medium text-sm">
-                    <FaLightbulb /> Hints ({codingPractice.hints.length})
-                  </span>
-                  {showHints ? <FaChevronDown /> : <FaChevronUp />}
-                </button>
-                {showHints && (
-                  <div className={`p-3 ${isDarkMode ? 'bg-[#0f0f0f]/50' : 'bg-gray-50'}`}>
-                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-yellow-500 text-xs font-medium">
-                          Hint {currentHintIndex + 1} of {codingPractice.hints.length}
-                        </span>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => setCurrentHintIndex(prev => Math.max(0, prev - 1))}
-                            disabled={currentHintIndex === 0}
-                            className={`px-2 py-1 text-xs rounded disabled:opacity-50 ${isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-200'}`}
-                          >
-                            Prev
-                          </button>
-                          <button
-                            onClick={() => setCurrentHintIndex(prev => Math.min(codingPractice.hints.length - 1, prev + 1))}
-                            disabled={currentHintIndex >= codingPractice.hints.length - 1}
-                            className={`px-2 py-1 text-xs rounded disabled:opacity-50 ${isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-200'}`}
-                          >
-                            Next
-                          </button>
-                        </div>
-                      </div>
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {codingPractice.hints[currentHintIndex]}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Right Panel - Editor & Output (Side by Side) */}
+          {/* RIGHT PANE — Editor + Tests (Vertical split) */}
           <div className="h-full min-w-0">
             <Split
-              className="split-horizontal h-full"
-              sizes={[50, 50]}
-              minSize={200}
+              className="split-vertical h-full"
+              sizes={[60, 40]}
+              minSize={[200, 120]}
               gutterSize={6}
-              direction="horizontal"
-              style={{ display: 'flex', height: '100%' }}
+              direction="vertical"
+              style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
             >
-              {/* Editor Panel */}
-              <div className={`h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
-                {/* Web Tabs */}
+              {/* TOP: Editor */}
+              <div className={`flex flex-col overflow-hidden rounded-md ${isDarkMode ? 'bg-[#262626]' : 'bg-white'}`}>
+                {/* Editor header */}
+                <div className={`flex items-center justify-between px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-[#3e3e3e]' : 'border-gray-200'}`}>
+                  <div className="flex items-center gap-2">
+                    <FaCode className="text-[11px] text-[#00b8a3]" />
+                    <span className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Code</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${isDarkMode ? 'bg-[#3e3e3e] text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                      {isWebPlayground ? 'Web' : langConfig.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={resetCode}
+                      title="Reset Code"
+                      className={`p-1 rounded transition-colors ${isDarkMode ? 'hover:bg-[#3e3e3e] text-gray-400 hover:text-gray-100' : 'hover:bg-gray-100 text-gray-500'}`}
+                    >
+                      <FaRedo className="text-[10px]" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Web Tabs (HTML/CSS/JS) */}
                 {isWebPlayground && (
-                  <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
+                  <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-[#3e3e3e] bg-[#262626]' : 'border-gray-200 bg-white'}`}>
                     {[
                       { id: 'html', label: 'HTML', icon: FaHtml5, color: '#e34c26' },
                       { id: 'css', label: 'CSS', icon: FaCss3Alt, color: '#264de4' },
@@ -1236,28 +1317,16 @@ builtins.input = _custom_input
                       <button
                         key={tab.id}
                         onClick={() => setActiveWebTab(tab.id)}
-                        className={`flex items-center gap-1.5 px-4 py-2 transition-colors relative
-                          ${activeWebTab === tab.id
-                            ? isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-100'
-                            : isDarkMode ? 'hover:bg-[#0f3460]/50' : 'hover:bg-gray-50'}`}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium border-r transition-colors ${
+                          activeWebTab === tab.id
+                            ? `${isDarkMode ? 'bg-[#1a1a1a] text-gray-100 border-b-2 border-b-[#00b8a3]' : 'bg-gray-50 text-gray-900 border-b-2 border-b-[#00b8a3]'}`
+                            : `${isDarkMode ? 'text-gray-400 hover:bg-[#3e3e3e] border-[#3e3e3e]' : 'text-gray-500 hover:bg-gray-50 border-gray-200'}`
+                        }`}
                       >
-                        <tab.icon style={{ color: tab.color }} className="text-sm" />
-                        <span className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>{tab.label}</span>
-                        {activeWebTab === tab.id && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: tab.color }} />
-                        )}
+                        <tab.icon style={{ color: tab.color }} className="text-xs" />
+                        {tab.label}
                       </button>
                     ))}
-                  </div>
-                )}
-
-                {/* Non-web header */}
-                {!isWebPlayground && (
-                  <div className={`flex items-center gap-2 px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
-                    <FaCode className={`text-sm`} style={{ color: langConfig.color }} />
-                    <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>
-                      {langConfig.name} Editor
-                    </span>
                   </div>
                 )}
 
@@ -1274,76 +1343,264 @@ builtins.input = _custom_input
                 </div>
               </div>
 
-              {/* Output/Preview Panel */}
-              <div className={`h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
-                {/* Output header */}
-                <div className={`flex items-center gap-2 px-3 py-2 border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
-                  {isWebPlayground ? (
-                    <>
-                      <div className="flex gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                      </div>
-                      <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Preview</span>
-                    </>
-                  ) : (
-                    <>
-                      <FaTerminal className={`text-sm ${isDarkMode ? 'text-[#e94560]' : 'text-blue-500'}`} />
-                      <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Output</span>
-                    </>
-                  )}
+              {/* BOTTOM: Test Cases / Result / Console / Preview */}
+              <div className={`flex flex-col overflow-hidden rounded-md ${isDarkMode ? 'bg-[#262626]' : 'bg-white'}`}>
+                {/* Bottom Tabs Bar */}
+                <div className={`flex items-center gap-1 px-2 border-b shrink-0 ${isDarkMode ? 'border-[#3e3e3e]' : 'border-gray-200'}`}>
+                  {(() => {
+                    const tabs = [
+                      { id: 'testcase', label: 'Testcase', icon: FaListUl },
+                      { id: 'result', label: 'Test Result', icon: FaCheck, badge: submitStatus },
+                    ];
+                    if (isWebPlayground) {
+                      tabs.push({ id: 'preview', label: 'Preview', icon: FaImage });
+                    }
+                    tabs.push({ id: 'console', label: 'Console', icon: FaTerminal });
+                    return tabs.map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setBottomTab(tab.id)}
+                        className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors -mb-px ${
+                          bottomTab === tab.id
+                            ? `${isDarkMode ? 'text-gray-100' : 'text-gray-900'} border-[#00b8a3]`
+                            : `${isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-800'} border-transparent`
+                        }`}
+                      >
+                        <tab.icon className="text-[11px]" />
+                        <span>{tab.label}</span>
+                        {tab.badge === 'pass' && <FaCheck className="text-[10px] text-[#00b8a3]" />}
+                        {tab.badge === 'fail' && <FaTimes className="text-[10px] text-[#ff375f]" />}
+                      </button>
+                    ));
+                  })()}
                 </div>
 
-                {/* Output content */}
+                {/* Tab content */}
                 <div className="flex-1 min-h-0 overflow-auto">
-                  {isWebPlayground ? (
-                    hasConsole ? (
-                      <Split
-                        className="split-vertical h-full"
-                        sizes={[75, 25]}
-                        minSize={50}
-                        gutterSize={4}
-                        direction="vertical"
-                        style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
-                      >
-                        <div className="min-h-0 bg-white">
-                          {webPreview ? (
-                            <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals allow-same-origin" />
-                          ) : (
-                            <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400">
-                              Click "Run" to see preview
+                  {/* Testcase Tab */}
+                  {bottomTab === 'testcase' && (
+                    <div className="p-4">
+                      {(() => {
+                        const cases = codingPractice.testCases || codingPractice.test_cases || [];
+                        if (cases.length === 0) {
+                          return (
+                            <div className={`text-center py-8 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                              <FaListUl className="text-2xl mx-auto mb-2 opacity-30" />
+                              <p className="text-xs">No test cases configured for this problem.</p>
+                              {codingPractice.expectedOutput && (
+                                <div className="mt-4 text-left">
+                                  <div className={`text-[11px] uppercase font-bold mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Expected Output:</div>
+                                  <pre className={`p-2 rounded text-xs font-mono ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
+                                    {codingPractice.expectedOutput}
+                                  </pre>
+                                </div>
+                              )}
                             </div>
+                          );
+                        }
+                        const safeIdx = Math.min(activeTestCaseIndex, cases.length - 1);
+                        const tc = cases[safeIdx];
+                        const tcInput = tc.input || tc.setupSql || tc.setup_sql || '';
+                        const tcExpected = tc.expectedOutput || tc.expected_output || '';
+                        return (
+                          <div>
+                            {/* Case pills */}
+                            <div className="flex items-center gap-2 mb-3 flex-wrap">
+                              {cases.map((_, i) => (
+                                <button
+                                  key={i}
+                                  onClick={() => setActiveTestCaseIndex(i)}
+                                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                                    safeIdx === i
+                                      ? `${isDarkMode ? 'bg-[#3e3e3e] text-gray-100' : 'bg-gray-200 text-gray-900'}`
+                                      : `${isDarkMode ? 'bg-[#1a1a1a] text-gray-400 hover:bg-[#3e3e3e]' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`
+                                  }`}
+                                >
+                                  Case {i + 1}
+                                </button>
+                              ))}
+                            </div>
+
+                            {/* Case detail */}
+                            <div className="space-y-3">
+                              {tcInput && (
+                                <div>
+                                  <div className={`text-[11px] uppercase font-bold tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Input</div>
+                                  <pre className={`p-3 rounded-md text-xs font-mono whitespace-pre-wrap ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
+                                    {tcInput}
+                                  </pre>
+                                </div>
+                              )}
+                              {tcExpected && (
+                                <div>
+                                  <div className={`text-[11px] uppercase font-bold tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Expected Output</div>
+                                  <pre className={`p-3 rounded-md text-xs font-mono whitespace-pre-wrap ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
+                                    {tcExpected}
+                                  </pre>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Test Result Tab */}
+                  {bottomTab === 'result' && (
+                    <div className="p-4">
+                      {!hasRun && !submitStatus && (
+                        <div className={`text-center py-8 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                          <FaPlay className="text-2xl mx-auto mb-2 opacity-30" />
+                          <p className="text-xs">Click <span className="font-semibold">Run</span> to test your code or <span className="font-semibold">Submit</span> for evaluation</p>
+                        </div>
+                      )}
+
+                      {/* Status banner */}
+                      {submitStatus && (
+                        <div className={`mb-4 p-3 rounded-md flex items-center gap-2 ${
+                          submitStatus === 'pass'
+                            ? isDarkMode ? 'bg-[#00b8a3]/10 border border-[#00b8a3]/30' : 'bg-green-50 border border-green-200'
+                            : isDarkMode ? 'bg-[#ff375f]/10 border border-[#ff375f]/30' : 'bg-red-50 border border-red-200'
+                        }`}>
+                          {submitStatus === 'pass' ? (
+                            <>
+                              <FaCheck className="text-[#00b8a3]" />
+                              <span className="text-sm font-bold text-[#00b8a3]">Accepted</span>
+                            </>
+                          ) : (
+                            <>
+                              <FaTimes className="text-[#ff375f]" />
+                              <span className="text-sm font-bold text-[#ff375f]">Wrong Answer</span>
+                            </>
+                          )}
+                          {submitDetails && submitDetails.length > 0 && (
+                            <span className={`ml-auto text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {submitDetails.filter(d => d.passed || d === 'PASS').length}/{submitDetails.length} testcases passed
+                            </span>
                           )}
                         </div>
-                        <div className={`min-h-0 flex flex-col ${isDarkMode ? 'bg-[#0f0f0f]' : 'bg-gray-100'}`}>
-                          <div className={`flex items-center gap-2 px-2 py-1 border-b ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
-                            <FaTerminal className="text-xs text-[#e94560]" />
-                            <span className="text-xs font-medium">Console</span>
-                          </div>
-                          <div className="flex-1 overflow-auto p-2">
-                            {consoleOutput.map((log, i) => (
-                              <div key={i} className={`text-xs font-mono py-0.5 ${log.level === 'error' ? 'text-red-500' : log.level === 'warn' ? 'text-yellow-500' : isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                {log.message}
-                              </div>
+                      )}
+
+                      {/* Non-web case-by-case details */}
+                      {!isWebPlayground && submitDetails && submitDetails.length > 0 && !submitDetails[0]?.visual && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            {submitDetails.map((tc, i) => (
+                              <button
+                                key={i}
+                                onClick={() => setActiveTestCaseIndex(i)}
+                                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                                  activeTestCaseIndex === i
+                                    ? `${isDarkMode ? 'bg-[#3e3e3e] text-gray-100' : 'bg-gray-200 text-gray-900'}`
+                                    : `${isDarkMode ? 'bg-[#1a1a1a] text-gray-400 hover:bg-[#3e3e3e]' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`
+                                }`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${tc.passed ? 'bg-[#00b8a3]' : 'bg-[#ff375f]'}`} />
+                                Case {i + 1}
+                              </button>
                             ))}
                           </div>
+                          {(() => {
+                            const idx = Math.min(activeTestCaseIndex, submitDetails.length - 1);
+                            const tc = submitDetails[idx];
+                            return (
+                              <div className="space-y-3">
+                                {tc.input && (
+                                  <div>
+                                    <div className={`text-[11px] uppercase font-bold tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Input</div>
+                                    <pre className={`p-3 rounded-md text-xs font-mono whitespace-pre-wrap ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>{tc.input}</pre>
+                                  </div>
+                                )}
+                                <div>
+                                  <div className={`text-[11px] uppercase font-bold tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Expected Output</div>
+                                  <pre className={`p-3 rounded-md text-xs font-mono whitespace-pre-wrap ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>{tc.expected}</pre>
+                                </div>
+                                <div>
+                                  <div className={`text-[11px] uppercase font-bold tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Your Output</div>
+                                  <pre className={`p-3 rounded-md text-xs font-mono whitespace-pre-wrap ${
+                                    tc.passed
+                                      ? isDarkMode ? 'bg-[#00b8a3]/10 text-[#00b8a3]' : 'bg-green-50 text-green-700'
+                                      : isDarkMode ? 'bg-[#ff375f]/10 text-[#ff375f]' : 'bg-red-50 text-red-700'
+                                  }`}>{tc.actual || '(empty)'}</pre>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
-                      </Split>
-                    ) : (
-                      <div className="h-full bg-white">
-                        {webPreview ? (
-                          <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals allow-same-origin" />
+                      )}
+
+                      {/* Web test results */}
+                      {isWebPlayground && testResults && testResults.length > 0 && (
+                        <div className="space-y-2">
+                          {testResults.map((result, i) => {
+                            const isPassed = result === 'PASS';
+                            return (
+                              <div key={i} className={`flex items-center gap-2 p-2 rounded-md ${
+                                isPassed
+                                  ? isDarkMode ? 'bg-[#00b8a3]/10' : 'bg-green-50'
+                                  : isDarkMode ? 'bg-[#ff375f]/10' : 'bg-red-50'
+                              }`}>
+                                {isPassed
+                                  ? <FaCheck className="text-[#00b8a3] text-xs" />
+                                  : <FaTimes className="text-[#ff375f] text-xs" />}
+                                <span className={`text-xs font-medium ${isPassed ? 'text-[#00b8a3]' : 'text-[#ff375f]'}`}>
+                                  Test {i + 1}
+                                </span>
+                                {!isPassed && (
+                                  <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    {String(result).replace('FAIL:', '').trim()}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Plain stdout (run, no submit) */}
+                      {!submitStatus && hasRun && !isWebPlayground && (
+                        <div>
+                          <div className={`text-[11px] uppercase font-bold tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Output</div>
+                          <pre className={`p-3 rounded-md text-xs font-mono whitespace-pre-wrap ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
+                            {output || '(no output)'}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Preview Tab (web only) */}
+                  {bottomTab === 'preview' && isWebPlayground && (
+                    <div className="h-full bg-white">
+                      {webPreview ? (
+                        <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals allow-same-origin" />
+                      ) : (
+                        <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400 text-xs">
+                          Click <span className="mx-1 font-semibold">Run</span> to see preview
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Console Tab */}
+                  {bottomTab === 'console' && (
+                    <div className={`h-full p-3 font-mono text-xs ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-gray-50'}`}>
+                      {isWebPlayground ? (
+                        consoleOutput.length > 0 ? (
+                          consoleOutput.map((log, i) => (
+                            <div key={i} className={`py-0.5 whitespace-pre-wrap ${log.level === 'error' ? 'text-[#ff375f]' : log.level === 'warn' ? 'text-yellow-500' : isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {log.message}
+                            </div>
+                          ))
                         ) : (
-                          <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400">
-                            Click "Run" to see preview
-                          </div>
-                        )}
-                      </div>
-                    )
-                  ) : (
-                    <div className={`h-full p-3 font-mono text-sm whitespace-pre-wrap ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
-                      {output || <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}>Click "Run" to execute code</span>}
+                          <div className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Console output will appear here after Run.</div>
+                        )
+                      ) : (
+                        <div className={`whitespace-pre-wrap ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {output || <span className={isDarkMode ? 'text-gray-500' : 'text-gray-400'}>Click Run to execute code.</span>}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1353,84 +1610,102 @@ builtins.input = _custom_input
         </Split>
       </div>
 
-      {/* Main Content - Mobile */}
+      {/* Main Content - Mobile (LeetCode style) */}
       <div className="md:hidden flex-1 min-h-0 flex flex-col">
         {/* Problem Panel - Mobile */}
         {activePanel === 'problem' && (
-          <div className={`flex-1 overflow-y-auto p-3 ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
-            <h2 className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-[#e94560]' : 'text-blue-600'}`}>Problem Description</h2>
-            <div className={`text-xs leading-relaxed whitespace-pre-wrap ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {renderDescription(codingPractice.description)}
-            </div>
-
-            {/* Reference Image - Mobile */}
-            {codingPractice.referenceImage && (
-              <div className="mt-4">
-                <h3 className="text-sm font-semibold mb-2 text-blue-400 flex items-center gap-2">
-                  <FaImage className="text-xs" /> Reference
-                </h3>
-                <img
-                  src={getFileUrl(codingPractice.referenceImage)}
-                  alt="Reference UI"
-                  className="w-full rounded-lg border border-[#0f3460]"
-                  onClick={() => setImageExpanded(true)}
-                />
-              </div>
-            )}
-
-            {/* Expected Output - Mobile */}
-            {codingPractice.expectedOutput && (
-              <div className="mt-4">
-                <h3 className="text-sm font-semibold mb-2 text-green-400">Expected Output</h3>
-                <pre className={`p-2 rounded-lg text-xs overflow-x-auto font-mono ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
-                  {codingPractice.expectedOutput}
-                </pre>
-              </div>
-            )}
-
-            {/* Hints - Mobile */}
-            {codingPractice.hints && codingPractice.hints.length > 0 && (
-              <div className="mt-4">
-                <button
-                  onClick={() => setShowHints(!showHints)}
-                  className="flex items-center gap-2 text-yellow-500 font-medium text-sm"
+          <div className={`flex-1 overflow-y-auto ${isDarkMode ? 'bg-[#262626]' : 'bg-white'}`}>
+            <div className="p-4">
+              {/* Title block */}
+              <h2 className={`text-base font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                {codingPractice.title}
+              </h2>
+              <div className="flex items-center gap-2 flex-wrap mb-3">
+                <span
+                  className="px-2 py-0.5 rounded text-[10px] font-semibold capitalize"
+                  style={{
+                    color: codingPractice?.difficulty === 'hard' ? '#ff375f' : codingPractice?.difficulty === 'medium' ? '#ffb800' : '#00b8a3',
+                    backgroundColor: codingPractice?.difficulty === 'hard' ? 'rgba(255, 55, 95, 0.1)' : codingPractice?.difficulty === 'medium' ? 'rgba(255, 184, 0, 0.1)' : 'rgba(0, 184, 163, 0.1)',
+                  }}
                 >
-                  <FaLightbulb /> Hints ({codingPractice.hints.length})
-                </button>
-                {showHints && (
-                  <div className="mt-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
-                    <p className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {codingPractice.hints[currentHintIndex]}
-                    </p>
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        onClick={() => setCurrentHintIndex(prev => Math.max(0, prev - 1))}
-                        disabled={currentHintIndex === 0}
-                        className="px-2 py-1 text-xs rounded bg-[#0f3460] disabled:opacity-50"
-                      >
-                        Prev
-                      </button>
-                      <button
-                        onClick={() => setCurrentHintIndex(prev => Math.min(codingPractice.hints.length - 1, prev + 1))}
-                        disabled={currentHintIndex >= codingPractice.hints.length - 1}
-                        className="px-2 py-1 text-xs rounded bg-[#0f3460] disabled:opacity-50"
-                      >
-                        Next
-                      </button>
+                  {codingPractice?.difficulty || 'easy'}
+                </span>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${isDarkMode ? 'bg-[#3e3e3e] text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                  {isWebPlayground ? 'Web' : langConfig.name}
+                </span>
+              </div>
+
+              <div className={`h-px mb-3 ${isDarkMode ? 'bg-[#3e3e3e]' : 'bg-gray-200'}`} />
+
+              <div className={`text-xs leading-relaxed whitespace-pre-wrap ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {renderDescription(codingPractice.description)}
+              </div>
+
+              {codingPractice.referenceImage && (
+                <div className="mt-4">
+                  <h3 className={`text-[11px] font-bold uppercase tracking-wider mb-2 flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <FaImage className="text-[10px]" /> Reference
+                  </h3>
+                  <img
+                    src={getFileUrl(codingPractice.referenceImage)}
+                    alt="Reference UI"
+                    className={`w-full rounded border ${isDarkMode ? 'border-[#3e3e3e]' : 'border-gray-200'}`}
+                    onClick={() => setImageExpanded(true)}
+                  />
+                </div>
+              )}
+
+              {/* Examples (test cases) */}
+              {(codingPractice.testCases || codingPractice.test_cases || []).slice(0, 3).map((tc, i) => {
+                const input = tc.input || tc.setupSql || tc.setup_sql || '';
+                const expected = tc.expectedOutput || tc.expected_output || '';
+                if (!input && !expected) return null;
+                return (
+                  <div key={i} className="mt-4">
+                    <h3 className={`text-[11px] font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Example {i + 1}:
+                    </h3>
+                    <div className={`p-2.5 rounded font-mono text-[11px] ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-gray-50'}`}>
+                      {input && <div className="mb-1"><span className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Input: </span><span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>{input}</span></div>}
+                      {expected && <div><span className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Output: </span><span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>{expected}</span></div>}
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+                );
+              })}
+
+              {codingPractice.expectedOutput && !(codingPractice.testCases || codingPractice.test_cases || []).length && (
+                <div className="mt-4">
+                  <h3 className={`text-[11px] font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Expected Output</h3>
+                  <pre className={`p-2.5 rounded text-[11px] overflow-x-auto font-mono ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
+                    {codingPractice.expectedOutput}
+                  </pre>
+                </div>
+              )}
+
+              {codingPractice.hints && codingPractice.hints.length > 0 && (
+                <div className="mt-5">
+                  <h3 className={`text-[11px] font-bold uppercase tracking-wider mb-2 flex items-center gap-2 text-yellow-500`}>
+                    <FaLightbulb className="text-[10px]" /> Hints ({codingPractice.hints.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {codingPractice.hints.map((hint, i) => (
+                      <div key={i} className={`rounded p-2.5 border ${isDarkMode ? 'bg-yellow-500/5 border-yellow-500/20' : 'bg-yellow-50 border-yellow-200'}`}>
+                        <p className={`text-[10px] font-bold uppercase mb-1 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-700'}`}>Hint {i + 1}</p>
+                        <p className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{hint}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {/* Editor Panel - Mobile */}
         {activePanel === 'editor' && (
-          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
-            {/* Web Tabs - Mobile */}
+          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#262626]' : 'bg-white'}`}>
             {isWebPlayground && (
-              <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-[#0f3460]' : 'border-gray-200'}`}>
+              <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-[#3e3e3e]' : 'border-gray-200'}`}>
                 {[
                   { id: 'html', label: 'HTML', icon: FaHtml5, color: '#e34c26' },
                   { id: 'css', label: 'CSS', icon: FaCss3Alt, color: '#264de4' },
@@ -1439,22 +1714,20 @@ builtins.input = _custom_input
                   <button
                     key={tab.id}
                     onClick={() => setActiveWebTab(tab.id)}
-                    className={`flex-1 flex items-center justify-center gap-1 py-2 transition-colors relative text-xs
+                    className={`flex-1 flex items-center justify-center gap-1 py-2 transition-colors relative text-[11px] font-medium
                       ${activeWebTab === tab.id
-                        ? isDarkMode ? 'bg-[#0f3460]' : 'bg-gray-100'
-                        : ''}`}
+                        ? isDarkMode ? 'bg-[#1a1a1a] text-gray-100' : 'bg-gray-50 text-gray-900'
+                        : isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
                   >
-                    <tab.icon style={{ color: tab.color }} className="text-sm" />
+                    <tab.icon style={{ color: tab.color }} className="text-xs" />
                     {tab.label}
                     {activeWebTab === tab.id && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: tab.color }} />
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00b8a3]" />
                     )}
                   </button>
                 ))}
               </div>
             )}
-
-            {/* Monaco Editor - Mobile */}
             <div className="flex-1 min-h-0">
               <Editor
                 height="100%"
@@ -1468,38 +1741,158 @@ builtins.input = _custom_input
           </div>
         )}
 
-        {/* Output Panel - Mobile */}
+        {/* Output / Result Panel - Mobile */}
         {activePanel === 'output' && (
-          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'}`}>
+          <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#262626]' : 'bg-white'}`}>
+            {/* Sub-tabs for mobile output */}
+            <div className={`flex border-b shrink-0 ${isDarkMode ? 'border-[#3e3e3e]' : 'border-gray-200'}`}>
+              {(() => {
+                const tabs = [
+                  { id: 'testcase', label: 'Testcase', icon: FaListUl },
+                  { id: 'result', label: 'Result', icon: FaCheck },
+                ];
+                if (isWebPlayground) tabs.push({ id: 'preview', label: 'Preview', icon: FaImage });
+                tabs.push({ id: 'console', label: 'Console', icon: FaTerminal });
+                return tabs.map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setBottomTab(tab.id)}
+                    className={`flex-1 flex items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors relative ${
+                      bottomTab === tab.id
+                        ? `${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`
+                        : `${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`
+                    }`}
+                  >
+                    <tab.icon className="text-[10px]" />
+                    {tab.label}
+                    {bottomTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00b8a3]" />}
+                  </button>
+                ));
+              })()}
+            </div>
+
             <div className="flex-1 min-h-0 overflow-auto">
-              {isWebPlayground ? (
+              {/* Testcase tab */}
+              {bottomTab === 'testcase' && (
+                <div className="p-3">
+                  {(() => {
+                    const cases = codingPractice.testCases || codingPractice.test_cases || [];
+                    if (cases.length === 0) {
+                      return <div className={`text-center py-6 text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>No test cases.</div>;
+                    }
+                    const safeIdx = Math.min(activeTestCaseIndex, cases.length - 1);
+                    const tc = cases[safeIdx];
+                    return (
+                      <>
+                        <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                          {cases.map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setActiveTestCaseIndex(i)}
+                              className={`px-2.5 py-1 rounded text-[11px] font-medium ${safeIdx === i ? (isDarkMode ? 'bg-[#3e3e3e] text-gray-100' : 'bg-gray-200 text-gray-900') : (isDarkMode ? 'bg-[#1a1a1a] text-gray-400' : 'bg-gray-50 text-gray-500')}`}
+                            >
+                              Case {i + 1}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="space-y-2">
+                          {(tc.input || tc.setupSql || tc.setup_sql) && (
+                            <div>
+                              <div className={`text-[10px] uppercase font-bold mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Input</div>
+                              <pre className={`p-2 rounded text-[11px] font-mono whitespace-pre-wrap ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>{tc.input || tc.setupSql || tc.setup_sql}</pre>
+                            </div>
+                          )}
+                          {(tc.expectedOutput || tc.expected_output) && (
+                            <div>
+                              <div className={`text-[10px] uppercase font-bold mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Expected</div>
+                              <pre className={`p-2 rounded text-[11px] font-mono whitespace-pre-wrap ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>{tc.expectedOutput || tc.expected_output}</pre>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Result tab */}
+              {bottomTab === 'result' && (
+                <div className="p-3">
+                  {!hasRun && !submitStatus && (
+                    <div className={`text-center py-6 text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      Run or Submit your code to see results.
+                    </div>
+                  )}
+                  {submitStatus && (
+                    <div className={`mb-3 p-2.5 rounded flex items-center gap-2 text-xs font-bold ${
+                      submitStatus === 'pass'
+                        ? isDarkMode ? 'bg-[#00b8a3]/10 text-[#00b8a3]' : 'bg-green-50 text-green-700'
+                        : isDarkMode ? 'bg-[#ff375f]/10 text-[#ff375f]' : 'bg-red-50 text-red-700'
+                    }`}>
+                      {submitStatus === 'pass' ? <><FaCheck /> Accepted</> : <><FaTimes /> Wrong Answer</>}
+                    </div>
+                  )}
+                  {!isWebPlayground && submitDetails && submitDetails.length > 0 && !submitDetails[0]?.visual && (
+                    <div className="space-y-2">
+                      {submitDetails.map((tc, i) => (
+                        <div key={i} className={`p-2.5 rounded border ${tc.passed ? (isDarkMode ? 'bg-[#00b8a3]/5 border-[#00b8a3]/20' : 'bg-green-50 border-green-200') : (isDarkMode ? 'bg-[#ff375f]/5 border-[#ff375f]/20' : 'bg-red-50 border-red-200')}`}>
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            {tc.passed ? <FaCheck className="text-[#00b8a3] text-[10px]" /> : <FaTimes className="text-[#ff375f] text-[10px]" />}
+                            <span className={`text-[11px] font-bold ${tc.passed ? 'text-[#00b8a3]' : 'text-[#ff375f]'}`}>Case {i + 1}</span>
+                          </div>
+                          {tc.input && <div className="text-[10px]"><span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>Input: </span><code className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>{tc.input}</code></div>}
+                          <div className="text-[10px]"><span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>Expected: </span><code className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>{tc.expected}</code></div>
+                          <div className="text-[10px]"><span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>Got: </span><code className={tc.passed ? 'text-[#00b8a3]' : 'text-[#ff375f]'}>{tc.actual}</code></div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {isWebPlayground && testResults && testResults.length > 0 && (
+                    <div className="space-y-1.5">
+                      {testResults.map((r, i) => {
+                        const ok = r === 'PASS';
+                        return (
+                          <div key={i} className={`p-2 rounded flex items-center gap-1.5 text-[11px] ${ok ? (isDarkMode ? 'bg-[#00b8a3]/10 text-[#00b8a3]' : 'bg-green-50 text-green-700') : (isDarkMode ? 'bg-[#ff375f]/10 text-[#ff375f]' : 'bg-red-50 text-red-700')}`}>
+                            {ok ? <FaCheck className="text-[10px]" /> : <FaTimes className="text-[10px]" />}
+                            <span className="font-bold">Test {i + 1}</span>
+                            {!ok && <span className="text-[10px]">{String(r).replace('FAIL:', '').trim()}</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {!submitStatus && hasRun && !isWebPlayground && (
+                    <pre className={`p-2.5 rounded text-[11px] font-mono whitespace-pre-wrap ${isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-50 text-gray-700'}`}>{output || '(no output)'}</pre>
+                  )}
+                </div>
+              )}
+
+              {/* Preview tab */}
+              {bottomTab === 'preview' && isWebPlayground && (
                 <div className="h-full bg-white">
                   {webPreview ? (
                     <iframe ref={iframeRef} srcDoc={webPreview} className="w-full h-full border-none" title="Preview" sandbox="allow-scripts allow-modals allow-same-origin" />
                   ) : (
-                    <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400 text-sm">
-                      Click "Run" to see preview
-                    </div>
+                    <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400 text-xs">Click Run to see preview</div>
                   )}
                 </div>
-              ) : (
-                <div className={`h-full p-3 font-mono text-xs whitespace-pre-wrap ${isDarkMode ? 'bg-[#0f0f0f] text-gray-300' : 'bg-gray-50 text-gray-800'}`}>
-                  {output || <span className={isDarkMode ? 'text-[#a0a0a0]' : 'text-gray-400'}>Click "Run" to execute code</span>}
+              )}
+
+              {/* Console tab */}
+              {bottomTab === 'console' && (
+                <div className={`h-full p-2.5 font-mono text-[11px] ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-gray-50'}`}>
+                  {isWebPlayground ? (
+                    consoleOutput.length > 0 ? consoleOutput.map((log, i) => (
+                      <div key={i} className={`py-0.5 whitespace-pre-wrap ${log.level === 'error' ? 'text-[#ff375f]' : log.level === 'warn' ? 'text-yellow-500' : isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {log.message}
+                      </div>
+                    )) : <div className={isDarkMode ? 'text-gray-500' : 'text-gray-400'}>Console will appear here.</div>
+                  ) : (
+                    <div className={`whitespace-pre-wrap ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{output || <span className={isDarkMode ? 'text-gray-500' : 'text-gray-400'}>Click Run to execute.</span>}</div>
+                  )}
                 </div>
               )}
             </div>
-            {/* Console for mobile */}
-            {isWebPlayground && consoleOutput.length > 0 && (
-              <div className={`max-h-32 overflow-auto border-t ${isDarkMode ? 'bg-[#0f0f0f] border-[#0f3460]' : 'bg-gray-100 border-gray-200'}`}>
-                <div className="p-2">
-                  {consoleOutput.map((log, i) => (
-                    <div key={i} className={`text-xs font-mono py-0.5 ${log.level === 'error' ? 'text-red-500' : log.level === 'warn' ? 'text-yellow-500' : isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {log.message}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
